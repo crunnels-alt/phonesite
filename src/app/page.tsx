@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Navigation from '@/components/Navigation';
+// import Navigation from '@/components/Navigation';
 import PhoneNavigationMonitor from '@/components/PhoneStateMonitor';
 import AdminPanel from '@/components/AdminPanel';
 import AboutSection from '@/components/sections/AboutSection';
@@ -15,15 +15,15 @@ export default function Home() {
   const renderSection = () => {
     switch (currentSection) {
       case 'about':
-        return <AboutSection />;
+        return <AboutSection onSectionChange={handleSectionChange} />;
       case 'projects':
-        return <ProjectsSection />;
+        return <ProjectsSection onSectionChange={handleSectionChange} />;
       case 'photo':
-        return <PhotoSection />;
+        return <PhotoSection onSectionChange={handleSectionChange} />;
       case 'writing':
-        return <WritingSection />;
+        return <WritingSection onSectionChange={handleSectionChange} />;
       default:
-        return <AboutSection />;
+        return <AboutSection onSectionChange={handleSectionChange} />;
     }
   };
 
@@ -32,18 +32,12 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <Navigation
-        currentSection={currentSection}
-        onSectionChange={handleSectionChange}
-      />
-
+    <div className="min-h-screen">
       {/* Phone Navigation Monitor (Hidden, just for real-time updates) */}
       <PhoneNavigationMonitor onSectionChange={handleSectionChange} />
 
       {/* Main Content */}
-      <main className="pt-24">
+      <main>
         {renderSection()}
       </main>
 

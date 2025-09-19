@@ -1,5 +1,9 @@
 'use client';
 
+interface ProjectsSectionProps {
+  onSectionChange?: (section: string) => void;
+}
+
 const projects = [
   {
     title: "Project One",
@@ -24,10 +28,33 @@ const projects = [
   }
 ];
 
-export default function ProjectsSection() {
+export default function ProjectsSection({ onSectionChange }: ProjectsSectionProps) {
+  const sections = [
+    { id: 'about', label: 'About', key: '1' },
+    { id: 'projects', label: 'Projects', key: '2' },
+    { id: 'photo', label: 'Photo', key: '3' },
+    { id: 'writing', label: 'Writing', key: '4' },
+  ];
+
   return (
-    <section className="min-h-screen p-8 md:p-16 bg-gray-50">
+    <section className="min-h-screen p-8 md:p-16">
       <div className="max-w-6xl mx-auto">
+
+        {/* Navigation */}
+        <div className="mb-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => onSectionChange?.(section.id)}
+                className="text-left text-sm hover:opacity-60 transition-opacity text-gray-700"
+              >
+                {section.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="mb-12">
           <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
             Projects
