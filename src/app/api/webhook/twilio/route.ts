@@ -79,9 +79,28 @@ export async function POST(request: NextRequest) {
     const pressedDigit = webhookData.Digits;
     const callSid = webhookData.CallSid;
 
-    if (!phoneNumber || !pressedDigit) {
+    // If no digit was pressed yet (initial call), provide the main menu
+    if (!pressedDigit) {
+      const welcomeTwiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="alice">Welcome to the phone navigation system! Press 1 for About, 2 for Projects, 3 for Photo, 4 for Writing, or 0 for Home.</Say>
+  <Gather numDigits="1" timeout="10" action="${new URL(request.url).origin}/api/webhook/twilio">
+    <Say voice="alice">Please press a digit to navigate.</Say>
+  </Gather>
+  <Say voice="alice">Thank you for calling!</Say>
+</Response>`;
+
+      return new Response(welcomeTwiml, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/xml',
+        },
+      });
+    }
+
+    if (!phoneNumber) {
       return NextResponse.json(
-        { error: 'Missing required fields: From or Digits' },
+        { error: 'Missing phone number' },
         { status: 400 }
       );
     }
