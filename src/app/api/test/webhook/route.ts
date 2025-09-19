@@ -40,14 +40,15 @@ export async function POST(request: NextRequest) {
       body: formData.toString(),
     });
 
-    const result = await response.json();
+    const result = await response.text();
 
     return NextResponse.json({
       success: true,
       message: 'Test webhook sent',
       webhookResponse: {
         status: response.status,
-        data: result
+        data: result,
+        contentType: response.headers.get('content-type')
       }
     });
 
