@@ -53,43 +53,88 @@ export default function AdminPanel() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md mt-8">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Admin Panel</h2>
+    <div className="experimental-grid" style={{ gridTemplateRows: 'auto 1fr auto', minHeight: '60vh' }}>
 
-      <div className="space-y-6">
-        <div className="border rounded-lg p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Test Webhook</h3>
+      {/* Header */}
+      <div
+        className="type-display"
+        style={{
+          gridColumn: '1 / 13',
+          gridRow: '1',
+          fontSize: 'clamp(1.5rem, 4vw, 2.5rem)',
+          lineHeight: '0.9',
+          marginBottom: '2rem',
+          transform: 'rotate(-0.5deg)'
+        }}
+      >
+        DEVELOPMENT_INTERFACE
+      </div>
 
-          <div className="grid grid-cols-2 gap-4">
+      {/* Test Controls */}
+      <div
+        style={{
+          gridColumn: '1 / 12',
+          gridRow: '2',
+          display: 'grid',
+          gap: '2rem'
+        }}
+      >
+        {/* Webhook Testing */}
+        <div
+          style={{
+            border: '1px solid var(--accent-gray)',
+            padding: '1.5rem',
+            opacity: 0.8
+          }}
+        >
+          <div className="type-mono text-xs mb-4 opacity-60">
+            WEBHOOK_SIMULATION
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number
-              </label>
+              <div className="type-mono text-xs mb-2 opacity-60">
+                PHONE_NUMBER
+              </div>
               <input
                 type="text"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="type-mono text-sm"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid var(--accent-gray)',
+                  background: 'transparent',
+                  color: 'var(--foreground)'
+                }}
                 placeholder="+1234567890"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Page Selection
-              </label>
+              <div className="type-mono text-xs mb-2 opacity-60">
+                DIGIT_INPUT
+              </div>
               <select
                 value={digit}
                 onChange={(e) => setDigit(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="type-mono text-sm"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid var(--accent-gray)',
+                  background: 'var(--background)',
+                  color: 'var(--foreground)'
+                }}
               >
-                <option value="1">1 - About</option>
-                <option value="2">2 - Projects</option>
-                <option value="3">3 - Photo</option>
-                <option value="4">4 - Writing</option>
-                <option value="0">0 - Home</option>
-                <option value="*">* - Previous</option>
-                <option value="#"># - Confirm</option>
+                <option value="1">1_ABOUT</option>
+                <option value="2">2_PROJECTS</option>
+                <option value="3">3_PHOTO</option>
+                <option value="4">4_WRITING</option>
+                <option value="0">0_HOME</option>
+                <option value="*">*_PREVIOUS</option>
+                <option value="#">#_CONFIRM</option>
               </select>
             </div>
           </div>
@@ -97,41 +142,110 @@ export default function AdminPanel() {
           <button
             onClick={sendTestWebhook}
             disabled={isLoading}
-            className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-blue-300 transition-colors"
+            className="type-mono text-xs uppercase tracking-wide hover-glitch"
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              border: `1px solid ${isLoading ? 'var(--accent-gray)' : 'var(--accent-red)'}`,
+              background: 'transparent',
+              color: isLoading ? 'var(--accent-gray)' : 'var(--accent-red)',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              opacity: isLoading ? 0.5 : 1
+            }}
           >
-            {isLoading ? 'Sending...' : 'Send Test Webhook'}
+            {isLoading ? 'TRANSMITTING...' : 'EXECUTE_WEBHOOK'}
           </button>
         </div>
 
-        <div className="border rounded-lg p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Navigation Data</h3>
+        {/* Data Controls */}
+        <div
+          style={{
+            border: '1px solid var(--accent-gray)',
+            padding: '1.5rem',
+            opacity: 0.8
+          }}
+        >
+          <div className="type-mono text-xs mb-4 opacity-60">
+            DATA_OPERATIONS
+          </div>
 
-          <div className="flex gap-3">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <button
               onClick={fetchNavigationData}
-              className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
+              className="type-mono text-xs uppercase tracking-wide hover-glitch"
+              style={{
+                padding: '0.75rem',
+                border: '1px solid var(--accent-blue)',
+                background: 'transparent',
+                color: 'var(--accent-blue)',
+                cursor: 'pointer'
+              }}
             >
-              Fetch Navigation Data
+              FETCH_DATA
             </button>
 
             <button
               onClick={clearNavigationHistory}
-              className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors"
+              className="type-mono text-xs uppercase tracking-wide hover-glitch"
+              style={{
+                padding: '0.75rem',
+                border: '1px solid var(--accent-red)',
+                background: 'transparent',
+                color: 'var(--accent-red)',
+                cursor: 'pointer'
+              }}
             >
-              Clear History
+              PURGE_HISTORY
             </button>
           </div>
         </div>
-
-        {lastResponse ? (
-          <div className="border rounded-lg p-4 bg-gray-50">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Last Response</h3>
-            <pre className="text-sm text-gray-600 whitespace-pre-wrap overflow-auto max-h-64">
-              {JSON.stringify(lastResponse, null, 2)}
-            </pre>
-          </div>
-        ) : null}
       </div>
+
+      {/* Response Output */}
+      {lastResponse && (
+        <div
+          style={{
+            gridColumn: '13 / 24',
+            gridRow: '2',
+            border: '1px solid var(--accent-gray)',
+            padding: '1.5rem',
+            opacity: 0.8
+          }}
+        >
+          <div className="type-mono text-xs mb-4 opacity-60">
+            SYSTEM_RESPONSE
+          </div>
+          <pre
+            className="type-mono text-xs"
+            style={{
+              color: 'var(--foreground)',
+              lineHeight: '1.4',
+              opacity: 0.8,
+              whiteSpace: 'pre-wrap',
+              overflow: 'auto',
+              maxHeight: '300px'
+            }}
+          >
+            {JSON.stringify(lastResponse, null, 2)}
+          </pre>
+        </div>
+      )}
+
+      {/* Status Indicator */}
+      <div
+        className="type-mono text-xs"
+        style={{
+          gridColumn: '20 / 24',
+          gridRow: '3',
+          opacity: 0.3,
+          textAlign: 'right',
+          alignSelf: 'end'
+        }}
+      >
+        <div>DEVELOPMENT_MODE</div>
+        <div>STATUS: ACTIVE</div>
+      </div>
+
     </div>
   );
 }
