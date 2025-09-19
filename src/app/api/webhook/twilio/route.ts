@@ -106,22 +106,37 @@ export async function POST(request: NextRequest) {
 
     console.log(`Website navigation: digit ${pressedDigit} -> ${newState} (Total: ${currentWebsiteState.totalNavigations})`);
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Navigation recorded successfully',
-        currentSection: currentWebsiteState.currentSection,
-        navigationEvent
+    // Return TwiML response for Twilio voice calls
+    const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="alice">You navigated to ${getStateDisplayName(newState)}. Press another digit to continue navigating.</Say>
+  <Gather numDigits="1" timeout="10" action="${new URL(request.url).origin}/api/webhook/twilio">
+    <Say voice="alice">Press 1 for About, 2 for Projects, 3 for Photo, 4 for Writing, or 0 for Home.</Say>
+  </Gather>
+  <Say voice="alice">Thank you for visiting!</Say>
+</Response>`;
+
+    return new Response(twimlResponse, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/xml',
       },
-      { status: 200 }
-    );
+    });
 
   } catch (error) {
     console.error('Error processing Twilio webhook:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+
+    const errorTwiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="alice">Sorry, there was an error processing your request. Please try again.</Say>
+</Response>`;
+
+    return new Response(errorTwiml, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/xml',
+      },
+    });
   }
 }
 
@@ -137,5 +152,19 @@ function getNextState(digit: string): string {
   };
 
   return stateMap[digit] || 'unknown';
+}
+
+function getStateDisplayName(state: string): string {
+  const stateNames: Record<string, string> = {
+    'about': 'About',
+    'projects': 'Projects',
+    'photo': 'Photo',
+    'writing': 'Writing',
+    'home': 'Home',
+    'previous': 'Previous',
+    'confirm': 'Confirmed',
+    'unknown': 'Unknown Section',
+  };
+  return stateNames[state] || state;
 }
 
