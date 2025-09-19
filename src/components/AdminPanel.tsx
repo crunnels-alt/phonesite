@@ -6,7 +6,7 @@ export default function AdminPanel() {
   const [phoneNumber, setPhoneNumber] = useState('+1234567890');
   const [digit, setDigit] = useState('1');
   const [isLoading, setIsLoading] = useState(false);
-  const [lastResponse, setLastResponse] = useState<any>(null);
+  const [lastResponse, setLastResponse] = useState<unknown>(null);
 
   const sendTestWebhook = async () => {
     setIsLoading(true);
@@ -24,7 +24,7 @@ export default function AdminPanel() {
 
       const result = await response.json();
       setLastResponse(result);
-    } catch (error) {
+    } catch {
       setLastResponse({ error: 'Failed to send test webhook' });
     }
     setIsLoading(false);
@@ -37,7 +37,7 @@ export default function AdminPanel() {
       });
       const result = await response.json();
       setLastResponse(result);
-    } catch (error) {
+    } catch {
       setLastResponse({ error: 'Failed to clear navigation history' });
     }
   };
@@ -47,7 +47,7 @@ export default function AdminPanel() {
       const response = await fetch('/api/users');
       const result = await response.json();
       setLastResponse(result);
-    } catch (error) {
+    } catch {
       setLastResponse({ error: 'Failed to fetch navigation data' });
     }
   };
