@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@types/twilio": "^3.19.2",
     "next": "15.5.3",
     "pusher": "^5.2.0",
     "pusher-js": "^8.4.0",

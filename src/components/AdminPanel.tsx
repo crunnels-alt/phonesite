@@ -123,14 +123,14 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        {lastResponse && (
+        {lastResponse ? (
           <div className="border rounded-lg p-4 bg-gray-50">
             <h3 className="text-lg font-semibold text-gray-800 mb-2">Last Response</h3>
             <pre className="text-sm text-gray-600 whitespace-pre-wrap overflow-auto max-h-64">
               {JSON.stringify(lastResponse, null, 2)}
             </pre>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

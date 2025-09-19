@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateRequest } from 'twilio';
 import Pusher from 'pusher';
 import { recordWebsiteNavigation, navigationDB } from '@/lib/database';
+import crypto from 'crypto';
 
 interface TwilioWebhookBody {
   From: string;
@@ -19,6 +19,16 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
+function validateTwilioSignature(authToken: string, signature: string, url: string, params: string): boolean {
+  const data = url + params;
+  const expectedSignature = crypto
+    .createHmac('sha1', authToken)
+    .update(data, 'utf8')
+    .digest('base64');
+
+  return signature === expectedSignature;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
@@ -35,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     if (!isTestEnvironment) {
       const url = new URL(request.url);
-      const isValid = validateRequest(
+      const isValid = validateTwilioSignature(
         process.env.TWILIO_AUTH_TOKEN!,
         twilioSignature,
         url.toString(),
