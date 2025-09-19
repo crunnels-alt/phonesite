@@ -32,9 +32,13 @@ interface WebsiteState {
   recentEvents: NavigationEvent[];
 }
 
-export default function PhoneNavigationMonitor() {
+interface PhoneNavigationMonitorProps {
+  onSectionChange?: (section: string) => void;
+}
+
+export default function PhoneNavigationMonitor({ onSectionChange }: PhoneNavigationMonitorProps) {
   const [websiteState, setWebsiteState] = useState<WebsiteState>({
-    currentSection: 'home',
+    currentSection: 'about',
     lastActivity: new Date(),
     totalNavigations: 0,
     recentEvents: []
@@ -57,8 +61,10 @@ export default function PhoneNavigationMonitor() {
     });
 
     channel.bind('section-changed', (data: NavigationUpdate) => {
+      const newSection = data.currentSection;
+
       setWebsiteState(prevState => ({
-        currentSection: data.currentSection,
+        currentSection: newSection,
         lastActivity: new Date(data.timestamp),
         totalNavigations: data.totalNavigations,
         recentEvents: [
@@ -69,6 +75,11 @@ export default function PhoneNavigationMonitor() {
           ...prevState.recentEvents.slice(0, 9)
         ]
       }));
+
+      // Notify parent component about section change
+      if (onSectionChange) {
+        onSectionChange(newSection);
+      }
     });
 
     return () => {
@@ -76,7 +87,7 @@ export default function PhoneNavigationMonitor() {
       pusher.unsubscribe('website-navigation');
       pusher.disconnect();
     };
-  }, []);
+  }, [onSectionChange]);
 
   const getStateDisplayName = (state: string): string => {
     const stateNames: Record<string, string> = {
