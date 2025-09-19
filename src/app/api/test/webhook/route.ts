@@ -5,6 +5,13 @@ interface TestWebhookRequest {
   digit: string;
 }
 
+export async function GET() {
+  return NextResponse.json({
+    message: 'Test webhook endpoint is working',
+    usage: 'Send POST request with phoneNumber and digit to test'
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { phoneNumber, digit }: TestWebhookRequest = await request.json();

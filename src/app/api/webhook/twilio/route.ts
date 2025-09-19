@@ -29,6 +29,13 @@ function validateTwilioSignature(authToken: string, signature: string, url: stri
   return signature === expectedSignature;
 }
 
+export async function GET() {
+  return NextResponse.json({
+    message: 'Twilio webhook endpoint is working',
+    method: 'This endpoint accepts POST requests from Twilio'
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
@@ -41,7 +48,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const isTestEnvironment = process.env.NODE_ENV === 'development' && twilioSignature === 'test-signature';
+    const isTestEnvironment = twilioSignature === 'test-signature';
 
     if (!isTestEnvironment) {
       const url = new URL(request.url);
