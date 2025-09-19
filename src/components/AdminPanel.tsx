@@ -6,7 +6,7 @@ export default function AdminPanel() {
   const [phoneNumber, setPhoneNumber] = useState('+1234567890');
   const [digit, setDigit] = useState('1');
   const [isLoading, setIsLoading] = useState(false);
-  const [lastResponse, setLastResponse] = useState<unknown>(null);
+  const [lastResponse, setLastResponse] = useState<Record<string, unknown> | null>(null);
 
   const sendTestWebhook = async () => {
     setIsLoading(true);
