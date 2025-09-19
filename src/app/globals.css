@@ -1,35 +1,128 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #e7f2f6;
-  --foreground: #171717;
-  --red-accent: #ff003a;
+  --background: #f8f8f8;
+  --foreground: #1a1a1a;
+  --accent-red: #ff0033;
+  --accent-gray: #666666;
+  --accent-blue: #0066ff;
+  --grid-gutter: 2vw;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --font-mono: 'JetBrains Mono';
+  --font-sans: 'Space Grotesk';
+  --font-display: 'Archivo Black';
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   background: var(--background);
-  background-image:
-    radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0);
-  background-size: 20px 20px;
   color: var(--foreground);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
   font-weight: 400;
+  font-size: 14px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
-/* Blinking animation inspired by katiechiou.xyz */
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+/* Custom cursor */
+body {
+  cursor: url("data:image/svg+xml,%3Csvg width='16' height='16' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='8' cy='8' r='2' fill='%23ff0033'/%3E%3C/svg%3E"), auto;
+}
+
+/* Experimental grid system */
+.experimental-grid {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: var(--grid-gutter);
+  padding: var(--grid-gutter);
+  min-height: 100vh;
+}
+
+/* Typography classes */
+.type-display {
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.type-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.type-body {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+
+/* Blinking animation - more subtle */
+@keyframes blink-subtle {
+  0%, 70% { opacity: 1; }
+  71%, 100% { opacity: 0.1; }
 }
 
 .blink-name {
-  animation: blink 1s infinite;
-  color: var(--red-accent);
+  animation: blink-subtle 2s infinite;
+  color: var(--accent-red);
+}
+
+/* Hover states */
+.hover-glitch:hover {
+  animation: glitch 0.3s infinite;
+}
+
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+/* Experimental text treatments */
+.text-fragment {
+  display: inline-block;
+  transform: rotate(-0.5deg);
+  transition: all 0.2s ease;
+}
+
+.text-fragment:hover {
+  transform: rotate(0.5deg) scale(1.02);
+}
+
+/* Custom selections */
+::selection {
+  background: var(--accent-red);
+  color: white;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 2px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-red);
+  border-radius: 1px;
 }

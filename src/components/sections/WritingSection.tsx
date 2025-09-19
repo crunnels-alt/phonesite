@@ -6,113 +6,243 @@ interface WritingSectionProps {
 
 const writings = [
   {
-    title: "Your First Blog Post",
-    excerpt: "This is where you can share your thoughts, experiences, or expertise. Write about anything that interests you or your audience.",
-    date: "2024-01-15",
-    readTime: "5 min read",
+    title: "COMMUNICATION_PROTOCOLS",
+    subtitle: "BEYOND_HUMAN_INTERFACE",
+    excerpt: "INVESTIGATING TELEPHONIC NAVIGATION AS SPECULATIVE DESIGN. HOW VOICE COMMANDS MIGHT RESHAPE DIGITAL INTERACTION PARADIGMS.",
+    date: "2024.03.15",
+    length: "2400_CHARS",
+    category: "INTERFACE",
+    status: "PUBLISHED",
     link: "#"
   },
   {
-    title: "Thoughts on Technology",
-    excerpt: "Share your perspective on technology trends, programming experiences, or industry insights that matter to you.",
-    date: "2024-01-10",
-    readTime: "8 min read",
+    title: "SIGNAL_PROCESSING",
+    subtitle: "NOISE_AS_MEDIUM",
+    excerpt: "ALGORITHMIC COMPOSITION THROUGH MACHINE LEARNING. WHEN AI SYSTEMS DEVELOP THEIR OWN AESTHETIC PREFERENCES.",
+    date: "2024.02.08",
+    length: "3200_CHARS",
+    category: "TECHNICAL",
+    status: "PUBLISHED",
     link: "#"
   },
   {
-    title: "Building This Website",
-    excerpt: "The story behind creating this unique phone-navigable website. Technical challenges, design decisions, and lessons learned.",
-    date: "2024-01-05",
-    readTime: "12 min read",
+    title: "DIGITAL_ARCHAEOLOGY",
+    subtitle: "EXCAVATING_PROTOCOLS",
+    excerpt: "DOCUMENTATION OF OBSOLETE INTERNET INFRASTRUCTURE. PRESERVING THE ARTIFACTS OF EARLY NETWORKED COMMUNICATION.",
+    date: "2023.12.22",
+    length: "1800_CHARS",
+    category: "RESEARCH",
+    status: "ARCHIVED",
     link: "#"
   },
   {
-    title: "Random Thoughts",
-    excerpt: "Sometimes the best writing comes from random observations and thoughts. This is a space for those moments.",
-    date: "2024-01-01",
-    readTime: "3 min read",
+    title: "GLITCH_AESTHETICS",
+    subtitle: "SYSTEMATIC_CORRUPTION",
+    excerpt: "ON THE BEAUTY OF DEGRADED DATA. WHEN TECHNICAL FAILURES BECOME ARTISTIC STATEMENTS.",
+    date: "2023.11.04",
+    length: "2900_CHARS",
+    category: "THEORY",
+    status: "PUBLISHED",
+    link: "#"
+  },
+  {
+    title: "NEURAL_SYNTHESIS",
+    subtitle: "HUMAN_MACHINE_COLLABORATION",
+    excerpt: "REAL-TIME COMPOSITION THROUGH BIOMETRIC FEEDBACK. EXPLORING THE BOUNDARY BETWEEN CONSCIOUS AND UNCONSCIOUS CREATION.",
+    date: "2023.10.17",
+    length: "4100_CHARS",
+    category: "EXPERIMENTAL",
+    status: "DRAFT",
     link: "#"
   }
 ];
 
 export default function WritingSection({ onSectionChange }: WritingSectionProps) {
   const sections = [
-    { id: 'about', label: 'About', key: '1' },
-    { id: 'projects', label: 'Projects', key: '2' },
-    { id: 'photo', label: 'Photo', key: '3' },
-    { id: 'writing', label: 'Writing', key: '4' },
+    { id: 'about', label: 'ABOUT', key: '1' },
+    { id: 'projects', label: 'PROJECTS', key: '2' },
+    { id: 'photo', label: 'PHOTO', key: '3' },
+    { id: 'writing', label: 'WRITING', key: '4' },
   ];
 
   return (
-    <section className="min-h-screen p-8 md:p-16">
-      <div className="max-w-4xl mx-auto">
+    <div className="experimental-grid" style={{ gridTemplateRows: 'auto 1fr' }}>
 
-        {/* Navigation */}
-        <div className="mb-16">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {sections.map((section) => (
-              <button
-                key={section.id}
-                onClick={() => onSectionChange?.(section.id)}
-                className="text-left text-sm hover:opacity-60 transition-opacity text-gray-700"
-              >
-                {section.label}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Navigation scattered across top */}
+      {sections.map((section, index) => (
+        <button
+          key={section.id}
+          onClick={() => onSectionChange?.(section.id)}
+          className="type-mono text-xs uppercase tracking-wide hover-glitch"
+          style={{
+            gridColumn: index === 0 ? '1 / 4' :
+                       index === 1 ? '6 / 9' :
+                       index === 2 ? '11 / 14' : '16 / 19',
+            gridRow: '1',
+            justifySelf: 'start',
+            transform: `rotate(${Math.random() * 2 - 1}deg)`,
+            color: section.id === 'writing' ? 'var(--accent-red)' : 'var(--foreground)'
+          }}
+        >
+          {section.label}
+        </button>
+      ))}
 
-        <div className="mb-12">
-          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
-            Writing
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl">
-            Thoughts, experiences, and insights. A collection of writing on topics that matter to me.
-          </p>
-        </div>
+      {/* Writing entries in experimental layout */}
+      {writings.map((post, index) => {
+        const gridPositions = [
+          { column: '1 / 13', row: '2', offset: '0vh' },
+          { column: '10 / 22', row: '2', offset: '25vh' },
+          { column: '1 / 14', row: '2', offset: '50vh' },
+          { column: '12 / 24', row: '2', offset: '75vh' },
+          { column: '3 / 16', row: '2', offset: '100vh' }
+        ];
 
-        <div className="space-y-8">
-          {writings.map((post, index) => (
-            <article
-              key={index}
-              className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
-                <time dateTime={post.date}>
-                  {new Date(post.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </time>
-                <span>•</span>
-                <span>{post.readTime}</span>
+        const position = gridPositions[index];
+        if (!position) return null;
+
+        return (
+          <article
+            key={index}
+            className="hover-glitch cursor-pointer"
+            style={{
+              gridColumn: position.column,
+              gridRow: position.row,
+              marginTop: position.offset,
+              border: `1px solid ${post.status === 'PUBLISHED' ? 'var(--accent-red)' : 'var(--accent-gray)'}`,
+              borderStyle: post.status === 'DRAFT' ? 'dashed' : 'solid',
+              padding: '2rem',
+              transition: 'all 0.3s ease',
+              transform: `rotate(${Math.random() * 1 - 0.5}deg)`
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'rotate(0deg) scale(1.02)';
+              e.currentTarget.style.borderColor = 'var(--accent-red)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = `rotate(${Math.random() * 1 - 0.5}deg) scale(1)`;
+              e.currentTarget.style.borderColor = post.status === 'PUBLISHED' ? 'var(--accent-red)' : 'var(--accent-gray)';
+            }}
+          >
+            {/* Header metadata */}
+            <div className="flex justify-between items-start mb-4">
+              <div className="type-mono text-xs opacity-60">
+                {post.date}
               </div>
+              <div className="type-mono text-xs uppercase">
+                <span style={{ color: 'var(--accent-red)' }}>{post.status}</span>
+              </div>
+            </div>
 
-              <h3 className="text-2xl font-semibold text-gray-900 mb-3 hover:text-blue-600 transition-colors">
-                <a href={post.link}>{post.title}</a>
+            {/* Title */}
+            <div className="mb-3">
+              <h3 className="type-display text-lg mb-1" style={{ lineHeight: '0.9' }}>
+                <a href={post.link} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  {post.title}
+                </a>
               </h3>
+              <div className="type-body text-sm opacity-70">
+                {post.subtitle}
+              </div>
+            </div>
 
-              <p className="text-gray-600 leading-relaxed mb-4">
-                {post.excerpt}
-              </p>
+            {/* Excerpt */}
+            <div
+              className="type-body mb-4"
+              style={{
+                fontSize: '0.85rem',
+                lineHeight: '1.4',
+                opacity: 0.8
+              }}
+            >
+              {post.excerpt}
+            </div>
 
-              <a
-                href={post.link}
-                className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-              >
-                Read more →
-              </a>
-            </article>
-          ))}
-        </div>
+            {/* Footer metadata */}
+            <div className="flex justify-between items-end">
+              <div className="type-mono text-xs opacity-50">
+                {post.category}
+              </div>
+              <div className="type-mono text-xs opacity-50">
+                {post.length}
+              </div>
+            </div>
 
-        <div className="mt-12 text-center">
-          <p className="text-gray-500">
-            More writing coming soon...
-          </p>
-        </div>
+            {/* Index number */}
+            <div
+              className="type-mono text-xs"
+              style={{
+                position: 'absolute',
+                top: '-1rem',
+                left: '-1rem',
+                color: 'var(--accent-red)',
+                transform: 'rotate(-90deg)',
+                transformOrigin: 'center'
+              }}
+            >
+              {String(index + 1).padStart(2, '0')}
+            </div>
+          </article>
+        );
+      })}
+
+      {/* Archive index */}
+      <div
+        className="type-mono text-xs"
+        style={{
+          gridColumn: '22 / 24',
+          gridRow: '2',
+          alignSelf: 'start',
+          justifySelf: 'end',
+          opacity: 0.3,
+          lineHeight: '2',
+          writingMode: 'vertical-rl',
+          textOrientation: 'mixed',
+          marginTop: '10vh'
+        }}
+      >
+        <div>INTERFACE</div>
+        <div>TECHNICAL</div>
+        <div>RESEARCH</div>
+        <div>THEORY</div>
+        <div>EXPERIMENTAL</div>
       </div>
-    </section>
+
+      {/* Status legend */}
+      <div
+        className="type-mono text-xs"
+        style={{
+          gridColumn: '1 / 6',
+          gridRow: '2',
+          alignSelf: 'end',
+          opacity: 0.4,
+          lineHeight: '1.8'
+        }}
+      >
+        <div style={{ color: 'var(--accent-red)' }}>● PUBLISHED</div>
+        <div style={{ color: 'var(--accent-gray)' }}>○ ARCHIVED</div>
+        <div style={{ color: 'var(--accent-gray)' }}>◌ DRAFT</div>
+      </div>
+
+      {/* Technical specs */}
+      <div
+        className="type-mono text-xs"
+        style={{
+          gridColumn: '19 / 24',
+          gridRow: '2',
+          alignSelf: 'end',
+          justifySelf: 'end',
+          opacity: 0.3,
+          textAlign: 'right',
+          lineHeight: '1.6'
+        }}
+      >
+        <div>TEXT_FORMAT: MARKDOWN</div>
+        <div>ENCODING: UTF-8</div>
+        <div>ARCHIVE: 2023-2024</div>
+        <div>STATUS: ACTIVE</div>
+      </div>
+
+    </div>
   );
 }

@@ -9,112 +9,248 @@ interface PhotoSectionProps {
 const photos = [
   {
     id: 1,
-    title: "Photo Title One",
-    description: "Description of this photo or moment",
-    src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=500&fit=crop",
-    alt: "Placeholder photo"
+    title: "DECAY.JPEG",
+    series: "DIGITAL ARTIFACTS",
+    location: "BROOKLYN, NY",
+    date: "2024.03",
+    src: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800&h=1200&fit=crop&q=80",
+    alt: "Digital decay documentation"
   },
   {
     id: 2,
-    title: "Photo Title Two",
-    description: "Another captured moment",
-    src: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=500&h=500&fit=crop",
-    alt: "Placeholder photo"
+    title: "FREQUENCY_MODULATION",
+    series: "SIGNAL/NOISE",
+    location: "REMOTE",
+    date: "2023.11",
+    src: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&h=800&fit=crop&q=80",
+    alt: "Audio visualization"
   },
   {
     id: 3,
-    title: "Photo Title Three",
-    description: "Description here",
-    src: "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=500&h=500&fit=crop",
-    alt: "Placeholder photo"
+    title: "URBAN_INTERFERENCE",
+    series: "ELECTROMAGNETIC",
+    location: "MANHATTAN, NY",
+    date: "2024.01",
+    src: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=700&h=500&fit=crop&q=80",
+    alt: "Urban electromagnetic fields"
   },
   {
     id: 4,
-    title: "Photo Title Four",
-    description: "Another description",
-    src: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=500&h=500&fit=crop",
-    alt: "Placeholder photo"
+    title: "NEURAL_PATHWAYS",
+    series: "BIOMETRIC",
+    location: "LAB",
+    date: "2023.09",
+    src: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=900&h=600&fit=crop&q=80",
+    alt: "Neural network visualization"
   },
   {
     id: 5,
-    title: "Photo Title Five",
-    description: "Description of moment",
-    src: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=500&h=500&fit=crop",
-    alt: "Placeholder photo"
+    title: "FEEDBACK_LOOP",
+    series: "RECURSIVE",
+    location: "STUDIO",
+    date: "2024.02",
+    src: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=500&h=700&fit=crop&q=80",
+    alt: "Audio feedback visualization"
   },
   {
     id: 6,
-    title: "Photo Title Six",
-    description: "Final description",
-    src: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=500&h=500&fit=crop",
-    alt: "Placeholder photo"
+    title: "COMPRESSION_STUDY",
+    series: "DATA_LOSS",
+    location: "DIGITAL",
+    date: "2023.12",
+    src: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=600&fit=crop&q=20",
+    alt: "Digital compression artifacts"
   }
 ];
 
 export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
   const sections = [
-    { id: 'about', label: 'About', key: '1' },
-    { id: 'projects', label: 'Projects', key: '2' },
-    { id: 'photo', label: 'Photo', key: '3' },
-    { id: 'writing', label: 'Writing', key: '4' },
+    { id: 'about', label: 'ABOUT', key: '1' },
+    { id: 'projects', label: 'PROJECTS', key: '2' },
+    { id: 'photo', label: 'PHOTO', key: '3' },
+    { id: 'writing', label: 'WRITING', key: '4' },
   ];
 
   return (
-    <section className="min-h-screen p-8 md:p-16">
-      <div className="max-w-6xl mx-auto">
+    <div className="experimental-grid" style={{ gridTemplateRows: 'auto 1fr' }}>
 
-        {/* Navigation */}
-        <div className="mb-16">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {sections.map((section) => (
-              <button
-                key={section.id}
-                onClick={() => onSectionChange?.(section.id)}
-                className="text-left text-sm hover:opacity-60 transition-opacity text-gray-700"
-              >
-                {section.label}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Navigation scattered across top */}
+      {sections.map((section, index) => (
+        <button
+          key={section.id}
+          onClick={() => onSectionChange?.(section.id)}
+          className="type-mono text-xs uppercase tracking-wide hover-glitch"
+          style={{
+            gridColumn: index === 0 ? '1 / 4' :
+                       index === 1 ? '6 / 9' :
+                       index === 2 ? '11 / 14' : '16 / 19',
+            gridRow: '1',
+            justifySelf: 'start',
+            transform: `rotate(${Math.random() * 2 - 1}deg)`,
+            color: section.id === 'photo' ? 'var(--accent-red)' : 'var(--foreground)'
+          }}
+        >
+          {section.label}
+        </button>
+      ))}
 
-        <div className="mb-12">
-          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
-            Photo
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl">
-            A visual collection of moments, places, and perspectives. Replace these placeholder images with your own photography.
-          </p>
-        </div>
+      {/* Photos in experimental masonry layout */}
+      {photos.map((photo, index) => {
+        const gridPositions = [
+          { column: '1 / 8', row: '2', width: '100%', height: '60vh', rotate: '-2deg' },
+          { column: '6 / 12', row: '2', width: '100%', height: '40vh', rotate: '1deg' },
+          { column: '10 / 16', row: '2', width: '100%', height: '70vh', rotate: '-1deg' },
+          { column: '14 / 20', row: '2', width: '100%', height: '45vh', rotate: '2deg' },
+          { column: '18 / 24', row: '2', width: '100%', height: '55vh', rotate: '-1.5deg' },
+          { column: '3 / 9', row: '2', width: '100%', height: '35vh', rotate: '0.5deg', marginTop: '50vh' }
+        ];
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {photos.map((photo) => (
+        const position = gridPositions[index];
+        if (!position) return null;
+
+        return (
+          <div
+            key={photo.id}
+            className="hover-glitch cursor-pointer"
+            style={{
+              gridColumn: position.column,
+              gridRow: position.row,
+              marginTop: position.marginTop || '0',
+              transform: `rotate(${position.rotate})`,
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = `rotate(0deg) scale(1.02)`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = `rotate(${position.rotate}) scale(1)`;
+            }}
+          >
+            {/* Image container */}
             <div
-              key={photo.id}
-              className="group cursor-pointer"
+              style={{
+                width: position.width,
+                height: position.height,
+                position: 'relative',
+                overflow: 'hidden',
+                border: '1px solid var(--foreground)',
+                borderStyle: 'solid'
+              }}
             >
-              <div className="aspect-square overflow-hidden rounded-lg bg-gray-100 relative">
-                <Image
-                  src={photo.src}
-                  alt={photo.alt}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="mt-3">
-                <h3 className="font-medium text-gray-900">{photo.title}</h3>
-                <p className="text-sm text-gray-600 mt-1">{photo.description}</p>
+              <Image
+                src={photo.src}
+                alt={photo.alt}
+                fill
+                style={{
+                  objectFit: 'cover',
+                  filter: 'grayscale(20%) contrast(110%)'
+                }}
+              />
+
+              {/* Overlay info */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '0',
+                  left: '0',
+                  width: '100%',
+                  height: '100%',
+                  background: 'rgba(0,0,0,0.7)',
+                  color: 'white',
+                  padding: '1rem',
+                  opacity: '0',
+                  transition: 'opacity 0.3s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between'
+                }}
+                className="overlay"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '0';
+                }}
+              >
+                <div>
+                  <div className="type-display text-sm mb-2">
+                    {photo.title}
+                  </div>
+                  <div className="type-mono text-xs opacity-80">
+                    {photo.series}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="type-mono text-xs opacity-60 mb-1">
+                    {photo.location}
+                  </div>
+                  <div className="type-mono text-xs opacity-60">
+                    {photo.date}
+                  </div>
+                </div>
               </div>
             </div>
-          ))}
-        </div>
 
-        <div className="mt-12 text-center">
-          <p className="text-gray-500 text-sm">
-            Replace these placeholder images with your own photography
-          </p>
-        </div>
+            {/* External metadata */}
+            <div
+              className="type-mono text-xs mt-2"
+              style={{
+                opacity: 0.6,
+                transform: 'rotate(-90deg)',
+                transformOrigin: 'left top',
+                position: 'absolute',
+                left: '-2rem',
+                top: '2rem',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {String(photo.id).padStart(2, '0')}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Technical annotations */}
+      <div
+        className="type-mono text-xs"
+        style={{
+          gridColumn: '20 / 24',
+          gridRow: '2',
+          alignSelf: 'end',
+          justifySelf: 'end',
+          opacity: 0.4,
+          lineHeight: '1.6',
+          textAlign: 'right'
+        }}
+      >
+        <div>DOCUMENTATION</div>
+        <div>SERIES: 2023-2024</div>
+        <div>FORMAT: DIGITAL</div>
+        <div>RESOLUTION: VARIABLE</div>
       </div>
-    </section>
+
+      {/* Series index */}
+      <div
+        className="type-mono text-xs"
+        style={{
+          gridColumn: '1 / 3',
+          gridRow: '2',
+          alignSelf: 'end',
+          opacity: 0.3,
+          lineHeight: '2',
+          writingMode: 'vertical-rl',
+          textOrientation: 'mixed'
+        }}
+      >
+        <div>DIGITAL_ARTIFACTS</div>
+        <div>SIGNAL/NOISE</div>
+        <div>ELECTROMAGNETIC</div>
+        <div>BIOMETRIC</div>
+        <div>RECURSIVE</div>
+        <div>DATA_LOSS</div>
+      </div>
+
+    </div>
   );
 }

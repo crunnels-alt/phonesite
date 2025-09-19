@@ -4,7 +4,10 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(npm install:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "WebFetch(domain:publicrecords.nyc)",
+      "WebFetch(domain:www.are.na)",
+      "WebFetch(domain:yvestumor.info)"
     ],
     "deny": [],
     "ask": []
