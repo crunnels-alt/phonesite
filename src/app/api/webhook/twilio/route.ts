@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Pusher from 'pusher';
 import { recordWebsiteNavigation, navigationDB } from '@/lib/database';
-import crypto from 'crypto';
+// import crypto from 'crypto';
 
 interface TwilioWebhookBody {
   From: string;
@@ -19,20 +19,20 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
-function validateTwilioSignature(authToken: string, signature: string, url: string, params: string): boolean {
-  // For development/testing, be more lenient
-  if (process.env.NODE_ENV !== 'production') {
-    return true;
-  }
+// function validateTwilioSignature(authToken: string, signature: string, url: string, params: string): boolean {
+//   // For development/testing, be more lenient
+//   if (process.env.NODE_ENV !== 'production') {
+//     return true;
+//   }
 
-  const data = url + params;
-  const expectedSignature = crypto
-    .createHmac('sha1', authToken)
-    .update(data, 'utf8')
-    .digest('base64');
+//   const data = url + params;
+//   const expectedSignature = crypto
+//     .createHmac('sha1', authToken)
+//     .update(data, 'utf8')
+//     .digest('base64');
 
-  return signature === expectedSignature;
-}
+//   return signature === expectedSignature;
+// }
 
 export async function GET() {
   return NextResponse.json({
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Temporarily disable signature validation for testing
-    const isTestEnvironment = twilioSignature === 'test-signature';
+    // const isTestEnvironment = twilioSignature === 'test-signature';
 
     // TODO: Re-enable signature validation once basic functionality works
     // if (!isTestEnvironment) {

@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 const photos = [
   {
     id: 1,
@@ -64,11 +66,12 @@ export default function PhotoSection() {
               key={photo.id}
               className="group cursor-pointer"
             >
-              <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
-                <img
+              <div className="aspect-square overflow-hidden rounded-lg bg-gray-100 relative">
+                <Image
                   src={photo.src}
                   alt={photo.alt}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <div className="mt-3">

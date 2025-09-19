@@ -1,6 +1,6 @@
-import { NextRequest } from 'next/server';
+// import { NextRequest } from 'next/server';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   console.log('Twilio webhook called');
 
   const simpleTwiml = `<?xml version="1.0" encoding="UTF-8"?>
