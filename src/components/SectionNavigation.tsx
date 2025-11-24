@@ -1,5 +1,7 @@
 'use client';
 
+import SearchInput from './SearchInput';
+
 interface SectionNavigationProps {
   currentSection: string;
   onSectionChange?: (section: string) => void;
@@ -26,6 +28,7 @@ export default function SectionNavigation({
       display: 'flex',
       gap: '2.5rem',
       justifyContent: 'center',
+      alignItems: 'center',
       padding: '1.5rem 0',
       marginBottom: '2rem',
       zIndex: 100,
@@ -56,6 +59,9 @@ export default function SectionNavigation({
           {section.label}
         </button>
       ))}
+
+      {/* Search */}
+      <SearchInput onNavigate={onSectionChange} />
     </nav>
   );
 }
