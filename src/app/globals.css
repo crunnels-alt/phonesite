@@ -115,3 +115,17 @@ a:hover {
     opacity: 0;
   }
 }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Page transition */
+.section-transition {
+  animation: fadeIn 0.3s ease-out;
+}

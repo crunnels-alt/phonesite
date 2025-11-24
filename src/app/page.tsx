@@ -93,7 +93,9 @@ export default function Home() {
 
       {/* Main Content */}
       <main style={{ background: '#ffffff' }}>
-        {renderSection()}
+        <div key={currentSection} className="section-transition">
+          {renderSection()}
+        </div>
       </main>
 
       {/* Admin Panel (Only in development) */}
