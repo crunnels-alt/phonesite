@@ -1,0 +1,58 @@
+[
+  {
+    "id": "c3e5e3b1-2d4f-4a9e-8e7c-1b5d9f8a3c2e",
+    "title": "Neural Synthesis",
+    "subtitle": "MACHINE LEARNING",
+    "excerpt": "Algorithmic composition through machine learning models. Exploring the boundaries between human and artificial creativity.",
+    "tech": "Python · TensorFlow · Max/MSP",
+    "year": "2024",
+    "status": "ONGOING",
+    "position": {
+      "x": 10,
+      "y": 100,
+      "size": "large"
+    }
+  },
+  {
+    "id": "7f8d9c2a-4e6b-4d8f-9a3c-2e5b7d8f9a1c",
+    "title": "Digital Archaeology",
+    "subtitle": "RETROCOMPUTING",
+    "excerpt": "Excavating forgotten internet protocols. A study of obsolete communication methods.",
+    "tech": "C++ · Assembly",
+    "year": "2023",
+    "status": "ARCHIVED",
+    "position": {
+      "x": 55,
+      "y": 50,
+      "size": "medium"
+    }
+  },
+  {
+    "id": "9a1c3e5f-6d8b-4f2e-9c7a-3b5d7f9e1a2c",
+    "title": "Phone Navigation",
+    "subtitle": "TELEPHONIC INTERFACE",
+    "excerpt": "This website. Bridging analog and digital interaction through voice commands.",
+    "tech": "Next.js · Twilio · WebSockets",
+    "year": "2024",
+    "status": "LIVE",
+    "position": {
+      "x": 15,
+      "y": 600,
+      "size": "medium"
+    }
+  },
+  {
+    "id": "2c4e6f8a-9b3d-4e7f-8a9c-5d7e9f1b3a4c",
+    "title": "Glitch Aesthetics",
+    "subtitle": "DIGITAL ART",
+    "excerpt": "Corrupted data as artistic medium. Systematic destruction of digital images.",
+    "tech": "Processing · FFmpeg",
+    "year": "2023",
+    "status": "EXPERIMENTAL",
+    "position": {
+      "x": 60,
+      "y": 700,
+      "size": "large"
+    }
+  }
+]

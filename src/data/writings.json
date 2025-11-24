@@ -1,0 +1,67 @@
+[
+  {
+    "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+    "title": "Communication Protocols",
+    "subtitle": "INTERFACE DESIGN",
+    "excerpt": "Investigating telephonic navigation as speculative design. How voice commands might reshape digital interaction paradigms.",
+    "date": "2024.03.15",
+    "category": "INTERFACE",
+    "position": {
+      "x": 10,
+      "y": 50,
+      "size": "large"
+    }
+  },
+  {
+    "id": "f6e5d4c3-b2a1-4f9e-8d7c-6b5a4e3d2c1b",
+    "title": "Signal Processing",
+    "subtitle": "NOISE AS MEDIUM",
+    "excerpt": "Algorithmic composition through machine learning. When AI systems develop their own aesthetic preferences.",
+    "date": "2024.02.08",
+    "category": "TECHNICAL",
+    "position": {
+      "x": 60,
+      "y": 100,
+      "size": "medium"
+    }
+  },
+  {
+    "id": "9e8d7c6b-5a4f-4e3d-2c1b-0a9e8d7c6b5a",
+    "title": "Digital Archaeology",
+    "subtitle": "EXCAVATING PROTOCOLS",
+    "excerpt": "Documentation of obsolete internet infrastructure. Preserving the artifacts of early networked communication.",
+    "date": "2023.12.22",
+    "category": "RESEARCH",
+    "position": {
+      "x": 15,
+      "y": 550,
+      "size": "medium"
+    }
+  },
+  {
+    "id": "3c2b1a0e-9d8c-4b7a-6f5e-4d3c2b1a0e9d",
+    "title": "Glitch Aesthetics",
+    "subtitle": "SYSTEMATIC CORRUPTION",
+    "excerpt": "On the beauty of degraded data. When technical failures become artistic statements.",
+    "date": "2023.11.04",
+    "category": "THEORY",
+    "position": {
+      "x": 65,
+      "y": 700,
+      "size": "large"
+    }
+  },
+  {
+    "id": "8d7c6b5a-4e3d-4c2b-1a0e-9d8c7b6a5f4e",
+    "title": "Neural Synthesis",
+    "subtitle": "HUMAN-MACHINE COLLABORATION",
+    "excerpt": "Real-time composition through biometric feedback. Exploring the boundary between conscious and unconscious creation.",
+    "date": "2023.10.17",
+    "category": "EXPERIMENTAL",
+    "position": {
+      "x": 20,
+      "y": 1200,
+      "size": "medium"
+    }
+  }
+]

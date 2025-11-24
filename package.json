@@ -6,15 +6,25 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:init": "tsx scripts/init-db.ts",
+    "db:migrate": "tsx scripts/migrate-data.ts",
+    "db:setup": "npm run db:init && npm run db:migrate"
   },
   "dependencies": {
     "@types/twilio": "^3.19.2",
+    "@upstash/ratelimit": "^2.0.7",
+    "@vercel/blob": "^2.0.0",
+    "@vercel/kv": "^3.0.0",
+    "@vercel/postgres": "^0.10.0",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.44.7",
     "next": "15.5.3",
     "pusher": "^5.2.0",
     "pusher-js": "^8.4.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "sharp": "^0.34.5",
     "twilio": "^5.10.0"
   },
   "devDependencies": {
@@ -23,9 +33,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.7",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
     "tailwindcss": "^4",
+    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }

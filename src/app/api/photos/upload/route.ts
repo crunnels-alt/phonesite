@@ -1,0 +1,100 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { put } from '@vercel/blob';
+import { randomUUID } from 'crypto';
+import { addPhoto, autoAssignPosition } from '@/lib/photos';
+import sharp from 'sharp';
+import { uploadRateLimit, getIdentifier, checkRateLimit } from '@/lib/ratelimit';
+
+export async function POST(request: NextRequest) {
+  try {
+    // Apply upload rate limiting
+    const identifier = getIdentifier(request);
+    const rateLimitResponse = await checkRateLimit(uploadRateLimit, identifier);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+    const title = formData.get('title') as string;
+    const location = formData.get('location') as string;
+    const date = formData.get('date') as string;
+
+    if (!file) {
+      return NextResponse.json(
+        { success: false, error: 'No file provided' },
+        { status: 400 }
+      );
+    }
+
+    // Check if Blob token is configured
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return NextResponse.json(
+        { success: false, error: 'Vercel Blob storage not configured. Add BLOB_READ_WRITE_TOKEN to environment variables.' },
+        { status: 500 }
+      );
+    }
+
+    // Detect image dimensions using Sharp
+    let width = 1600;
+    let height = 1200;
+
+    try {
+      // Convert File to Buffer for Sharp processing
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // Get image metadata
+      const metadata = await sharp(buffer).metadata();
+
+      if (metadata.width && metadata.height) {
+        width = metadata.width;
+        height = metadata.height;
+        console.log(`Detected image dimensions: ${width}x${height} (${metadata.format})`);
+      } else {
+        console.warn('Could not detect dimensions, using defaults');
+      }
+    } catch (error) {
+      console.error('Error detecting image dimensions:', error);
+      console.log('Using default dimensions as fallback');
+    }
+
+    // Upload to Vercel Blob
+    const blob = await put(file.name, file, {
+      access: 'public',
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
+
+    // Create photo metadata with auto-assigned position
+    const photoData = {
+      id: randomUUID(),
+      url: blob.url,
+      title: title || 'Untitled',
+      location: location || '',
+      date: date || new Date().toISOString().split('T')[0],
+      width,
+      height,
+      uploadedAt: new Date(),
+      position: await autoAssignPosition(),
+    };
+
+    // Save metadata to database
+    await addPhoto(photoData);
+
+    console.log('Photo uploaded and saved:', photoData);
+
+    return NextResponse.json({
+      success: true,
+      photo: photoData,
+    });
+  } catch (error) {
+    console.error('Error uploading photo:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Upload failed'
+      },
+      { status: 500 }
+    );
+  }
+}

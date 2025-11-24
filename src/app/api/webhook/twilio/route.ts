@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Pusher from 'pusher';
 import { recordWebsiteNavigation, navigationDB } from '@/lib/database';
-// import crypto from 'crypto';
+import crypto from 'crypto';
 
 interface TwilioWebhookBody {
   From: string;
@@ -19,20 +19,64 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
-// function validateTwilioSignature(authToken: string, signature: string, url: string, params: string): boolean {
-//   // For development/testing, be more lenient
-//   if (process.env.NODE_ENV !== 'production') {
-//     return true;
-//   }
+/**
+ * Validates a Twilio webhook request signature using HMAC-SHA1
+ * Implementation based on Twilio's official documentation:
+ * https://www.twilio.com/docs/usage/security#validating-requests
+ *
+ * @param url - The full URL of the webhook (including protocol and domain)
+ * @param params - The POST body parameters as an object
+ * @param signature - The X-Twilio-Signature header value
+ * @returns true if signature is valid, false otherwise
+ */
+function validateTwilioSignature(url: string, params: Record<string, string>, signature: string): boolean {
+  // In development, skip validation for easier testing
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Dev Mode] Skipping Twilio signature validation');
+    return true;
+  }
 
-//   const data = url + params;
-//   const expectedSignature = crypto
-//     .createHmac('sha1', authToken)
-//     .update(data, 'utf8')
-//     .digest('base64');
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  if (!authToken) {
+    console.error('TWILIO_AUTH_TOKEN not configured');
+    return false;
+  }
 
-//   return signature === expectedSignature;
-// }
+  // Build the signature data per Twilio's spec:
+  // 1. Start with the full URL
+  // 2. Sort parameters alphabetically by key
+  // 3. Append each key-value pair (no separators)
+  let data = url;
+
+  // Sort parameters alphabetically and append to URL
+  const sortedKeys = Object.keys(params).sort();
+  for (const key of sortedKeys) {
+    data += key + params[key];
+  }
+
+  // Create HMAC-SHA1 hash and encode as base64
+  const expectedSignature = crypto
+    .createHmac('sha1', authToken)
+    .update(data, 'utf8')
+    .digest('base64');
+
+  // Compare signatures using timing-safe comparison
+  const isValid = crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expectedSignature)
+  );
+
+  if (!isValid) {
+    console.error('Invalid Twilio signature', {
+      url,
+      receivedSignature: signature,
+      expectedSignature,
+      paramsKeys: sortedKeys
+    });
+  }
+
+  return isValid;
+}
 
 export async function GET() {
   return NextResponse.json({
@@ -53,28 +97,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Temporarily disable signature validation for testing
-    // const isTestEnvironment = twilioSignature === 'test-signature';
-
-    // TODO: Re-enable signature validation once basic functionality works
-    // if (!isTestEnvironment) {
-    //   const url = new URL(request.url);
-    //   const isValid = validateTwilioSignature(
-    //     process.env.TWILIO_AUTH_TOKEN!,
-    //     twilioSignature,
-    //     url.toString(),
-    //     body
-    //   );
-
-    //   if (!isValid) {
-    //     return NextResponse.json(
-    //       { error: 'Invalid Twilio signature' },
-    //       { status: 401 }
-    //     );
-    //   }
-    // }
-
+    // Parse form data
     const formData = new URLSearchParams(body);
+
+    // Convert URLSearchParams to plain object for validation
+    const params: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      params[key] = value;
+    });
+
+    // Get the full URL for validation (must match what Twilio used to sign)
+    const url = request.url;
+
+    // Validate the Twilio signature
+    const isValid = validateTwilioSignature(url, params, twilioSignature);
+
+    if (!isValid) {
+      return NextResponse.json(
+        { error: 'Invalid Twilio signature' },
+        { status: 401 }
+      );
+    }
     const webhookData: TwilioWebhookBody = {
       From: formData.get('From') || '',
       Digits: formData.get('Digits') || '',
@@ -90,7 +133,7 @@ export async function POST(request: NextRequest) {
     if (!pressedDigit) {
       const welcomeTwiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="alice">Welcome to the phone navigation system! Press 1 for About, 2 for Projects, 3 for Photo, 4 for Writing, or 0 for Home.</Say>
+  <Say voice="alice">Welcome to the phone navigation system! Press 1 for About, 2 for Projects, 3 for Photo, 4 for Writing, 5 for Reading Notes, or 0 for Home.</Say>
   <Gather numDigits="1" timeout="10" action="${new URL(request.url).origin}/api/webhook/twilio">
     <Say voice="alice">Please press a digit to navigate.</Say>
   </Gather>
@@ -137,7 +180,7 @@ export async function POST(request: NextRequest) {
 <Response>
   <Say voice="alice">You navigated to ${getStateDisplayName(newState)}. Press another digit to continue navigating.</Say>
   <Gather numDigits="1" timeout="10" action="${new URL(request.url).origin}/api/webhook/twilio">
-    <Say voice="alice">Press 1 for About, 2 for Projects, 3 for Photo, 4 for Writing, or 0 for Home.</Say>
+    <Say voice="alice">Press 1 for About, 2 for Projects, 3 for Photo, 4 for Writing, 5 for Reading Notes, or 0 for Home.</Say>
   </Gather>
   <Say voice="alice">Thank you for visiting!</Say>
 </Response>`;
@@ -172,6 +215,7 @@ function getNextState(digit: string): string {
     '2': 'projects',
     '3': 'photo',
     '4': 'writing',
+    '5': 'reading',
     '0': 'home',
     '*': 'previous',
     '#': 'confirm',
@@ -186,6 +230,7 @@ function getStateDisplayName(state: string): string {
     'projects': 'Projects',
     'photo': 'Photo',
     'writing': 'Writing',
+    'reading': 'Reading Notes',
     'home': 'Home',
     'previous': 'Previous',
     'confirm': 'Confirmed',

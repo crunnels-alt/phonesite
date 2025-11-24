@@ -38,7 +38,7 @@ interface PhoneNavigationMonitorProps {
 
 export default function PhoneNavigationMonitor({ onSectionChange }: PhoneNavigationMonitorProps) {
   const [websiteState, setWebsiteState] = useState<WebsiteState>({
-    currentSection: 'about',
+    currentSection: 'home',
     lastActivity: new Date(),
     totalNavigations: 0,
     recentEvents: []
@@ -95,6 +95,7 @@ export default function PhoneNavigationMonitor({ onSectionChange }: PhoneNavigat
       'projects': 'Projects',
       'photo': 'Photo',
       'writing': 'Writing',
+      'reading': 'Reading Notes',
       'home': 'Home',
       'previous': 'Previous',
       'confirm': 'Confirmed',

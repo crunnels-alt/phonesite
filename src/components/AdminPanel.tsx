@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import PhotoManager from './PhotoManager';
+import ContentManager from './ContentManager';
 
 export default function AdminPanel() {
   const [phoneNumber, setPhoneNumber] = useState('+1234567890');
@@ -53,6 +55,7 @@ export default function AdminPanel() {
   };
 
   return (
+    <>
     <div className="experimental-grid" style={{ gridTemplateRows: 'auto 1fr auto', minHeight: '60vh' }}>
 
       {/* Header */}
@@ -132,6 +135,7 @@ export default function AdminPanel() {
                 <option value="2">2_PROJECTS</option>
                 <option value="3">3_PHOTO</option>
                 <option value="4">4_WRITING</option>
+                <option value="5">5_READING_NOTES</option>
                 <option value="0">0_HOME</option>
                 <option value="*">*_PREVIOUS</option>
                 <option value="#">#_CONFIRM</option>
@@ -247,5 +251,12 @@ export default function AdminPanel() {
       </div>
 
     </div>
+
+    {/* Photo Manager */}
+    <PhotoManager />
+
+    {/* Content Manager */}
+    <ContentManager />
+    </>
   );
 }

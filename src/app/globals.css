@@ -4,11 +4,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8f8f8;
+  --background: #ffffff;
   --foreground: #1a1a1a;
-  --accent-red: #ff0033;
-  --accent-gray: #666666;
-  --accent-blue: #0066ff;
+  --accent-dark: #333333;
+  --accent-gray: #cccccc;
+  --accent-light: #f0f0f0;
   --grid-gutter: 2vw;
 }
 
@@ -24,8 +24,12 @@
   box-sizing: border-box;
 }
 
+html {
+  background: #ffffff !important;
+}
+
 body {
-  background: var(--background);
+  background: #ffffff !important;
   color: var(--foreground);
   font-family: 'Space Grotesk', -apple-system, sans-serif;
   font-weight: 400;
@@ -39,7 +43,7 @@ body {
 
 /* Custom cursor */
 body {
-  cursor: url("data:image/svg+xml,%3Csvg width='16' height='16' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='8' cy='8' r='2' fill='%23ff0033'/%3E%3C/svg%3E"), auto;
+  cursor: url("data:image/svg+xml,%3Csvg width='16' height='16' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='8' cy='8' r='2' fill='%231a1a1a'/%3E%3C/svg%3E"), auto;
 }
 
 /* Experimental grid system */
@@ -71,46 +75,19 @@ body {
   letter-spacing: -0.005em;
 }
 
-/* Blinking animation - more subtle */
-@keyframes blink-subtle {
-  0%, 70% { opacity: 1; }
-  71%, 100% { opacity: 0.1; }
+/* Subtle hover states */
+.hover-lift {
+  transition: all 0.3s ease;
 }
 
-.blink-name {
-  animation: blink-subtle 2s infinite;
-  color: var(--accent-red);
-}
-
-/* Hover states */
-.hover-glitch:hover {
-  animation: glitch 0.3s infinite;
-}
-
-@keyframes glitch {
-  0% { transform: translate(0); }
-  20% { transform: translate(-2px, 2px); }
-  40% { transform: translate(-2px, -2px); }
-  60% { transform: translate(2px, 2px); }
-  80% { transform: translate(2px, -2px); }
-  100% { transform: translate(0); }
-}
-
-/* Experimental text treatments */
-.text-fragment {
-  display: inline-block;
-  transform: rotate(-0.5deg);
-  transition: all 0.2s ease;
-}
-
-.text-fragment:hover {
-  transform: rotate(0.5deg) scale(1.02);
+.hover-lift:hover {
+  transform: translateY(-2px);
 }
 
 /* Custom selections */
 ::selection {
-  background: var(--accent-red);
-  color: white;
+  background: var(--foreground);
+  color: var(--background);
 }
 
 /* Scrollbar styling */
@@ -123,6 +100,6 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--accent-red);
+  background: var(--accent-gray);
   border-radius: 1px;
 }

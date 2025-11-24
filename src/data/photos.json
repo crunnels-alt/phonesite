@@ -1,0 +1,32 @@
+[
+  {
+    "id": "b14b0c7e-1d8f-4564-9e63-1662fa7490c6",
+    "url": "https://az6wmjxbqykdcckm.public.blob.vercel-storage.com/R0004425.jpg",
+    "title": "R0004425",
+    "location": "",
+    "date": "2025-11-19",
+    "width": 1600,
+    "height": 1200,
+    "uploadedAt": "2025-11-19T22:10:58.044Z",
+    "position": {
+      "x": 10,
+      "y": 50,
+      "size": "large"
+    }
+  },
+  {
+    "id": "3e603f9d-2060-4465-8fc7-7172c150bce7",
+    "url": "https://az6wmjxbqykdcckm.public.blob.vercel-storage.com/R0004592.jpg",
+    "title": "R0004592",
+    "location": "",
+    "date": "2025-11-19",
+    "width": 1600,
+    "height": 1200,
+    "uploadedAt": "2025-11-19T22:11:00.166Z",
+    "position": {
+      "x": 45,
+      "y": 100,
+      "size": "medium"
+    }
+  }
+]

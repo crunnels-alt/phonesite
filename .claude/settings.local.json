@@ -7,7 +7,12 @@
       "Bash(npm run build:*)",
       "WebFetch(domain:publicrecords.nyc)",
       "WebFetch(domain:www.are.na)",
-      "WebFetch(domain:yvestumor.info)"
+      "WebFetch(domain:yvestumor.info)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(tsx scripts/test-twilio-signature.ts:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []
