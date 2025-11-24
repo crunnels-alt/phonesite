@@ -12,7 +12,13 @@
       "Bash(cat:*)",
       "Bash(tsx scripts/test-twilio-signature.ts:*)",
       "Bash(npx tsx:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(npm run db:setup:*)",
+      "Bash(vercel env:*)",
+      "Bash(vercel link:*)",
+      "Bash(npm run db:init:*)",
+      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_ykwuiCKR73ME@ep-rough-mud-adkqdbay-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require\" npm run db:init:*)",
+      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_ykwuiCKR73ME@ep-rough-mud-adkqdbay-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require\" npm run readwise:sync)"
     ],
     "deny": [],
     "ask": []

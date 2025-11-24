@@ -9,7 +9,8 @@
     "lint": "eslint",
     "db:init": "tsx scripts/init-db.ts",
     "db:migrate": "tsx scripts/migrate-data.ts",
-    "db:setup": "npm run db:init && npm run db:migrate"
+    "db:setup": "npm run db:init && npm run db:migrate",
+    "readwise:sync": "tsx scripts/sync-readwise.ts"
   },
   "dependencies": {
     "@types/twilio": "^3.19.2",
