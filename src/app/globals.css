@@ -102,3 +102,16 @@ a:hover {
 .text-tertiary {
   color: var(--text-tertiary);
 }
+
+/* Animations */
+@keyframes fadeOut {
+  0% {
+    opacity: 0.15;
+  }
+  20% {
+    opacity: 0.15;
+  }
+  100% {
+    opacity: 0;
+  }
+}

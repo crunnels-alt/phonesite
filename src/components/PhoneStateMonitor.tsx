@@ -120,134 +120,98 @@ export default function PhoneNavigationMonitor({ onSectionChange }: PhoneNavigat
 
   return (
     <>
-      {/* Floating status indicator - top right */}
+      {/* Minimal phone navigation indicator - bottom center */}
       <div
         style={{
           position: 'fixed',
-          top: 'var(--grid-gutter)',
-          right: 'var(--grid-gutter)',
-          zIndex: 1000,
-          pointerEvents: 'none'
-        }}
-      >
-        <div
-          className="type-mono text-xs"
-          style={{
-            writingMode: 'vertical-rl',
-            textOrientation: 'mixed',
-            opacity: 0.6,
-            lineHeight: '1.8'
-          }}
-        >
-          <div style={{ color: isConnected ? 'var(--accent-red)' : 'var(--accent-gray)' }}>
-            {isConnected ? '● LIVE' : '○ OFFLINE'}
-          </div>
-          <div style={{ opacity: 0.8 }}>
-            NAV: {String(websiteState.totalNavigations).padStart(3, '0')}
-          </div>
-        </div>
-      </div>
-
-      {/* Floating session selector - minimal */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 'var(--grid-gutter)',
-          left: 'var(--grid-gutter)',
+          bottom: '2rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
           zIndex: 1000,
           pointerEvents: 'auto'
         }}
       >
         <div
-          className="type-mono text-xs hover-glitch"
+          className="type-sans"
           style={{
-            padding: '0.5rem',
-            border: '1px solid transparent',
-            transition: 'all 0.3s ease',
-            cursor: 'pointer',
-            opacity: 0.4
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '1';
-            e.currentTarget.style.borderColor = 'var(--accent-red)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '0.4';
-            e.currentTarget.style.borderColor = 'transparent';
+            padding: '0.75rem 1.5rem',
+            background: 'rgba(255, 255, 255, 0.95)',
+            border: '1px solid var(--border-light)',
+            borderRadius: '2px',
+            transition: 'all 0.2s ease',
+            cursor: 'default',
+            opacity: isConnected ? 1 : 0.5,
+            fontSize: '12px',
+            color: 'var(--text-tertiary)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
           }}
         >
-          <div style={{ marginBottom: '0.5rem', opacity: 0.6 }}>
-            PHONE_NAVIGATION
+          {/* Connection status */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: isConnected ? '#22c55e' : '#d1d5db'
+              }}
+            />
+            <span>{isConnected ? 'Phone connected' : 'Waiting for call'}</span>
           </div>
-          <div style={{ color: 'var(--accent-red)', marginBottom: '0.25rem' }}>
-            ● AUTONOMOUS BROWSING
-          </div>
-          <div style={{ opacity: 0.5, fontSize: '10px' }}>
-            LAST: {getStateDisplayName(websiteState.currentSection).toUpperCase()}
-          </div>
+
+          {/* Divider */}
+          {websiteState.totalNavigations > 0 && (
+            <>
+              <div style={{ width: '1px', height: '12px', background: 'var(--border-light)' }} />
+
+              {/* Navigation count */}
+              <span style={{ color: 'var(--text-secondary)' }}>
+                {websiteState.totalNavigations} navigation{websiteState.totalNavigations !== 1 ? 's' : ''}
+              </span>
+            </>
+          )}
+
+          {/* Current section */}
           {websiteState.recentEvents.length > 0 && (
-            <div style={{ opacity: 0.3, fontSize: '10px' }}>
-              {Math.floor((new Date().getTime() - websiteState.lastActivity.getTime()) / 1000)}S AGO
-            </div>
+            <>
+              <div style={{ width: '1px', height: '12px', background: 'var(--border-light)' }} />
+              <span className="type-serif-italic" style={{ color: 'var(--foreground)' }}>
+                {getStateDisplayName(websiteState.currentSection)}
+              </span>
+            </>
           )}
         </div>
       </div>
 
-      {/* Activity feed - minimal bottom-right */}
-      {websiteState.recentEvents.length > 0 && (
+      {/* Recent activity toast - appears briefly after navigation */}
+      {websiteState.recentEvents.length > 0 &&
+       (new Date().getTime() - websiteState.lastActivity.getTime()) < 5000 && (
         <div
           style={{
             position: 'fixed',
-            bottom: 'var(--grid-gutter)',
-            right: 'var(--grid-gutter)',
-            zIndex: 999,
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 1001,
             pointerEvents: 'none',
-            maxWidth: '200px'
+            animation: 'fadeOut 5s ease-in-out forwards'
           }}
         >
           <div
-            className="type-mono text-xs"
+            className="type-serif-italic"
             style={{
-              opacity: 0.2,
-              lineHeight: '1.4'
+              fontSize: '48px',
+              color: 'var(--foreground)',
+              opacity: 0.1
             }}
           >
-            {websiteState.recentEvents.slice(0, 3).map((event, index) => (
-              <div
-                key={event.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  marginBottom: '0.25rem',
-                  opacity: 1 - (index * 0.3)
-                }}
-              >
-                <span style={{ color: 'var(--accent-red)' }}>
-                  {event.lastDigit}
-                </span>
-                <span>
-                  {getStateDisplayName(event.currentState).substring(0, 4).toUpperCase()}
-                </span>
-              </div>
-            ))}
+            {getStateDisplayName(websiteState.currentSection)}
           </div>
         </div>
       )}
-
-      {/* Connection status line - top edge */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '0',
-          left: '0',
-          right: '0',
-          height: '1px',
-          background: isConnected ? 'var(--accent-red)' : 'var(--accent-gray)',
-          opacity: isConnected ? 0.8 : 0.3,
-          zIndex: 1001,
-          pointerEvents: 'none'
-        }}
-      />
     </>
   );
 }
