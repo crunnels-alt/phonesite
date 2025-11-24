@@ -96,6 +96,19 @@ async function initDatabase() {
     `;
     console.log('✓ Readwise highlights table created');
 
+    // Create contact_messages table
+    await sql`
+      CREATE TABLE IF NOT EXISTS contact_messages (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        read_at TIMESTAMP
+      )
+    `;
+    console.log('✓ Contact messages table created');
+
     console.log('\n✅ Database initialized successfully!');
     console.log('\nNext step: Run "npm run migrate-data" to import your existing JSON data');
   } catch (error) {

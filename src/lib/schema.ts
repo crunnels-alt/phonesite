@@ -85,9 +85,22 @@ export const readwiseHighlights = pgTable('readwise_highlights', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+// Contact messages table
+export const contactMessages = pgTable('contact_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  message: text('message').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  read: timestamp('read_at'),
+});
+
 // Export types
 export type Photo = typeof photos.$inferSelect;
 export type NewPhoto = typeof photos.$inferInsert;
+
+export type ContactMessage = typeof contactMessages.$inferSelect;
+export type NewContactMessage = typeof contactMessages.$inferInsert;
 
 export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;

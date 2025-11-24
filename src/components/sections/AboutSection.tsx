@@ -1,6 +1,7 @@
 'use client';
 
 import SectionNavigation from '@/components/SectionNavigation';
+import ContactForm from '@/components/ContactForm';
 
 interface AboutSectionProps {
   onSectionChange?: (section: string) => void;
@@ -89,6 +90,27 @@ export default function AboutSection({ onSectionChange }: AboutSectionProps) {
               GitHub
             </a>
           </div>
+        </div>
+
+        {/* Divider */}
+        <div style={{
+          width: '40px',
+          height: '1px',
+          background: 'var(--border-light)',
+          margin: '3rem auto'
+        }} />
+
+        {/* Contact Form */}
+        <div style={{ textAlign: 'left' }}>
+          <h2 className="type-serif-italic" style={{
+            fontSize: '18px',
+            marginBottom: '1.5rem',
+            textAlign: 'center',
+            color: 'var(--text-secondary)'
+          }}>
+            Send a message
+          </h2>
+          <ContactForm />
         </div>
       </div>
     </div>
