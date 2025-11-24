@@ -75,17 +75,17 @@ export default function AboutSection({ onSectionChange }: AboutSectionProps) {
           color: 'var(--text-tertiary)'
         }}>
           <div>
-            <a href="mailto:casey@example.com" style={{ transition: 'opacity 0.2s' }}>
-              casey@example.com
+            <a href="mailto:connorrunnels@gmail.com" style={{ transition: 'opacity 0.2s' }}>
+              connorrunnels@gmail.com
             </a>
           </div>
           <div>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://instagram.com/crunnels_" target="_blank" rel="noopener noreferrer">
               Instagram
             </a>
           </div>
           <div>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/crunnels-alt" target="_blank" rel="noopener noreferrer">
               GitHub
             </a>
           </div>

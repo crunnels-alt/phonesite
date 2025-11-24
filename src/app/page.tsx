@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 // import Navigation from '@/components/Navigation';
 import PhoneNavigationMonitor from '@/components/PhoneStateMonitor';
 import AdminPanel from '@/components/AdminPanel';
@@ -10,9 +10,62 @@ import ProjectsSection from '@/components/sections/ProjectsSection';
 import PhotoSection from '@/components/sections/PhotoSection';
 import WritingSection from '@/components/sections/WritingSection';
 import ReadingNotesSection from '@/components/sections/ReadingNotesSection';
+import { SECTIONS } from '@/components/SectionNavigation';
 
 export default function Home() {
   const [currentSection, setCurrentSection] = useState('home');
+
+  // Read hash from URL on mount and handle hash changes
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1); // Remove the #
+      if (hash && SECTIONS.some(s => s.id === hash)) {
+        setCurrentSection(hash);
+      }
+    };
+
+    // Set initial section from URL hash
+    handleHashChange();
+
+    // Listen for hash changes (back/forward navigation)
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Update URL hash when section changes
+  const handleSectionChange = useCallback((section: string) => {
+    setCurrentSection(section);
+    // Update URL without triggering navigation
+    const newHash = section === 'home' ? '' : `#${section}`;
+    if (window.location.hash !== newHash) {
+      window.history.pushState(null, '', newHash || '/');
+    }
+  }, []);
+
+  // Keyboard shortcuts for section navigation (0-5 keys)
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Don't trigger if user is typing in an input or select
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement ||
+      e.target instanceof HTMLSelectElement
+    ) {
+      return;
+    }
+
+    const key = e.key;
+    if (key >= '0' && key <= '5') {
+      const section = SECTIONS.find(s => s.key === key);
+      if (section) {
+        handleSectionChange(section.id);
+      }
+    }
+  }, [handleSectionChange]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   const renderSection = () => {
     switch (currentSection) {
@@ -31,10 +84,6 @@ export default function Home() {
       default:
         return <HomeSection onSectionChange={handleSectionChange} />;
     }
-  };
-
-  const handleSectionChange = (section: string) => {
-    setCurrentSection(section);
   };
 
   return (
