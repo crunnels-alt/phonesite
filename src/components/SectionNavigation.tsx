@@ -20,28 +20,31 @@ export default function SectionNavigation({
   onSectionChange,
 }: SectionNavigationProps) {
   return (
-    <nav style={{
+    <nav className="type-sans" style={{
+      position: 'sticky',
+      top: 0,
       display: 'flex',
-      gap: '3rem',
+      gap: '2.5rem',
       justifyContent: 'center',
-      padding: '2rem 0',
-      marginBottom: '2rem'
+      padding: '1.5rem 0',
+      marginBottom: '2rem',
+      zIndex: 100,
     }}>
       {SECTIONS.map((section) => (
         <button
           key={section.id}
           onClick={() => onSectionChange?.(section.id)}
-          className="type-body"
           style={{
             background: 'transparent',
             border: 'none',
             cursor: 'pointer',
             color: 'var(--foreground)',
-            fontSize: '14px',
+            fontSize: '13px',
             fontWeight: section.id === currentSection ? 500 : 400,
             opacity: section.id === currentSection ? 1 : 0.5,
-            transition: 'opacity 0.3s ease',
+            transition: 'opacity 0.2s ease',
             padding: 0,
+            letterSpacing: '0.02em',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.opacity = '1';

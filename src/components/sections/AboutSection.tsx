@@ -8,55 +8,87 @@ interface AboutSectionProps {
 
 export default function AboutSection({ onSectionChange }: AboutSectionProps) {
   return (
-    <div style={{ minHeight: '100vh', padding: '0 4rem' }}>
+    <div style={{ minHeight: '100vh', padding: '0 2rem' }}>
       <SectionNavigation
         currentSection="about"
         onSectionChange={onSectionChange}
       />
 
       <div style={{
-        maxWidth: '600px',
-        margin: '8rem auto',
+        maxWidth: '540px',
+        margin: '6rem auto',
         textAlign: 'center'
       }}>
         {/* Name */}
-        <h1 className="type-display" style={{
-          fontSize: 'clamp(2rem, 6vw, 4rem)',
-          marginBottom: '2rem',
-          fontWeight: 900,
-          letterSpacing: '-0.02em'
+        <h1 style={{
+          fontSize: '42px',
+          fontWeight: 400,
+          marginBottom: '1.5rem',
+          letterSpacing: '-0.01em'
         }}>
-          CRUNNELS
+          Connor Runnels
         </h1>
 
-        {/* Bio */}
-        <p className="type-body" style={{
-          fontSize: '16px',
-          lineHeight: '1.6',
+        {/* Subtitle */}
+        <p className="type-serif-italic" style={{
+          fontSize: '20px',
           marginBottom: '3rem',
-          opacity: 0.8
+          color: 'var(--text-secondary)'
         }}>
-          Digital practitioner working across media. Call to navigate.
+          Digital practitioner working across media
         </p>
 
+        {/* Bio */}
+        <p style={{
+          fontSize: '18px',
+          lineHeight: '1.7',
+          marginBottom: '3rem',
+          color: 'var(--text-secondary)'
+        }}>
+          Based in San Francisco. Currently exploring the intersections of
+          technology, art, and human experience. Call the number below to
+          navigate this site by phone.
+        </p>
+
+        {/* Divider */}
+        <div style={{
+          width: '40px',
+          height: '1px',
+          background: 'var(--border-light)',
+          margin: '3rem auto'
+        }} />
+
         {/* Phone */}
-        <div className="type-mono" style={{
-          fontSize: '14px',
+        <div className="type-sans" style={{
+          fontSize: '15px',
           marginBottom: '2rem',
-          opacity: 0.6
+          letterSpacing: '0.05em',
+          color: 'var(--text-secondary)'
         }}>
           (415) 680-9353
         </div>
 
-        {/* Contact */}
-        <div className="type-mono" style={{
-          fontSize: '12px',
-          lineHeight: '2',
-          opacity: 0.5
+        {/* Contact Links */}
+        <div className="type-sans" style={{
+          fontSize: '13px',
+          lineHeight: '2.2',
+          color: 'var(--text-tertiary)'
         }}>
-          <div>EMAIL@EXAMPLE.COM</div>
-          <div>@USERNAME</div>
-          <div>GITHUB.COM/USERNAME</div>
+          <div>
+            <a href="mailto:casey@example.com" style={{ transition: 'opacity 0.2s' }}>
+              casey@example.com
+            </a>
+          </div>
+          <div>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+              Instagram
+            </a>
+          </div>
+          <div>
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+              GitHub
+            </a>
+          </div>
         </div>
       </div>
     </div>

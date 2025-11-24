@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getHighlights, getHighlightCount, syncFromReadwise } from '@/lib/readwise-db';
-import { checkRateLimit } from '@/lib/ratelimit';
+import { getHighlights, syncFromReadwise } from '@/lib/readwise-db';
 
 /**
  * GET /api/readwise
@@ -8,15 +7,6 @@ import { checkRateLimit } from '@/lib/ratelimit';
  */
 export async function GET() {
   try {
-    // Rate limiting (lenient for reads)
-    const rateLimitResult = await checkRateLimit('readwise-read', 'lenient');
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        { success: false, error: 'Rate limit exceeded' },
-        { status: 429, headers: rateLimitResult.headers }
-      );
-    }
-
     const highlights = await getHighlights();
 
     // Transform to match the expected frontend format
@@ -26,7 +16,7 @@ export async function GET() {
       note: h.note,
       location: h.location,
       location_type: h.locationType,
-      highlighted_at: h.highlightedAt?.toISOString() || '',
+      highlighted_at: h.highlightedAt?.toISOString() || h.createdAt.toISOString(),
       url: h.url,
       color: h.color,
       updated: h.updatedAt.toISOString(),
@@ -74,16 +64,7 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    // Rate limiting (strict for sync operations)
-    const rateLimitResult = await checkRateLimit('readwise-sync', 'strict');
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        { success: false, error: 'Rate limit exceeded' },
-        { status: 429, headers: rateLimitResult.headers }
-      );
-    }
-
-    // Optional: Check for admin auth
+    // Check for admin auth
     const authHeader = request.headers.get('authorization');
     const adminPassword = process.env.ADMIN_PASSWORD;
 

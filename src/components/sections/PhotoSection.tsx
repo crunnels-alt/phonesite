@@ -51,24 +51,23 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
   const getSizeStyles = (size: 'small' | 'medium' | 'large') => {
     switch (size) {
       case 'small':
-        return { width: '250px', height: '350px' };
+        return { width: '220px', height: '300px' };
       case 'medium':
-        return { width: '350px', height: '450px' };
+        return { width: '320px', height: '420px' };
       case 'large':
-        return { width: '450px', height: '600px' };
+        return { width: '420px', height: '560px' };
     }
   };
 
   return (
     <>
       <div style={{ minHeight: '100vh', position: 'relative', paddingBottom: '4rem' }}>
-        {/* Navigation */}
         <SectionNavigation
           currentSection="photo"
           onSectionChange={onSectionChange}
         />
 
-        {/* Montessori Gallery */}
+        {/* Gallery */}
         <div style={{
           position: 'relative',
           width: '100%',
@@ -76,20 +75,20 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
           padding: '2rem 0'
         }}>
           {loading ? (
-            <div className="type-mono text-sm" style={{
+            <div className="type-serif-italic" style={{
               textAlign: 'center',
               padding: '4rem',
-              opacity: 0.6
+              color: 'var(--text-secondary)'
             }}>
               Loading photos...
             </div>
           ) : photos.length === 0 ? (
-            <div className="type-mono text-sm" style={{
+            <div className="type-serif-italic" style={{
               textAlign: 'center',
               padding: '4rem',
-              opacity: 0.6
+              color: 'var(--text-secondary)'
             }}>
-              No photos yet. Upload some from the admin panel.
+              No photos yet.
             </div>
           ) : (
             photos.map((photo) => {
@@ -104,29 +103,27 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
                     position: 'absolute',
                     left: `${position.x}%`,
                     top: `${position.y}px`,
-                    transition: 'opacity 0.3s ease',
+                    transition: 'opacity 0.2s ease',
                     cursor: 'pointer',
                     zIndex: 10
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = '0.8';
+                    e.currentTarget.style.opacity = '0.85';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.opacity = '1';
                   }}
                 >
-                  {/* Photo frame */}
                   <div style={{
                     ...sizeStyles,
                     position: 'relative',
                     background: '#ffffff',
-                    padding: '12px'
                   }}>
                     {/* Image */}
                     <div style={{
                       position: 'relative',
                       width: '100%',
-                      height: 'calc(100% - 40px)',
+                      height: 'calc(100% - 36px)',
                       overflow: 'hidden'
                     }}>
                       <Image
@@ -138,10 +135,10 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
                     </div>
 
                     {/* Caption */}
-                    <div className="type-mono" style={{
-                      marginTop: '8px',
-                      fontSize: '11px',
-                      opacity: 0.7,
+                    <div className="type-serif-italic" style={{
+                      marginTop: '10px',
+                      fontSize: '14px',
+                      color: 'var(--text-secondary)',
                       textAlign: 'center'
                     }}>
                       {photo.title}
@@ -164,18 +161,18 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
             left: 0,
             width: '100%',
             height: '100%',
-            background: 'rgba(0,0,0,0.95)',
+            background: 'rgba(255,255,255,0.97)',
             zIndex: 1000,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '2rem',
+            padding: '3rem',
             cursor: 'pointer'
           }}
         >
           <div style={{
-            maxWidth: '90vw',
-            maxHeight: '90vh',
+            maxWidth: '85vw',
+            maxHeight: '85vh',
             position: 'relative'
           }}>
             <Image
@@ -185,21 +182,24 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
               height={selectedPhoto.height}
               style={{
                 maxWidth: '100%',
-                maxHeight: '90vh',
+                maxHeight: '80vh',
                 width: 'auto',
                 height: 'auto',
                 objectFit: 'contain'
               }}
             />
-            <div className="type-mono" style={{
-              color: 'white',
-              marginTop: '1rem',
+            <div style={{
+              marginTop: '1.5rem',
               textAlign: 'center',
-              fontSize: '14px'
             }}>
-              <div>{selectedPhoto.title}</div>
+              <div className="type-serif-italic" style={{ fontSize: '18px', marginBottom: '0.5rem' }}>
+                {selectedPhoto.title}
+              </div>
               {selectedPhoto.location && (
-                <div style={{ opacity: 0.7, fontSize: '12px', marginTop: '0.5rem' }}>
+                <div className="type-sans" style={{
+                  fontSize: '13px',
+                  color: 'var(--text-tertiary)',
+                }}>
                   {selectedPhoto.location} · {selectedPhoto.date}
                 </div>
               )}

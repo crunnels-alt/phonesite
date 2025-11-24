@@ -48,8 +48,12 @@ export default function WritingSection({ onSectionChange }: WritingSectionProps)
           currentSection="writing"
           onSectionChange={onSectionChange}
         />
-        <div className="type-mono text-xs" style={{ padding: '2rem', opacity: 0.6 }}>
-          LOADING_WRITINGS...
+        <div className="type-serif-italic" style={{
+          padding: '4rem 2rem',
+          textAlign: 'center',
+          color: 'var(--text-secondary)'
+        }}>
+          Loading writings...
         </div>
       </div>
     );
@@ -86,13 +90,13 @@ export default function WritingSection({ onSectionChange }: WritingSectionProps)
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    paddingTop: '0.5rem',
-                    borderTop: '1px solid var(--accent-gray)'
+                    paddingTop: '0.75rem',
+                    borderTop: '1px solid var(--border-light)'
                   }}>
-                    <span className="type-mono" style={{ fontSize: '11px', opacity: 0.6 }}>
+                    <span className="type-sans" style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
                       {post.date}
                     </span>
-                    <span className="type-mono" style={{ fontSize: '11px', opacity: 0.6 }}>
+                    <span className="type-serif-italic" style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
                       {post.category}
                     </span>
                   </div>

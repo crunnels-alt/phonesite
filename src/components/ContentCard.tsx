@@ -38,24 +38,22 @@ export default function ContentCard({
 }: ContentCardProps) {
   const getSizeStyles = (size: 'small' | 'medium' | 'large', isImage: boolean) => {
     if (isImage) {
-      // For images, use fixed heights matching PhotoSection
       switch (size) {
         case 'small':
-          return { width: '250px', height: '350px' };
+          return { width: '220px', height: '300px' };
         case 'medium':
-          return { width: '350px', height: '450px' };
+          return { width: '320px', height: '420px' };
         case 'large':
-          return { width: '450px', height: '600px' };
+          return { width: '420px', height: '560px' };
       }
     } else {
-      // For text cards, use min heights
       switch (size) {
         case 'small':
-          return { width: '250px', minHeight: '200px' };
+          return { width: '260px', minHeight: '180px' };
         case 'medium':
-          return { width: '350px', minHeight: '280px' };
+          return { width: '340px', minHeight: '240px' };
         case 'large':
-          return { width: '450px', minHeight: '360px' };
+          return { width: '420px', minHeight: '300px' };
       }
     }
   };
@@ -70,25 +68,23 @@ export default function ContentCard({
         position: 'absolute',
         left: `${position.x}%`,
         top: `${position.y}px`,
-        transition: 'opacity 0.3s ease',
+        transition: 'opacity 0.2s ease',
         cursor: onClick ? 'pointer' : 'default',
         zIndex: 10
       }}
       onMouseEnter={(e) => {
         if (onClick) {
-          e.currentTarget.style.opacity = '0.8';
+          e.currentTarget.style.opacity = '0.7';
         }
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.opacity = '1';
       }}
     >
-      {/* Card frame */}
       <div style={{
         ...sizeStyles,
         position: 'relative',
         background: '#ffffff',
-        padding: '16px',
       }}>
         {isImageCard ? (
           <>
@@ -96,7 +92,7 @@ export default function ContentCard({
             <div style={{
               position: 'relative',
               width: '100%',
-              height: 'calc(100% - 50px)',
+              height: 'calc(100% - 40px)',
               overflow: 'hidden'
             }}>
               <Image
@@ -108,10 +104,10 @@ export default function ContentCard({
             </div>
             {/* Image caption */}
             {title && (
-              <div className="type-mono" style={{
+              <div className="type-serif-italic" style={{
                 marginTop: '12px',
-                fontSize: '11px',
-                opacity: 0.7,
+                fontSize: '14px',
+                color: 'var(--text-secondary)',
                 textAlign: 'center'
               }}>
                 {title}
@@ -122,38 +118,35 @@ export default function ContentCard({
           <>
             {/* Text content */}
             <div style={{
-              padding: '1rem',
               height: '100%',
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.75rem'
+              gap: '0.5rem'
             }}>
               {title && (
-                <h3 className="type-display" style={{
-                  fontSize: '18px',
-                  fontWeight: 600,
+                <h3 style={{
+                  fontSize: '22px',
+                  fontWeight: 400,
                   margin: 0,
-                  lineHeight: 1.2
+                  lineHeight: 1.3
                 }}>
                   {title}
                 </h3>
               )}
               {subtitle && (
-                <div className="type-mono" style={{
-                  fontSize: '11px',
-                  opacity: 0.6,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em'
+                <div className="type-serif-italic" style={{
+                  fontSize: '14px',
+                  color: 'var(--text-secondary)',
                 }}>
                   {subtitle}
                 </div>
               )}
               {excerpt && (
-                <p className="type-body" style={{
-                  fontSize: '13px',
-                  lineHeight: 1.5,
-                  opacity: 0.8,
-                  margin: 0,
+                <p style={{
+                  fontSize: '16px',
+                  lineHeight: 1.6,
+                  color: 'var(--text-secondary)',
+                  margin: '0.5rem 0 0 0',
                   flex: 1
                 }}>
                   {excerpt}

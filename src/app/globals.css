@@ -1,23 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
 @import "tailwindcss";
 
 :root {
   --background: #ffffff;
   --foreground: #1a1a1a;
-  --accent-dark: #333333;
-  --accent-gray: #cccccc;
-  --accent-light: #f0f0f0;
-  --grid-gutter: 2vw;
+  --text-secondary: rgba(26, 26, 26, 0.6);
+  --text-tertiary: rgba(26, 26, 26, 0.4);
+  --border-light: rgba(26, 26, 26, 0.1);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-mono: 'JetBrains Mono';
-  --font-sans: 'Space Grotesk';
-  --font-display: 'Archivo Black';
+  --font-serif: 'Crimson Text', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, sans-serif;
 }
 
 * {
@@ -25,74 +22,68 @@
 }
 
 html {
-  background: #ffffff !important;
+  background: #ffffff;
 }
 
 body {
-  background: #ffffff !important;
+  background: #ffffff;
   color: var(--foreground);
-  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  font-family: 'Crimson Text', Georgia, serif;
   font-weight: 400;
-  font-size: 14px;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
+  font-size: 18px;
+  line-height: 1.6;
+  letter-spacing: 0;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Custom cursor */
-body {
-  cursor: url("data:image/svg+xml,%3Csvg width='16' height='16' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='8' cy='8' r='2' fill='%231a1a1a'/%3E%3C/svg%3E"), auto;
+/* Typography - Editorial System */
+.type-serif {
+  font-family: 'Crimson Text', Georgia, serif;
+  font-weight: 400;
 }
 
-/* Experimental grid system */
-.experimental-grid {
-  display: grid;
-  grid-template-columns: repeat(24, 1fr);
-  gap: var(--grid-gutter);
-  padding: var(--grid-gutter);
-  min-height: 100vh;
+.type-serif-italic {
+  font-family: 'Crimson Text', Georgia, serif;
+  font-weight: 400;
+  font-style: italic;
 }
 
-/* Typography classes */
-.type-display {
-  font-family: 'Archivo Black', sans-serif;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
-}
-
-.type-mono {
-  font-family: 'JetBrains Mono', monospace;
+.type-sans {
+  font-family: 'Inter', -apple-system, sans-serif;
   font-weight: 400;
   letter-spacing: -0.01em;
 }
 
-.type-body {
-  font-family: 'Space Grotesk', sans-serif;
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Crimson Text', Georgia, serif;
   font-weight: 400;
-  letter-spacing: -0.005em;
+  line-height: 1.2;
+  margin: 0;
 }
 
-/* Subtle hover states */
-.hover-lift {
-  transition: all 0.3s ease;
+/* Links */
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-.hover-lift:hover {
-  transform: translateY(-2px);
+a:hover {
+  opacity: 0.7;
 }
 
-/* Custom selections */
+/* Selection */
 ::selection {
   background: var(--foreground);
   color: var(--background);
 }
 
-/* Scrollbar styling */
+/* Scrollbar - minimal */
 ::-webkit-scrollbar {
-  width: 2px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -100,6 +91,14 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--accent-gray);
-  border-radius: 1px;
+  background: var(--border-light);
+}
+
+/* Utility classes */
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-tertiary {
+  color: var(--text-tertiary);
 }

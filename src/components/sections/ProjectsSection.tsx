@@ -49,8 +49,12 @@ export default function ProjectsSection({ onSectionChange }: ProjectsSectionProp
           currentSection="projects"
           onSectionChange={onSectionChange}
         />
-        <div className="type-mono text-xs" style={{ padding: '2rem', opacity: 0.6 }}>
-          LOADING_PROJECTS...
+        <div className="type-serif-italic" style={{
+          padding: '4rem 2rem',
+          textAlign: 'center',
+          color: 'var(--text-secondary)'
+        }}>
+          Loading projects...
         </div>
       </div>
     );
@@ -83,22 +87,24 @@ export default function ProjectsSection({ onSectionChange }: ProjectsSectionProp
                   <div style={{ marginBottom: '1rem' }}>
                     {project.excerpt}
                   </div>
-                  <div className="type-mono" style={{
-                    fontSize: '11px',
-                    opacity: 0.5,
-                    marginBottom: '0.5rem'
+                  <div className="type-sans" style={{
+                    fontSize: '12px',
+                    color: 'var(--text-tertiary)',
+                    marginBottom: '0.75rem'
                   }}>
                     {project.tech}
                   </div>
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    paddingTop: '0.75rem',
+                    borderTop: '1px solid var(--border-light)'
                   }}>
-                    <span className="type-mono" style={{ fontSize: '11px', opacity: 0.6 }}>
+                    <span className="type-sans" style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
                       {project.year}
                     </span>
-                    <span className="type-mono" style={{ fontSize: '11px', opacity: 0.6 }}>
+                    <span className="type-serif-italic" style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
                       {project.status}
                     </span>
                   </div>

@@ -18,7 +18,11 @@
       "Bash(vercel link:*)",
       "Bash(npm run db:init:*)",
       "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_ykwuiCKR73ME@ep-rough-mud-adkqdbay-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require\" npm run db:init:*)",
-      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_ykwuiCKR73ME@ep-rough-mud-adkqdbay-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require\" npm run readwise:sync)"
+      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_ykwuiCKR73ME@ep-rough-mud-adkqdbay-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require\" npm run readwise:sync)",
+      "Bash(git push:*)",
+      "WebFetch(domain:nicholasalbrecht.com)",
+      "WebFetch(domain:evankinori.com)",
+      "Bash(npm run readwise:sync:*)"
     ],
     "deny": [],
     "ask": []

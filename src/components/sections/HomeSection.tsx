@@ -22,12 +22,12 @@ interface HomeSectionProps {
 const sampleProjects = [
   {
     title: "Phone Navigation",
-    subtitle: "TELEPHONIC INTERFACE",
+    subtitle: "Telephonic Interface",
     excerpt: "This website. Bridging analog and digital interaction through voice commands.",
   },
   {
     title: "Neural Synthesis",
-    subtitle: "MACHINE LEARNING",
+    subtitle: "Machine Learning",
     excerpt: "Algorithmic composition through machine learning models.",
   },
 ];
@@ -35,12 +35,12 @@ const sampleProjects = [
 const sampleWriting = [
   {
     title: "Communication Protocols",
-    subtitle: "INTERFACE DESIGN",
+    subtitle: "Interface Design",
     excerpt: "Investigating telephonic navigation as speculative design.",
   },
   {
     title: "Signal Processing",
-    subtitle: "NOISE AS MEDIUM",
+    subtitle: "Noise as Medium",
     excerpt: "When AI systems develop their own aesthetic preferences.",
   },
 ];
@@ -69,14 +69,14 @@ export default function HomeSection({ onSectionChange }: HomeSectionProps) {
 
   // Generate mixed positions for all content
   const allPositions = [
-    { x: 10, y: 100, size: 'large' as const },
-    { x: 50, y: 50, size: 'medium' as const },
-    { x: 75, y: 250, size: 'small' as const },
-    { x: 15, y: 500, size: 'medium' as const },
-    { x: 60, y: 600, size: 'large' as const },
-    { x: 85, y: 800, size: 'small' as const },
-    { x: 20, y: 1000, size: 'large' as const },
-    { x: 55, y: 1200, size: 'medium' as const },
+    { x: 8, y: 80, size: 'large' as const },
+    { x: 55, y: 40, size: 'medium' as const },
+    { x: 70, y: 280, size: 'small' as const },
+    { x: 12, y: 520, size: 'medium' as const },
+    { x: 58, y: 580, size: 'large' as const },
+    { x: 5, y: 900, size: 'small' as const },
+    { x: 45, y: 1000, size: 'medium' as const },
+    { x: 75, y: 1100, size: 'small' as const },
   ];
 
   // Mix all content types
@@ -122,10 +122,10 @@ export default function HomeSection({ onSectionChange }: HomeSectionProps) {
       />
 
       {loading ? (
-        <div className="type-mono text-sm" style={{
+        <div className="type-serif-italic" style={{
           textAlign: 'center',
           padding: '4rem',
-          opacity: 0.6
+          color: 'var(--text-secondary)'
         }}>
           Loading...
         </div>
@@ -133,7 +133,7 @@ export default function HomeSection({ onSectionChange }: HomeSectionProps) {
         <div style={{
           position: 'relative',
           width: '100%',
-          minHeight: '150vh',
+          minHeight: '140vh',
           padding: '2rem 0'
         }}>
           {mixedContent.map((item, index) => {
