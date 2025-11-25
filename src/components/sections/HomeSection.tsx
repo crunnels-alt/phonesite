@@ -53,7 +53,8 @@ export default function HomeSection({ onSectionChange }: HomeSectionProps) {
   };
 
   const handleGroupClick = (group: PhotoGroup) => {
-    const slug = group.groupName.toLowerCase().replace(/\s+/g, '-');
+    // Normalize to URL-safe slug (lowercase, alphanumeric and dashes only)
+    const slug = group.groupName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     router.push(`/photos/${encodeURIComponent(slug)}`);
   };
 

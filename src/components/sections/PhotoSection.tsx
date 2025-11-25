@@ -40,8 +40,8 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
 
   const handlePhotoClick = (photo: Photo) => {
     if (photo.groupName) {
-      // Navigate to group page
-      const slug = photo.groupName.toLowerCase().replace(/\s+/g, '-');
+      // Navigate to group page with normalized slug
+      const slug = photo.groupName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       router.push(`/photos/${encodeURIComponent(slug)}`);
     } else {
       // Open lightbox for ungrouped photos

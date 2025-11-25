@@ -49,15 +49,29 @@ export async function getPhotos(): Promise<Photo[]> {
 }
 
 /**
- * Get photos by group name (case-insensitive)
+ * Normalize a string for slug comparison (lowercase, replace non-alphanumeric with dashes)
+ */
+function normalizeForSlug(str: string): string {
+  return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+/**
+ * Get photos by group name (matches both exact name and slugified URL)
  */
 export async function getPhotosByGroup(groupName: string): Promise<Photo[]> {
   try {
-    const result = await db
-      .select()
-      .from(photos)
-      .where(sql`LOWER(${photos.groupName}) = LOWER(${groupName})`);
-    return result.map(photo => ({
+    // Normalize the search term for slug matching
+    const normalizedSearch = normalizeForSlug(groupName);
+
+    // Get all photos and filter by normalized group name
+    const allPhotos = await db.select().from(photos);
+    const matchingPhotos = allPhotos.filter(photo => {
+      if (!photo.groupName) return false;
+      const normalizedGroup = normalizeForSlug(photo.groupName);
+      return normalizedGroup === normalizedSearch;
+    });
+
+    return matchingPhotos.map(photo => ({
       ...photo,
       description: photo.description ?? undefined,
       blurDataUrl: photo.blurDataUrl ?? undefined,
