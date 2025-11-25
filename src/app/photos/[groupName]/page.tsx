@@ -78,7 +78,7 @@ export default function PhotoGroupPage() {
       {/* Header */}
       <header className={styles.header}>
         <button onClick={() => router.back()} className={styles.backButton}>
-          <span className="type-mono">← BACK</span>
+          ← Back
         </button>
         <h1 className={`type-display ${styles.title}`}>
           {displayGroupName}
@@ -150,7 +150,7 @@ export default function PhotoGroupPage() {
                   {selectedPhoto.location}{selectedPhoto.location && selectedPhoto.date && ' · '}{selectedPhoto.date}
                 </div>
               )}
-              <div className={`type-mono ${styles.lightboxNav}`}>
+              <div className={styles.lightboxNav}>
                 ← → to navigate · ESC to close
               </div>
             </div>

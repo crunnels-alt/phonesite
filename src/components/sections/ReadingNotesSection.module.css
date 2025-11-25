@@ -1,24 +1,8 @@
 .container {
   min-height: 100vh;
-  padding: 0 2rem;
+  padding: 2rem;
   max-width: 900px;
   margin: 0 auto;
-}
-
-.header {
-  margin-bottom: 3rem;
-  text-align: center;
-}
-
-.title {
-  font-size: 36px;
-  font-weight: 400;
-  margin-bottom: 0.75rem;
-}
-
-.subtitle {
-  color: var(--text-secondary);
-  font-size: 18px;
 }
 
 /* Error state */
@@ -31,109 +15,12 @@
 
 .errorText {
   color: var(--text-secondary);
-  margin-bottom: 1rem;
-}
-
-.errorHelp {
-  font-size: 13px;
-  color: var(--text-tertiary);
 }
 
 /* Loading */
 .loadingGrid {
   display: grid;
   gap: 2.5rem;
-}
-
-/* Filters */
-.filtersBox {
-  margin-bottom: 3rem;
-  padding: 1.5rem;
-  border: 1px solid var(--border-light);
-  display: grid;
-  gap: 1rem;
-}
-
-.filterLabel {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-size: 12px;
-  color: var(--text-tertiary);
-  letter-spacing: 0.05em;
-}
-
-.filterInput,
-.filterSelect {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--border-light);
-  background: var(--background);
-  color: var(--foreground);
-  font-family: inherit;
-  font-size: 16px;
-}
-
-.filterRow {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-}
-
-/* Timeline view */
-.timelineGrid {
-  display: grid;
-  gap: 2.5rem;
-}
-
-.highlightArticle {
-  padding-bottom: 2.5rem;
-  border-bottom: 1px solid var(--border-light);
-}
-
-.bookInfo {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-  align-items: flex-start;
-}
-
-.bookCover {
-  object-fit: cover;
-}
-
-.bookDetails {
-  flex: 1;
-}
-
-.bookTitle {
-  font-size: 18px;
-  font-weight: 400;
-  margin-bottom: 0.25rem;
-}
-
-.bookAuthor {
-  font-size: 15px;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
-}
-
-.highlightDate {
-  font-size: 12px;
-  color: var(--text-tertiary);
-}
-
-.blockquote {
-  font-size: 18px;
-  line-height: 1.7;
-  margin-bottom: 1rem;
-  padding-left: 1.25rem;
-  border-left: 2px solid var(--border-light);
-}
-
-.highlightNote {
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.02);
-  color: var(--text-secondary);
 }
 
 /* Grouped view */
@@ -147,31 +34,36 @@
   border-bottom: 1px solid var(--border-light);
 }
 
+.bookSection:last-child {
+  border-bottom: none;
+}
+
 .bookHeader {
   display: flex;
   gap: 1.25rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   align-items: flex-start;
 }
 
 .bookHeaderCover {
   object-fit: cover;
+  flex-shrink: 0;
 }
 
 .bookHeaderTitle {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 400;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .bookHeaderAuthor {
-  font-size: 16px;
+  font-size: 15px;
   color: var(--text-secondary);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .bookHighlightCount {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-tertiary);
 }
 

@@ -3,6 +3,23 @@
 import { useState } from 'react';
 import AdminPanel from '@/components/AdminPanel';
 
+const inputStyle = {
+  width: '100%',
+  padding: '0.75rem',
+  border: '1px solid var(--border-light)',
+  background: 'var(--background)',
+  fontFamily: 'inherit',
+  fontSize: '14px',
+};
+
+const buttonStyle = {
+  padding: '0.5rem 1rem',
+  border: '1px solid var(--border-light)',
+  background: 'transparent',
+  cursor: 'pointer',
+  fontSize: '13px',
+};
+
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
@@ -30,7 +47,7 @@ export default function AdminPage() {
         setError('Invalid password');
         setPassword('');
       }
-    } catch (err) {
+    } catch {
       setError('Authentication failed');
     } finally {
       setIsChecking(false);
@@ -41,22 +58,17 @@ export default function AdminPage() {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--background)' }}>
         <div style={{ padding: '2rem', maxWidth: '1600px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-            <h1 className="type-display" style={{ fontSize: '2rem' }}>
-              ADMIN_PANEL
-            </h1>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
             <button
               onClick={() => setIsAuthenticated(false)}
-              className="type-mono text-xs"
+              className="type-sans"
               style={{
-                padding: '0.5rem 1rem',
-                border: '1px solid var(--accent-red)',
-                background: 'transparent',
-                color: 'var(--accent-red)',
-                cursor: 'pointer',
+                ...buttonStyle,
+                color: '#dc2626',
+                borderColor: '#dc2626',
               }}
             >
-              LOGOUT
+              Logout
             </button>
           </div>
 
@@ -76,37 +88,30 @@ export default function AdminPage() {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '400px',
+        maxWidth: '360px',
         padding: '2rem',
       }}>
-        <h1 className="type-display" style={{ fontSize: '2rem', marginBottom: '2rem', textAlign: 'center' }}>
-          ADMIN_ACCESS
+        <h1 style={{ fontSize: '24px', fontWeight: 400, marginBottom: '2rem', textAlign: 'center' }}>
+          Admin Login
         </h1>
 
         <form onSubmit={handleLogin} style={{ display: 'grid', gap: '1rem' }}>
           <div>
-            <label className="type-mono text-xs" style={{ display: 'block', marginBottom: '0.5rem', opacity: 0.7 }}>
-              PASSWORD
+            <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '12px', color: 'var(--text-tertiary)' }}>
+              Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="type-mono text-sm"
               placeholder="Enter admin password"
               autoFocus
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid var(--accent-gray)',
-                background: 'var(--background)',
-                color: 'var(--foreground)',
-              }}
+              style={inputStyle}
             />
           </div>
 
           {error && (
-            <p className="type-mono text-xs" style={{ color: 'var(--accent-red)' }}>
+            <p style={{ fontSize: '14px', color: '#dc2626' }}>
               {error}
             </p>
           )}
@@ -114,23 +119,18 @@ export default function AdminPage() {
           <button
             type="submit"
             disabled={isChecking || !password}
-            className="type-mono text-xs uppercase tracking-wide"
+            className="type-sans"
             style={{
+              ...buttonStyle,
               width: '100%',
-              padding: '0.75rem',
-              border: `1px solid ${isChecking || !password ? 'var(--accent-gray)' : 'var(--accent-red)'}`,
-              background: 'transparent',
-              color: isChecking || !password ? 'var(--accent-gray)' : 'var(--accent-red)',
+              background: isChecking || !password ? 'transparent' : 'var(--foreground)',
+              color: isChecking || !password ? 'var(--text-tertiary)' : 'var(--background)',
               cursor: isChecking || !password ? 'not-allowed' : 'pointer',
             }}
           >
-            {isChecking ? 'CHECKING...' : 'AUTHENTICATE'}
+            {isChecking ? 'Checking...' : 'Login'}
           </button>
         </form>
-
-        <p className="type-mono text-xs" style={{ marginTop: '2rem', opacity: 0.4, textAlign: 'center' }}>
-          Unauthorized access is prohibited
-        </p>
       </div>
     </div>
   );
