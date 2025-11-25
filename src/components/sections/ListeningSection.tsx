@@ -112,9 +112,6 @@ export default function ListeningSection({ onSectionChange }: ListeningSectionPr
 
           {/* Recent Tracks */}
           <div className={styles.section}>
-            <h2 className={`type-mono ${styles.sectionTitle}`}>
-              RECENT
-            </h2>
             {recentList.length === 0 ? (
               <div className={`type-serif-italic ${styles.empty}`}>
                 No recent tracks yet. Start listening!
@@ -161,9 +158,6 @@ export default function ListeningSection({ onSectionChange }: ListeningSectionPr
 
           {/* Top Albums */}
           <div className={styles.section}>
-            <h2 className={`type-mono ${styles.sectionTitle}`}>
-              TOP ALBUMS (6 MONTHS)
-            </h2>
             {topAlbums.length === 0 ? (
               <div className={`type-serif-italic ${styles.empty}`}>
                 No album data yet.
