@@ -222,11 +222,10 @@ export async function POST(request: NextRequest) {
 
         console.log(`Spotlight: ${newState} -> ${randomContent.type} ${randomContent.id}`);
 
+        // On subsequent spotlights, just silently wait - no voice prompt needed
         const spotlightTwiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="alice">${randomContent.title ? randomContent.title : 'Here is something'}.</Say>
-  <Gather numDigits="1" timeout="15" action="${baseUrl}/api/webhook/twilio?section=${newState}">
-    <Say voice="alice">Press ${pressedDigit} for another, or choose: 1 About, 2 Projects, 3 Photos, 4 Writing, 5 Reading, 0 Home.</Say>
+  <Gather numDigits="1" timeout="30" action="${baseUrl}/api/webhook/twilio?section=${newState}">
   </Gather>
   <Say voice="alice">Thank you for exploring!</Say>
 </Response>`;
@@ -277,9 +276,8 @@ export async function POST(request: NextRequest) {
 
         twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="alice">${getStateDisplayName(newState)}. ${randomContent.title ? randomContent.title : 'Here is something'}.</Say>
-  <Gather numDigits="1" timeout="15" action="${baseUrl}/api/webhook/twilio?section=${newState}">
-    <Say voice="alice">Press ${pressedDigit} for another, or choose a different section.</Say>
+  <Gather numDigits="1" timeout="30" action="${baseUrl}/api/webhook/twilio?section=${newState}">
+    <Say voice="alice">${getStateDisplayName(newState)}. Press ${pressedDigit} for another.</Say>
   </Gather>
   <Say voice="alice">Thank you for exploring!</Say>
 </Response>`;
