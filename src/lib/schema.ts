@@ -5,6 +5,7 @@ export const photos = pgTable('photos', {
   id: uuid('id').primaryKey(),
   url: text('url').notNull(),
   title: text('title').notNull(),
+  description: text('description').notNull().default(''), // Caption/blurb for the photo
   location: text('location').notNull().default(''),
   date: text('date').notNull(),
   width: integer('width').notNull().default(1600),

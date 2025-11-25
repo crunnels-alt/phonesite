@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
     const location = formData.get('location') as string;
     const date = formData.get('date') as string;
 
@@ -97,6 +98,7 @@ export async function POST(request: NextRequest) {
       id: randomUUID(),
       url: blob.url,
       title: title || 'Untitled',
+      description: description || '',
       location: location || '',
       date: date || new Date().toISOString().split('T')[0],
       width,

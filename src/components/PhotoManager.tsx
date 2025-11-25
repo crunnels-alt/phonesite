@@ -21,6 +21,7 @@ export default function PhotoManager() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   const [formData, setFormData] = useState({
+    description: '',
     location: '',
     date: new Date().toISOString().split('T')[0],
   });
@@ -87,6 +88,7 @@ export default function PhotoManager() {
         const formDataToSend = new FormData();
         formDataToSend.append('file', file);
         formDataToSend.append('title', file.name.replace(/\.[^/.]+$/, '')); // Use filename without extension as title
+        formDataToSend.append('description', formData.description);
         formDataToSend.append('location', formData.location);
         formDataToSend.append('date', formData.date);
 
@@ -119,6 +121,7 @@ export default function PhotoManager() {
     // Reset form
     setSelectedFiles([]);
     setFormData({
+      description: '',
       location: '',
       date: new Date().toISOString().split('T')[0],
     });
@@ -214,6 +217,29 @@ export default function PhotoManager() {
             </div>
           </div>
         )}
+
+        {/* Description */}
+        <div>
+          <label className="type-mono text-xs mb-2 block opacity-60">
+            DESCRIPTION (applies to all)
+          </label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="Add a caption or description for this photo..."
+            disabled={isUploading}
+            rows={3}
+            className="type-mono text-sm"
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              border: '1px solid var(--accent-gray)',
+              background: 'var(--background)',
+              color: 'var(--foreground)',
+              resize: 'vertical',
+            }}
+          />
+        </div>
 
         {/* Metadata */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
