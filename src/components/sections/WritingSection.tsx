@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import SectionNavigation from '@/components/SectionNavigation';
 import ContentCard from '@/components/ContentCard';
 import { CardSkeleton } from '@/components/Skeleton';
@@ -81,7 +82,7 @@ export default function WritingSection({ onSectionChange }: WritingSectionProps)
               excerpt={
                 <>
                   <div className={styles.cardBody}>
-                    {post.excerpt}
+                    <ReactMarkdown>{post.excerpt}</ReactMarkdown>
                   </div>
                   <div className={styles.cardFooter}>
                     <span className={`type-sans ${styles.cardDate}`}>
