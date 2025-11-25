@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import SectionNavigation from '@/components/SectionNavigation';
 import ContentCard from '@/components/ContentCard';
 import { CardSkeleton, PhotoSkeleton } from '@/components/Skeleton';
@@ -15,6 +16,13 @@ interface Photo {
   width: number;
   height: number;
   blurDataUrl?: string;
+}
+
+interface PhotoGroup {
+  groupId: string;
+  groupName: string;
+  photoCount: number;
+  coverPhoto: Photo;
 }
 
 interface HomeSectionProps {
@@ -49,25 +57,31 @@ const sampleWriting = [
 ];
 
 export default function HomeSection({ onSectionChange }: HomeSectionProps) {
-  const [photos, setPhotos] = useState<Photo[]>([]);
+  const router = useRouter();
+  const [photoGroups, setPhotoGroups] = useState<PhotoGroup[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchPhotos();
+    fetchPhotoGroups();
   }, []);
 
-  const fetchPhotos = async () => {
+  const fetchPhotoGroups = async () => {
     try {
-      const response = await fetch('/api/photos');
+      const response = await fetch('/api/photos/group');
       const data = await response.json();
       if (data.success) {
-        setPhotos(data.photos);
+        setPhotoGroups(data.groups);
       }
     } catch (error) {
-      console.error('Error fetching photos:', error);
+      console.error('Error fetching photo groups:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGroupClick = (group: PhotoGroup) => {
+    const slug = group.groupName.toLowerCase().replace(/\s+/g, '-');
+    router.push(`/photos/${encodeURIComponent(slug)}`);
   };
 
   // Generate mixed positions for all content
@@ -90,11 +104,11 @@ export default function HomeSection({ onSectionChange }: HomeSectionProps) {
   }> = [];
   let positionIndex = 0;
 
-  // Add photos
-  photos.slice(0, 2).forEach((photo) => {
+  // Add photo groups (one photo per group)
+  photoGroups.slice(0, 2).forEach((group) => {
     mixedContent.push({
-      type: 'photo',
-      data: photo,
+      type: 'photoGroup',
+      data: group,
       position: allPositions[positionIndex++] || allPositions[0],
     });
   });
@@ -138,17 +152,17 @@ export default function HomeSection({ onSectionChange }: HomeSectionProps) {
       ) : (
         <div className={`mobile-content-grid ${styles.contentGrid}`}>
           {mixedContent.map((item, index) => {
-            if (item.type === 'photo') {
-              const photo = item.data as Photo;
+            if (item.type === 'photoGroup') {
+              const group = item.data as PhotoGroup;
               return (
                 <ContentCard
-                  key={`photo-${photo.id}`}
+                  key={`group-${group.groupId}`}
                   position={item.position}
-                  imageUrl={photo.url}
-                  imageAlt={photo.title}
-                  imageBlurDataUrl={photo.blurDataUrl}
-                  title={photo.title}
-                  onClick={() => onSectionChange?.('photo')}
+                  imageUrl={group.coverPhoto.url}
+                  imageAlt={group.groupName}
+                  imageBlurDataUrl={group.coverPhoto.blurDataUrl}
+                  title={group.groupName}
+                  onClick={() => handleGroupClick(group)}
                 />
               );
             } else if (item.type === 'project') {

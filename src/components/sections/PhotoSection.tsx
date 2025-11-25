@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import SectionNavigation from '@/components/SectionNavigation';
 import { PhotoSkeleton } from '@/components/Skeleton';
@@ -17,6 +18,8 @@ interface Photo {
   height: number;
   blurDataUrl?: string;
   uploadedAt: string;
+  groupId?: string | null;
+  groupName?: string | null;
   position?: {
     x: number;
     y: number;
@@ -30,9 +33,21 @@ interface PhotoSectionProps {
 }
 
 export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
+  const router = useRouter();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+
+  const handlePhotoClick = (photo: Photo) => {
+    if (photo.groupName) {
+      // Navigate to group page
+      const slug = photo.groupName.toLowerCase().replace(/\s+/g, '-');
+      router.push(`/photos/${encodeURIComponent(slug)}`);
+    } else {
+      // Open lightbox for ungrouped photos
+      setSelectedPhoto(photo);
+    }
+  };
 
   useEffect(() => {
     fetchPhotos();
@@ -111,7 +126,7 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
               return (
                 <div
                   key={photo.id}
-                  onClick={() => setSelectedPhoto(photo)}
+                  onClick={() => handlePhotoClick(photo)}
                   className={styles.photoWrapper}
                   style={{
                     left: `${position.x}%`,
@@ -119,7 +134,6 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
                   }}
                 >
                   <div className={`${styles.photoCard} ${getSizeClass(position.size)}`}>
-                    {/* Image */}
                     <div className={styles.photoImageContainer}>
                       <Image
                         src={photo.url}
@@ -130,13 +144,6 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
                         blurDataURL={photo.blurDataUrl}
                       />
                     </div>
-
-                    {/* Caption - only show if description exists */}
-                    {photo.description && (
-                      <div className={`type-serif-italic ${styles.photoCaption}`}>
-                        {photo.description}
-                      </div>
-                    )}
                   </div>
                 </div>
               );

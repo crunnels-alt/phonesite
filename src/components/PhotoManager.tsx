@@ -2,16 +2,6 @@
 
 import { useState } from 'react';
 
-interface Photo {
-  id: string;
-  url: string;
-  title: string;
-  location: string;
-  date: string;
-  width: number;
-  height: number;
-}
-
 interface SelectedFile {
   file: File;
   preview: string;
@@ -21,6 +11,7 @@ export default function PhotoManager() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   const [formData, setFormData] = useState({
+    groupName: '',
     description: '',
     location: '',
     date: new Date().toISOString().split('T')[0],
@@ -73,8 +64,16 @@ export default function PhotoManager() {
     e.preventDefault();
     if (selectedFiles.length === 0) return;
 
+    if (!formData.groupName.trim()) {
+      setMessage({ type: 'error', text: 'Group name is required' });
+      return;
+    }
+
     setIsUploading(true);
     setMessage(null);
+
+    // Generate a unique groupId for this batch
+    const groupId = crypto.randomUUID();
 
     let successCount = 0;
     let errorCount = 0;
@@ -91,6 +90,8 @@ export default function PhotoManager() {
         formDataToSend.append('description', formData.description);
         formDataToSend.append('location', formData.location);
         formDataToSend.append('date', formData.date);
+        formDataToSend.append('groupId', groupId);
+        formDataToSend.append('groupName', formData.groupName.trim());
 
         const response = await fetch('/api/photos/upload', {
           method: 'POST',
@@ -121,6 +122,7 @@ export default function PhotoManager() {
     // Reset form
     setSelectedFiles([]);
     setFormData({
+      groupName: '',
       description: '',
       location: '',
       date: new Date().toISOString().split('T')[0],
@@ -159,6 +161,32 @@ export default function PhotoManager() {
               background: 'var(--background)',
             }}
           />
+        </div>
+
+        {/* Group Name (Required) */}
+        <div>
+          <label className="type-mono text-xs mb-2 block opacity-60">
+            GROUP_NAME * (required)
+          </label>
+          <input
+            type="text"
+            value={formData.groupName}
+            onChange={(e) => setFormData({ ...formData, groupName: e.target.value })}
+            placeholder="e.g., tokyo-2024, portraits, street"
+            disabled={isUploading}
+            required
+            className="type-mono text-sm"
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              border: `1px solid ${formData.groupName.trim() ? 'var(--accent-gray)' : 'var(--accent-red)'}`,
+              background: 'var(--background)',
+              color: 'var(--foreground)',
+            }}
+          />
+          <div className="type-mono text-xs mt-1 opacity-40">
+            Used in URL: /photos/{formData.groupName.trim().toLowerCase().replace(/\s+/g, '-') || 'group-name'}
+          </div>
         </div>
 
         {/* Preview Grid */}
@@ -288,14 +316,14 @@ export default function PhotoManager() {
         {/* Upload Button */}
         <button
           type="submit"
-          disabled={selectedFiles.length === 0 || isUploading}
+          disabled={selectedFiles.length === 0 || isUploading || !formData.groupName.trim()}
           className="type-mono text-xs uppercase tracking-wide hover-glitch"
           style={{
             padding: '0.75rem',
-            border: `1px solid ${selectedFiles.length === 0 || isUploading ? 'var(--accent-gray)' : 'var(--accent-blue)'}`,
+            border: `1px solid ${selectedFiles.length === 0 || isUploading || !formData.groupName.trim() ? 'var(--accent-gray)' : 'var(--accent-blue)'}`,
             background: 'transparent',
-            color: selectedFiles.length === 0 || isUploading ? 'var(--accent-gray)' : 'var(--accent-blue)',
-            cursor: selectedFiles.length === 0 || isUploading ? 'not-allowed' : 'pointer',
+            color: selectedFiles.length === 0 || isUploading || !formData.groupName.trim() ? 'var(--accent-gray)' : 'var(--accent-blue)',
+            cursor: selectedFiles.length === 0 || isUploading || !formData.groupName.trim() ? 'not-allowed' : 'pointer',
           }}
         >
           {isUploading ? uploadProgress : `UPLOAD ${selectedFiles.length} PHOTO(S)`}

@@ -12,6 +12,8 @@ export const photos = pgTable('photos', {
   height: integer('height').notNull().default(1200),
   blurDataUrl: text('blur_data_url'), // Base64 blur placeholder for fast loading
   uploadedAt: timestamp('uploaded_at').notNull().defaultNow(),
+  groupId: text('group_id'), // UUID for grouping batch uploads
+  groupName: text('group_name'), // Display name for the group (used in URL slug)
   position: jsonb('position').$type<{
     x: number;
     y: number;

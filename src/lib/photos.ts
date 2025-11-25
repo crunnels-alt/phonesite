@@ -1,21 +1,32 @@
 import { db } from './db';
 import { photos, type Photo as DbPhoto, type NewPhoto } from './schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 export interface Photo {
   id: string;
   url: string;
   title: string;
+  description?: string;
   location: string;
   date: string;
   width: number;
   height: number;
+  blurDataUrl?: string;
   uploadedAt: string;
+  groupId?: string | null;
+  groupName?: string | null;
   position?: {
     x: number;
     y: number;
     size: 'small' | 'medium' | 'large';
   };
+}
+
+export interface PhotoGroup {
+  groupId: string;
+  groupName: string;
+  photoCount: number;
+  coverPhoto: Photo;
 }
 
 /**
@@ -26,11 +37,74 @@ export async function getPhotos(): Promise<Photo[]> {
     const result = await db.select().from(photos);
     return result.map(photo => ({
       ...photo,
+      description: photo.description ?? undefined,
+      blurDataUrl: photo.blurDataUrl ?? undefined,
       uploadedAt: photo.uploadedAt.toISOString(),
       position: photo.position ?? undefined,
     }));
   } catch (error) {
     console.error('Error reading photos:', error);
+    return [];
+  }
+}
+
+/**
+ * Get photos by group name (case-insensitive)
+ */
+export async function getPhotosByGroup(groupName: string): Promise<Photo[]> {
+  try {
+    const result = await db
+      .select()
+      .from(photos)
+      .where(sql`LOWER(${photos.groupName}) = LOWER(${groupName})`);
+    return result.map(photo => ({
+      ...photo,
+      description: photo.description ?? undefined,
+      blurDataUrl: photo.blurDataUrl ?? undefined,
+      uploadedAt: photo.uploadedAt.toISOString(),
+      position: photo.position ?? undefined,
+    }));
+  } catch (error) {
+    console.error('Error getting photos by group:', error);
+    return [];
+  }
+}
+
+/**
+ * Get unique photo groups with cover photo (first uploaded in each group)
+ */
+export async function getPhotoGroups(): Promise<PhotoGroup[]> {
+  try {
+    const allPhotos = await getPhotos();
+    const groupsMap = new Map<string, { photos: Photo[]; groupName: string }>();
+
+    for (const photo of allPhotos) {
+      if (photo.groupId && photo.groupName) {
+        if (!groupsMap.has(photo.groupId)) {
+          groupsMap.set(photo.groupId, { photos: [], groupName: photo.groupName });
+        }
+        groupsMap.get(photo.groupId)!.photos.push(photo);
+      }
+    }
+
+    const groups: PhotoGroup[] = [];
+    for (const [groupId, { photos: groupPhotos, groupName }] of groupsMap) {
+      // Sort by uploadedAt to get first photo as cover
+      groupPhotos.sort((a, b) => new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime());
+      groups.push({
+        groupId,
+        groupName,
+        photoCount: groupPhotos.length,
+        coverPhoto: groupPhotos[0],
+      });
+    }
+
+    // Sort groups by most recent upload
+    groups.sort((a, b) => new Date(b.coverPhoto.uploadedAt).getTime() - new Date(a.coverPhoto.uploadedAt).getTime());
+
+    return groups;
+  } catch (error) {
+    console.error('Error getting photo groups:', error);
     return [];
   }
 }

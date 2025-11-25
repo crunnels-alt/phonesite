@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
     const description = formData.get('description') as string;
     const location = formData.get('location') as string;
     const date = formData.get('date') as string;
+    const groupId = formData.get('groupId') as string;
+    const groupName = formData.get('groupName') as string;
 
     if (!file) {
       return NextResponse.json(
@@ -91,6 +93,7 @@ export async function POST(request: NextRequest) {
     const blob = await put(file.name, file, {
       access: 'public',
       token: process.env.BLOB_READ_WRITE_TOKEN,
+      addRandomSuffix: true,
     });
 
     // Create photo metadata with auto-assigned position
@@ -105,6 +108,8 @@ export async function POST(request: NextRequest) {
       height,
       blurDataUrl,
       uploadedAt: new Date(),
+      groupId: groupId || null,
+      groupName: groupName || null,
       position: await autoAssignPosition(),
     };
 
