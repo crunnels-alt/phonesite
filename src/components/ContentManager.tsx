@@ -8,6 +8,7 @@ interface Photo {
   id: string;
   url: string;
   title: string;
+  description: string;
   location: string;
   date: string;
 }
@@ -67,7 +68,7 @@ export default function ContentManager() {
 
   // Edit states
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<Partial<Project | Writing>>({});
+  const [editForm, setEditForm] = useState<Partial<Project | Writing | Photo>>({});
 
   // Create states
   const [isCreating, setIsCreating] = useState(false);
@@ -121,7 +122,7 @@ export default function ContentManager() {
     }
   };
 
-  const handleEdit = (item: Project | Writing) => {
+  const handleEdit = (item: Project | Writing | Photo) => {
     setEditingId(item.id);
     setEditForm(item);
     setIsCreating(false);
@@ -175,47 +176,128 @@ export default function ContentManager() {
     }
   };
 
+  const renderPhotoForm = (form: Partial<Photo>, setForm: (f: Partial<Photo>) => void, onSave: () => void, onCancel: () => void, photoUrl?: string) => (
+    <div style={{ padding: '1rem', border: '1px solid var(--border-light)', marginBottom: '1rem' }}>
+      {photoUrl && (
+        <img
+          src={photoUrl}
+          alt="Preview"
+          style={{ width: '120px', height: '90px', objectFit: 'cover', marginBottom: '1rem' }}
+        />
+      )}
+      <div>
+        <label style={labelStyle}>Title</label>
+        <input
+          style={inputStyle}
+          value={form.title || ''}
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
+          placeholder="Photo title"
+        />
+      </div>
+      <div>
+        <label style={labelStyle}>Description</label>
+        <textarea
+          style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
+          value={form.description || ''}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          placeholder="Caption or description for the photo"
+        />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div>
+          <label style={labelStyle}>Location</label>
+          <input
+            style={inputStyle}
+            value={form.location || ''}
+            onChange={(e) => setForm({ ...form, location: e.target.value })}
+            placeholder="Where was this taken?"
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>Date</label>
+          <input
+            style={inputStyle}
+            value={form.date || ''}
+            onChange={(e) => setForm({ ...form, date: e.target.value })}
+            placeholder="2024-01-15"
+          />
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+        <button onClick={onSave} className="type-sans" style={{ ...buttonStyle, background: 'var(--foreground)', color: 'var(--background)' }}>
+          Save
+        </button>
+        <button onClick={onCancel} className="type-sans" style={buttonStyle}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+
   const renderPhotosList = () => (
     <div style={{ display: 'grid', gap: '1rem' }}>
       {photos.length === 0 ? (
         <div className="type-serif-italic" style={{ color: 'var(--text-tertiary)' }}>No photos found</div>
       ) : (
         photos.map((photo) => (
-          <div
-            key={photo.id}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '80px 1fr auto',
-              gap: '1rem',
-              padding: '1rem',
-              border: '1px solid var(--border-light)',
-              alignItems: 'center',
-            }}
-          >
-            <img
-              src={photo.url}
-              alt={photo.title}
-              style={{
-                width: '80px',
-                height: '60px',
-                objectFit: 'cover',
-              }}
-            />
-            <div>
-              <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>
-                {photo.title}
+          <div key={photo.id}>
+            {editingId === photo.id ? (
+              renderPhotoForm(
+                editForm as Partial<Photo>,
+                (f) => setEditForm(f),
+                handleSaveEdit,
+                () => { setEditingId(null); setEditForm({}); },
+                photo.url
+              )
+            ) : (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '80px 1fr auto auto',
+                  gap: '1rem',
+                  padding: '1rem',
+                  border: '1px solid var(--border-light)',
+                  alignItems: 'center',
+                }}
+              >
+                <img
+                  src={photo.url}
+                  alt={photo.title}
+                  style={{
+                    width: '80px',
+                    height: '60px',
+                    objectFit: 'cover',
+                  }}
+                />
+                <div>
+                  <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>
+                    {photo.title}
+                  </div>
+                  {photo.description && (
+                    <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                      {photo.description}
+                    </div>
+                  )}
+                  <div className="type-sans" style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                    {photo.location && `${photo.location} · `}{photo.date}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleEdit(photo)}
+                  className="type-sans"
+                  style={buttonStyle}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(photo.id)}
+                  className="type-sans"
+                  style={{ ...buttonStyle, color: '#dc2626', borderColor: '#dc2626' }}
+                >
+                  Delete
+                </button>
               </div>
-              <div className="type-sans" style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
-                {photo.location && `${photo.location} · `}{photo.date}
-              </div>
-            </div>
-            <button
-              onClick={() => handleDelete(photo.id)}
-              className="type-sans"
-              style={{ ...buttonStyle, color: '#dc2626', borderColor: '#dc2626' }}
-            >
-              Delete
-            </button>
+            )}
           </div>
         ))
       )}
