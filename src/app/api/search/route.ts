@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { projects, writings, photos, readwiseBooks, readwiseHighlights } from '@/lib/schema';
 import { ilike, or, sql } from 'drizzle-orm';
+import { getIdentifier, checkLenientRateLimit } from '@/lib/ratelimit';
 
 interface SearchResult {
   type: 'project' | 'writing' | 'photo' | 'highlight';
@@ -13,6 +14,9 @@ interface SearchResult {
 }
 
 export async function GET(request: NextRequest) {
+  const rateLimitResponse = await checkLenientRateLimit(getIdentifier(request));
+  if (rateLimitResponse) return rateLimitResponse;
+
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q');
 

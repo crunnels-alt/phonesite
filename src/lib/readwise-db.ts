@@ -1,6 +1,6 @@
 import { db } from './db';
 import { readwiseBooks, readwiseHighlights, type ReadwiseBook, type ReadwiseHighlight } from './schema';
-import { eq, desc, ne, notInArray, inArray } from 'drizzle-orm';
+import { eq, desc, ne, notInArray } from 'drizzle-orm';
 import { fetchReadwiseHighlights as fetchFromAPI, type ReadwiseHighlightWithBook } from './readwise';
 
 export interface HighlightWithBook extends ReadwiseHighlight {

@@ -22,6 +22,7 @@ export interface Writing {
 export async function getWritings(): Promise<Writing[]> {
   try {
     const result = await db.select().from(writings);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return result.map(({ createdAt, updatedAt, ...writing }) => ({
       ...writing,
       position: writing.position ?? undefined,

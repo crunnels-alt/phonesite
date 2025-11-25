@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Resend } from 'resend';
 import { db } from '@/lib/db';
 import { contactMessages } from '@/lib/schema';
+import { getIdentifier, checkAuthRateLimit } from '@/lib/ratelimit';
+
+// Initialize Resend client (only if API key is configured)
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function POST(request: NextRequest) {
+  // Strict rate limiting for contact form to prevent spam (5/min)
+  const rateLimitResponse = await checkAuthRateLimit(getIdentifier(request));
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const body = await request.json();
     const { name, email, message } = body;
@@ -31,15 +40,21 @@ export async function POST(request: NextRequest) {
       message,
     });
 
-    // TODO: Send email notification using Resend or similar service
-    // if (process.env.RESEND_API_KEY) {
-    //   await resend.emails.send({
-    //     from: 'website@connorrunnels.com',
-    //     to: 'connorrunnels@gmail.com',
-    //     subject: `New contact from ${name}`,
-    //     text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
-    //   });
-    // }
+    // Send email notification if Resend is configured
+    if (resend) {
+      try {
+        await resend.emails.send({
+          from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+          to: process.env.CONTACT_NOTIFICATION_EMAIL || 'connorrunnels@gmail.com',
+          subject: `New contact from ${name}`,
+          text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+          replyTo: email,
+        });
+      } catch (emailError) {
+        // Log email error but don't fail the request - message is saved in DB
+        console.error('Failed to send email notification:', emailError);
+      }
+    }
 
     return NextResponse.json({
       success: true,

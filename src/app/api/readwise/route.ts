@@ -1,11 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getHighlights, syncFromReadwise } from '@/lib/readwise-db';
+import { getIdentifier, checkLenientRateLimit, checkAuthRateLimit } from '@/lib/ratelimit';
 
 /**
  * GET /api/readwise
  * Fetch highlights from the database
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const rateLimitResponse = await checkLenientRateLimit(getIdentifier(request));
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const highlights = await getHighlights();
 
@@ -62,7 +66,10 @@ export async function GET() {
  * POST /api/readwise
  * Sync highlights from Readwise API to database
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const rateLimitResponse = await checkAuthRateLimit(getIdentifier(request));
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     // Check for admin auth
     const authHeader = request.headers.get('authorization');

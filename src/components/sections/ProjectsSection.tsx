@@ -4,25 +4,11 @@ import { useState, useEffect } from 'react';
 import SectionNavigation from '@/components/SectionNavigation';
 import ContentCard from '@/components/ContentCard';
 import { CardSkeleton } from '@/components/Skeleton';
+import type { Project } from '@/lib/projects';
 import styles from './Section.module.css';
 
 interface ProjectsSectionProps {
   onSectionChange?: (section: string) => void;
-}
-
-interface Project {
-  id: string;
-  title: string;
-  subtitle: string;
-  excerpt: string;
-  tech: string;
-  year: string;
-  status: string;
-  position?: {
-    x: number;
-    y: number;
-    size: 'small' | 'medium' | 'large';
-  };
 }
 
 export default function ProjectsSection({ onSectionChange }: ProjectsSectionProps) {

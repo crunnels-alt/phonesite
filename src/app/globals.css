@@ -227,9 +227,3 @@ a:hover {
   }
 }
 
-/* Reading section mobile */
-@media (max-width: 768px) {
-  .reading-filters {
-    grid-template-columns: 1fr !important;
-  }
-}

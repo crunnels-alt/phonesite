@@ -3,20 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import type { Photo } from '@/lib/photos';
 import styles from './PhotoGroup.module.css';
-
-interface Photo {
-  id: string;
-  url: string;
-  title: string;
-  description?: string;
-  location: string;
-  date: string;
-  width: number;
-  height: number;
-  blurDataUrl?: string;
-  groupName?: string;
-}
 
 export default function PhotoGroupPage() {
   const params = useParams();

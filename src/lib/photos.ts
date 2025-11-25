@@ -1,6 +1,6 @@
 import { db } from './db';
 import { photos, type Photo as DbPhoto, type NewPhoto } from './schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 export interface Photo {
   id: string;

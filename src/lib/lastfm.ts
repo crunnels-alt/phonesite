@@ -85,7 +85,7 @@ export async function getRecentTracks(limit: number = 20): Promise<Track[]> {
     if (cached) {
       return cached;
     }
-  } catch (e) {
+  } catch {
     console.log('KV cache miss or error, fetching fresh');
   }
 
@@ -124,7 +124,7 @@ export async function getTopAlbums(period: '1month' | '3month' | '6month' | '12m
     if (cached) {
       return cached;
     }
-  } catch (e) {
+  } catch {
     console.log('KV cache miss or error, fetching fresh');
   }
 

@@ -17,7 +17,7 @@ export async function GET() {
     console.error('Error fetching navigation data:', error);
 
     return NextResponse.json(
-      { error: 'Failed to fetch navigation data' },
+      { success: false, error: 'Failed to fetch navigation data' },
       { status: 500 }
     );
   }
@@ -37,7 +37,7 @@ export async function DELETE() {
     console.error('Error clearing navigation history:', error);
 
     return NextResponse.json(
-      { error: 'Failed to clear navigation history' },
+      { success: false, error: 'Failed to clear navigation history' },
       { status: 500 }
     );
   }

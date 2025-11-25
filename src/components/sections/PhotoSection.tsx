@@ -5,28 +5,8 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import SectionNavigation from '@/components/SectionNavigation';
 import { PhotoSkeleton } from '@/components/Skeleton';
+import type { Photo } from '@/lib/photos';
 import styles from './PhotoSection.module.css';
-
-interface Photo {
-  id: string;
-  url: string;
-  title: string;
-  description?: string;
-  location: string;
-  date: string;
-  width: number;
-  height: number;
-  blurDataUrl?: string;
-  uploadedAt: string;
-  groupId?: string | null;
-  groupName?: string | null;
-  position?: {
-    x: number;
-    y: number;
-    size: 'small' | 'medium' | 'large';
-    rotate?: number;
-  };
-}
 
 interface PhotoSectionProps {
   onSectionChange?: (section: string) => void;

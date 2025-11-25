@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     if (!phoneNumber || !digit) {
       return NextResponse.json(
-        { error: 'Missing phoneNumber or digit' },
+        { success: false, error: 'Missing phoneNumber or digit' },
         { status: 400 }
       );
     }
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error sending test webhook:', error);
     return NextResponse.json(
-      { error: 'Failed to send test webhook' },
+      { success: false, error: 'Failed to send test webhook' },
       { status: 500 }
     );
   }

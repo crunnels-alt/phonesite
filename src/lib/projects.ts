@@ -23,6 +23,7 @@ export interface Project {
 export async function getProjects(): Promise<Project[]> {
   try {
     const result = await db.select().from(projects);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return result.map(({ createdAt, updatedAt, ...project }) => ({
       ...project,
       position: project.position ?? undefined,

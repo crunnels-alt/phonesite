@@ -5,25 +5,8 @@ import { useRouter } from 'next/navigation';
 import SectionNavigation from '@/components/SectionNavigation';
 import ContentCard from '@/components/ContentCard';
 import { PhotoSkeleton } from '@/components/Skeleton';
+import type { PhotoGroup } from '@/lib/photos';
 import styles from './HomeSection.module.css';
-
-interface Photo {
-  id: string;
-  url: string;
-  title: string;
-  location: string;
-  date: string;
-  width: number;
-  height: number;
-  blurDataUrl?: string;
-}
-
-interface PhotoGroup {
-  groupId: string;
-  groupName: string;
-  photoCount: number;
-  coverPhoto: Photo;
-}
 
 interface HomeSectionProps {
   onSectionChange?: (section: string) => void;

@@ -5,24 +5,11 @@ import ReactMarkdown from 'react-markdown';
 import SectionNavigation from '@/components/SectionNavigation';
 import ContentCard from '@/components/ContentCard';
 import { CardSkeleton } from '@/components/Skeleton';
+import type { Writing } from '@/lib/writings';
 import styles from './Section.module.css';
 
 interface WritingSectionProps {
   onSectionChange?: (section: string) => void;
-}
-
-interface Writing {
-  id: string;
-  title: string;
-  subtitle: string;
-  excerpt: string;
-  date: string;
-  category: string;
-  position?: {
-    x: number;
-    y: number;
-    size: 'small' | 'medium' | 'large';
-  };
 }
 
 export default function WritingSection({ onSectionChange }: WritingSectionProps) {
