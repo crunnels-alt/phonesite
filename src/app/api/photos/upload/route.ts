@@ -2,8 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import { randomUUID } from 'crypto';
 import { addPhoto, autoAssignPosition } from '@/lib/photos';
-import sharp from 'sharp';
 import { getIdentifier, checkUploadRateLimit } from '@/lib/ratelimit';
+
+// Sharp type for dynamic import
+type Sharp = typeof import('sharp');
+
+async function getSharp(): Promise<Sharp | null> {
+  try {
+    return (await import('sharp')).default;
+  } catch {
+    console.warn('Sharp not available, image processing will be skipped');
+    return null;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,39 +46,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Detect image dimensions and generate blur placeholder using Sharp
+    // Detect image dimensions and generate blur placeholder using Sharp (if available)
     let width = 1600;
     let height = 1200;
     let blurDataUrl: string | undefined;
 
-    try {
-      // Convert File to Buffer for Sharp processing
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+    const sharp = await getSharp();
+    if (sharp) {
+      try {
+        // Convert File to Buffer for Sharp processing
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
 
-      // Get image metadata
-      const metadata = await sharp(buffer).metadata();
+        // Get image metadata
+        const metadata = await sharp(buffer).metadata();
 
-      if (metadata.width && metadata.height) {
-        width = metadata.width;
-        height = metadata.height;
-        console.log(`Detected image dimensions: ${width}x${height} (${metadata.format})`);
-      } else {
-        console.warn('Could not detect dimensions, using defaults');
+        if (metadata.width && metadata.height) {
+          width = metadata.width;
+          height = metadata.height;
+          console.log(`Detected image dimensions: ${width}x${height} (${metadata.format})`);
+        } else {
+          console.warn('Could not detect dimensions, using defaults');
+        }
+
+        // Generate blur placeholder (tiny 10px wide version)
+        const blurBuffer = await sharp(buffer)
+          .resize(10, Math.round(10 * (height / width)), { fit: 'inside' })
+          .blur(2)
+          .jpeg({ quality: 50 })
+          .toBuffer();
+
+        blurDataUrl = `data:image/jpeg;base64,${blurBuffer.toString('base64')}`;
+        console.log('Generated blur placeholder');
+      } catch (error) {
+        console.error('Error processing image:', error);
+        console.log('Using defaults as fallback');
       }
-
-      // Generate blur placeholder (tiny 10px wide version)
-      const blurBuffer = await sharp(buffer)
-        .resize(10, Math.round(10 * (height / width)), { fit: 'inside' })
-        .blur(2)
-        .jpeg({ quality: 50 })
-        .toBuffer();
-
-      blurDataUrl = `data:image/jpeg;base64,${blurBuffer.toString('base64')}`;
-      console.log('Generated blur placeholder');
-    } catch (error) {
-      console.error('Error processing image:', error);
-      console.log('Using defaults as fallback');
+    } else {
+      console.log('Sharp not available, using default dimensions');
     }
 
     // Upload to Vercel Blob
