@@ -29,6 +29,14 @@ interface SessionEndedEvent {
   timestamp: string;
 }
 
+interface ContentSpotlightEvent {
+  sessionId?: string;
+  section: string;
+  contentId: string;
+  contentType: string;
+  timestamp: string;
+}
+
 interface NavigationEvent {
   id: string;
   phoneNumber: string;
@@ -49,12 +57,19 @@ interface VisibleContent {
   contentIds: string[];
 }
 
+interface SpotlightData {
+  section: string;
+  contentId: string;
+  contentType: string;
+}
+
 interface PhoneNavigationMonitorProps {
   onSectionChange?: (section: string) => void;
+  onSpotlight?: (spotlight: SpotlightData) => void;
   getVisibleContent?: (section: string) => VisibleContent | null;
 }
 
-export default function PhoneNavigationMonitor({ onSectionChange, getVisibleContent }: PhoneNavigationMonitorProps) {
+export default function PhoneNavigationMonitor({ onSectionChange, onSpotlight, getVisibleContent }: PhoneNavigationMonitorProps) {
   const router = useRouter();
   const [websiteState, setWebsiteState] = useState<WebsiteState>({
     currentSection: 'home',
@@ -158,12 +173,43 @@ export default function PhoneNavigationMonitor({ onSectionChange, getVisibleCont
       }
     });
 
+    // Handle content spotlight - show specific content item
+    channel.bind('content-spotlight', (data: ContentSpotlightEvent) => {
+      console.log('Content spotlight:', data);
+
+      // Update sessionId if provided
+      if (data.sessionId && !sessionIdRef.current) {
+        setSessionId(data.sessionId);
+        sessionIdRef.current = data.sessionId;
+      }
+
+      // Notify parent about spotlight
+      if (onSpotlight) {
+        onSpotlight({
+          section: data.section,
+          contentId: data.contentId,
+          contentType: data.contentType,
+        });
+      }
+
+      // Also update section if needed
+      if (onSectionChange && data.section) {
+        onSectionChange(data.section);
+      }
+
+      setWebsiteState(prevState => ({
+        ...prevState,
+        currentSection: data.section,
+        lastActivity: new Date(data.timestamp),
+      }));
+    });
+
     return () => {
       channel.unbind_all();
       pusher.unsubscribe('website-navigation');
       pusher.disconnect();
     };
-  }, [onSectionChange, reportVisibleContent, router]);
+  }, [onSectionChange, onSpotlight, reportVisibleContent, router]);
 
   const getStateDisplayName = (state: string): string => {
     const stateNames: Record<string, string> = {

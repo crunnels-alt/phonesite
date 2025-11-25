@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface Photo {
   id: string;
@@ -378,7 +379,7 @@ export default function SessionArtifactPage({ params }: { params: Promise<{ id: 
         paddingTop: '2rem',
         borderTop: '1px solid var(--border-light)',
       }}>
-        <a
+        <Link
           href="/"
           className="type-sans"
           style={{
@@ -390,7 +391,7 @@ export default function SessionArtifactPage({ params }: { params: Promise<{ id: 
           }}
         >
           Return to site
-        </a>
+        </Link>
       </footer>
     </div>
   );

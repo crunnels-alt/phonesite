@@ -13,9 +13,25 @@ import ListeningSection from '@/components/sections/ListeningSection';
 import { SECTIONS } from '@/components/SectionNavigation';
 import { ContentProvider, useContentRegistry } from '@/lib/content-context';
 
+interface SpotlightState {
+  section: string;
+  contentId: string;
+  contentType: string;
+}
+
 function HomeContent() {
   const [currentSection, setCurrentSection] = useState('home');
+  const [spotlight, setSpotlight] = useState<SpotlightState | null>(null);
   const { getVisibleContent } = useContentRegistry();
+
+  // Handle spotlight events from phone navigation
+  const handleSpotlight = useCallback((data: SpotlightState) => {
+    setSpotlight(data);
+    // Also update section if needed
+    if (data.section !== currentSection) {
+      setCurrentSection(data.section);
+    }
+  }, [currentSection]);
 
   // Read hash from URL on mount and handle hash changes
   useEffect(() => {
@@ -69,20 +85,29 @@ function HomeContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  // Clear spotlight when section changes (unless it's the spotlight's section)
+  useEffect(() => {
+    if (spotlight && spotlight.section !== currentSection) {
+      setSpotlight(null);
+    }
+  }, [currentSection, spotlight]);
+
   const renderSection = () => {
+    const spotlightId = spotlight?.section === currentSection ? spotlight.contentId : undefined;
+
     switch (currentSection) {
       case 'home':
         return <HomeSection onSectionChange={handleSectionChange} />;
       case 'about':
         return <AboutSection onSectionChange={handleSectionChange} />;
       case 'projects':
-        return <ProjectsSection onSectionChange={handleSectionChange} />;
+        return <ProjectsSection onSectionChange={handleSectionChange} spotlightId={spotlightId} />;
       case 'photo':
-        return <PhotoSection onSectionChange={handleSectionChange} />;
+        return <PhotoSection onSectionChange={handleSectionChange} spotlightId={spotlightId} />;
       case 'writing':
-        return <WritingSection onSectionChange={handleSectionChange} />;
+        return <WritingSection onSectionChange={handleSectionChange} spotlightId={spotlightId} />;
       case 'reading':
-        return <ReadingNotesSection onSectionChange={handleSectionChange} />;
+        return <ReadingNotesSection onSectionChange={handleSectionChange} spotlightId={spotlightId} />;
       case 'listening':
         return <ListeningSection onSectionChange={handleSectionChange} />;
       default:
@@ -95,6 +120,7 @@ function HomeContent() {
       {/* Phone Navigation Monitor */}
       <PhoneNavigationMonitor
         onSectionChange={handleSectionChange}
+        onSpotlight={handleSpotlight}
         getVisibleContent={getVisibleContent}
       />
 

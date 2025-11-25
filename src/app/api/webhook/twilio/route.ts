@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import Pusher from 'pusher';
 import { recordWebsiteNavigation, navigationDB } from '@/lib/database';
 import { db } from '@/lib/db';
-import { sessions } from '@/lib/schema';
-import { eq } from 'drizzle-orm';
+import { sessions, sessionEvents, photos, projects, writings, readwiseHighlights } from '@/lib/schema';
+import { eq, sql } from 'drizzle-orm';
 import crypto from 'crypto';
 
 interface TwilioWebhookBody {
@@ -176,6 +176,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get current section from URL query param (for spotlight detection)
+    const urlParams = new URL(request.url).searchParams;
+    const currentSection = urlParams.get('section') || 'home';
+
     const newState = getNextState(pressedDigit);
     const navigationEvent = await recordWebsiteNavigation(
       phoneNumber,
@@ -188,10 +192,56 @@ export async function POST(request: NextRequest) {
     const [session] = await db.select().from(sessions).where(eq(sessions.callSid, callSid));
 
     const currentWebsiteState = await navigationDB.getCurrentState();
+    const baseUrl = new URL(request.url).origin;
 
+    // Check if this is spotlight mode (same section pressed again)
+    const isSpotlight = currentSection === newState && ['photo', 'projects', 'writing', 'reading'].includes(newState);
+
+    if (isSpotlight) {
+      // Get random content for spotlight
+      const randomContent = await getRandomContent(newState);
+
+      if (randomContent) {
+        // Record the spotlight in session_events for the artifact
+        if (session?.id) {
+          await db.insert(sessionEvents).values({
+            sessionId: session.id,
+            section: newState,
+            contentType: randomContent.type,
+            contentIds: [randomContent.id],
+          });
+        }
+
+        await pusher.trigger('website-navigation', 'content-spotlight', {
+          sessionId: session?.id,
+          section: newState,
+          contentId: randomContent.id,
+          contentType: randomContent.type,
+          timestamp: new Date().toISOString(),
+        });
+
+        console.log(`Spotlight: ${newState} -> ${randomContent.type} ${randomContent.id}`);
+
+        const spotlightTwiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="alice">${randomContent.title ? randomContent.title : 'Here is something'}.</Say>
+  <Gather numDigits="1" timeout="15" action="${baseUrl}/api/webhook/twilio?section=${newState}">
+    <Say voice="alice">Press ${pressedDigit} for another, or choose: 1 About, 2 Projects, 3 Photos, 4 Writing, 5 Reading, 0 Home.</Say>
+  </Gather>
+  <Say voice="alice">Thank you for exploring!</Say>
+</Response>`;
+
+        return new Response(spotlightTwiml, {
+          status: 200,
+          headers: { 'Content-Type': 'application/xml' },
+        });
+      }
+    }
+
+    // Regular section change
     await pusher.trigger('website-navigation', 'section-changed', {
       sessionId: session?.id,
-      currentSection: currentWebsiteState.currentSection,
+      currentSection: newState,
       pressedDigit,
       timestamp: navigationEvent.timestamp,
       totalNavigations: currentWebsiteState.totalNavigations,
@@ -200,15 +250,59 @@ export async function POST(request: NextRequest) {
 
     console.log(`Website navigation: digit ${pressedDigit} -> ${newState} (Total: ${currentWebsiteState.totalNavigations})`);
 
-    // Return TwiML response for Twilio voice calls
-    const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+    // For content sections, immediately spotlight a random item
+    let twimlResponse: string;
+    if (['photo', 'projects', 'writing', 'reading'].includes(newState)) {
+      const randomContent = await getRandomContent(newState);
+
+      if (randomContent) {
+        // Record the spotlight in session_events for the artifact
+        if (session?.id) {
+          await db.insert(sessionEvents).values({
+            sessionId: session.id,
+            section: newState,
+            contentType: randomContent.type,
+            contentIds: [randomContent.id],
+          });
+        }
+
+        // Also send spotlight event
+        await pusher.trigger('website-navigation', 'content-spotlight', {
+          sessionId: session?.id,
+          section: newState,
+          contentId: randomContent.id,
+          contentType: randomContent.type,
+          timestamp: new Date().toISOString(),
+        });
+
+        twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="alice">You navigated to ${getStateDisplayName(newState)}. Press another digit to continue navigating.</Say>
-  <Gather numDigits="1" timeout="10" action="${new URL(request.url).origin}/api/webhook/twilio">
-    <Say voice="alice">Press 1 for About, 2 for Projects, 3 for Photo, 4 for Writing, 5 for Reading Notes, or 0 for Home.</Say>
+  <Say voice="alice">${getStateDisplayName(newState)}. ${randomContent.title ? randomContent.title : 'Here is something'}.</Say>
+  <Gather numDigits="1" timeout="15" action="${baseUrl}/api/webhook/twilio?section=${newState}">
+    <Say voice="alice">Press ${pressedDigit} for another, or choose a different section.</Say>
+  </Gather>
+  <Say voice="alice">Thank you for exploring!</Say>
+</Response>`;
+      } else {
+        twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="alice">${getStateDisplayName(newState)}. Nothing here yet.</Say>
+  <Gather numDigits="1" timeout="10" action="${baseUrl}/api/webhook/twilio?section=${newState}">
+    <Say voice="alice">Press 1 for About, 2 for Projects, 3 for Photos, 4 for Writing, 5 for Reading, 0 for Home.</Say>
+  </Gather>
+</Response>`;
+      }
+    } else {
+      // Non-content sections (home, about)
+      twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="alice">${getStateDisplayName(newState)}.</Say>
+  <Gather numDigits="1" timeout="10" action="${baseUrl}/api/webhook/twilio?section=${newState}">
+    <Say voice="alice">Press 1 for About, 2 for Projects, 3 for Photos, 4 for Writing, 5 for Reading, 0 for Home.</Say>
   </Gather>
   <Say voice="alice">Thank you for visiting!</Say>
 </Response>`;
+    }
 
     return new Response(twimlResponse, {
       status: 200,
@@ -262,5 +356,46 @@ function getStateDisplayName(state: string): string {
     'unknown': 'Unknown Section',
   };
   return stateNames[state] || state;
+}
+
+// Get a random content item from a section
+async function getRandomContent(section: string): Promise<{ id: string; type: string; title?: string } | null> {
+  try {
+    switch (section) {
+      case 'photo': {
+        const [photo] = await db.select({ id: photos.id, title: photos.title })
+          .from(photos)
+          .orderBy(sql`RANDOM()`)
+          .limit(1);
+        return photo ? { id: photo.id, type: 'photo', title: photo.title } : null;
+      }
+      case 'projects': {
+        const [project] = await db.select({ id: projects.id, title: projects.title })
+          .from(projects)
+          .orderBy(sql`RANDOM()`)
+          .limit(1);
+        return project ? { id: project.id, type: 'project', title: project.title } : null;
+      }
+      case 'writing': {
+        const [writing] = await db.select({ id: writings.id, title: writings.title })
+          .from(writings)
+          .orderBy(sql`RANDOM()`)
+          .limit(1);
+        return writing ? { id: writing.id, type: 'writing', title: writing.title } : null;
+      }
+      case 'reading': {
+        const [highlight] = await db.select({ id: readwiseHighlights.id })
+          .from(readwiseHighlights)
+          .orderBy(sql`RANDOM()`)
+          .limit(1);
+        return highlight ? { id: String(highlight.id), type: 'highlight' } : null;
+      }
+      default:
+        return null;
+    }
+  } catch (error) {
+    console.error('Error getting random content:', error);
+    return null;
+  }
 }
 

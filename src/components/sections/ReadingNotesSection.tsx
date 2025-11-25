@@ -10,6 +10,7 @@ import styles from './ReadingNotesSection.module.css';
 
 interface ReadingNotesSectionProps {
   onSectionChange?: (section: string) => void;
+  spotlightId?: string;
 }
 
 interface BookGroup {
@@ -23,12 +24,23 @@ interface BookGroup {
   highlights: ReadwiseHighlightWithBook[];
 }
 
-export default function ReadingNotesSection({ onSectionChange }: ReadingNotesSectionProps) {
+export default function ReadingNotesSection({ onSectionChange, spotlightId }: ReadingNotesSectionProps) {
   const [highlights, setHighlights] = useState<ReadwiseHighlightWithBook[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedBooks, setExpandedBooks] = useState<Set<number>>(new Set());
+  const [selectedHighlight, setSelectedHighlight] = useState<ReadwiseHighlightWithBook | null>(null);
   const { registerContent } = useContentRegistry();
+
+  // Auto-select spotlighted highlight when spotlightId changes
+  useEffect(() => {
+    if (spotlightId && highlights.length > 0) {
+      const spotlightHighlight = highlights.find(h => String(h.id) === spotlightId);
+      if (spotlightHighlight) {
+        setSelectedHighlight(spotlightHighlight);
+      }
+    }
+  }, [spotlightId, highlights]);
 
   useEffect(() => {
     async function loadHighlights() {
@@ -189,6 +201,71 @@ export default function ReadingNotesSection({ onSectionChange }: ReadingNotesSec
               No reading highlights yet
             </div>
           )}
+        </div>
+      )}
+
+      {/* Highlight Spotlight Overlay */}
+      {selectedHighlight && (
+        <div
+          onClick={() => setSelectedHighlight(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(255,255,255,0.98)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '2rem',
+            cursor: 'pointer',
+            overflow: 'auto',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: '600px',
+              width: '100%',
+              cursor: 'default',
+              textAlign: 'center',
+            }}
+          >
+            {selectedHighlight.book?.cover_image_url && (
+              <div style={{ marginBottom: '2rem' }}>
+                <Image
+                  src={selectedHighlight.book.cover_image_url}
+                  alt={selectedHighlight.book.title}
+                  width={80}
+                  height={120}
+                  style={{ margin: '0 auto' }}
+                />
+              </div>
+            )}
+            <blockquote
+              className="type-serif"
+              style={{
+                fontSize: '24px',
+                lineHeight: 1.6,
+                marginBottom: '2rem',
+                fontStyle: 'italic',
+              }}
+            >
+              &ldquo;{selectedHighlight.text}&rdquo;
+            </blockquote>
+            {selectedHighlight.note && (
+              <p className="type-serif-italic" style={{ fontSize: '16px', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                {selectedHighlight.note}
+              </p>
+            )}
+            <div style={{ marginTop: '1.5rem' }}>
+              <p className="type-serif" style={{ fontSize: '16px', marginBottom: '0.25rem' }}>
+                {selectedHighlight.book?.title}
+              </p>
+              <p className="type-serif-italic" style={{ fontSize: '14px', color: 'var(--text-tertiary)' }}>
+                {selectedHighlight.book?.author}
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>

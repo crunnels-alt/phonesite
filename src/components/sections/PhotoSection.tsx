@@ -11,14 +11,25 @@ import styles from './PhotoSection.module.css';
 
 interface PhotoSectionProps {
   onSectionChange?: (section: string) => void;
+  spotlightId?: string;
 }
 
-export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
+export default function PhotoSection({ onSectionChange, spotlightId }: PhotoSectionProps) {
   const router = useRouter();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const { registerContent } = useContentRegistry();
+
+  // Auto-select spotlighted photo when spotlightId changes
+  useEffect(() => {
+    if (spotlightId && photos.length > 0) {
+      const spotlightPhoto = photos.find(p => p.id === spotlightId);
+      if (spotlightPhoto) {
+        setSelectedPhoto(spotlightPhoto);
+      }
+    }
+  }, [spotlightId, photos]);
 
   const handlePhotoClick = (photo: Photo) => {
     if (photo.groupName) {
