@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import PhoneNavigationMonitor from '@/components/PhoneStateMonitor';
+import PhonePrompt from '@/components/PhonePrompt';
 import AdminPanel from '@/components/AdminPanel';
 import HomeSection from '@/components/sections/HomeSection';
 import AboutSection from '@/components/sections/AboutSection';
@@ -117,6 +118,9 @@ function HomeContent() {
 
   return (
     <div className="min-h-screen" style={{ background: '#ffffff' }}>
+      {/* Phone Prompt */}
+      <PhonePrompt />
+
       {/* Phone Navigation Monitor */}
       <PhoneNavigationMonitor
         onSectionChange={handleSectionChange}
