@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import SectionNavigation from '@/components/SectionNavigation';
 import ContentCard from '@/components/ContentCard';
-import { CardSkeleton, PhotoSkeleton } from '@/components/Skeleton';
+import { PhotoSkeleton } from '@/components/Skeleton';
 import styles from './HomeSection.module.css';
 
 interface Photo {
@@ -28,33 +28,6 @@ interface PhotoGroup {
 interface HomeSectionProps {
   onSectionChange?: (section: string) => void;
 }
-
-// Sample data from other sections
-const sampleProjects = [
-  {
-    title: "Phone Navigation",
-    subtitle: "Telephonic Interface",
-    excerpt: "This website. Bridging analog and digital interaction through voice commands.",
-  },
-  {
-    title: "Neural Synthesis",
-    subtitle: "Machine Learning",
-    excerpt: "Algorithmic composition through machine learning models.",
-  },
-];
-
-const sampleWriting = [
-  {
-    title: "Communication Protocols",
-    subtitle: "Interface Design",
-    excerpt: "Investigating telephonic navigation as speculative design.",
-  },
-  {
-    title: "Signal Processing",
-    subtitle: "Noise as Medium",
-    excerpt: "When AI systems develop their own aesthetic preferences.",
-  },
-];
 
 export default function HomeSection({ onSectionChange }: HomeSectionProps) {
   const router = useRouter();
@@ -105,28 +78,10 @@ export default function HomeSection({ onSectionChange }: HomeSectionProps) {
   let positionIndex = 0;
 
   // Add photo groups (one photo per group)
-  photoGroups.slice(0, 2).forEach((group) => {
+  photoGroups.forEach((group) => {
     mixedContent.push({
       type: 'photoGroup',
       data: group,
-      position: allPositions[positionIndex++] || allPositions[0],
-    });
-  });
-
-  // Add projects
-  sampleProjects.forEach((project) => {
-    mixedContent.push({
-      type: 'project',
-      data: project,
-      position: allPositions[positionIndex++] || allPositions[0],
-    });
-  });
-
-  // Add writing
-  sampleWriting.forEach((writing) => {
-    mixedContent.push({
-      type: 'writing',
-      data: writing,
       position: allPositions[positionIndex++] || allPositions[0],
     });
   });
@@ -140,57 +95,24 @@ export default function HomeSection({ onSectionChange }: HomeSectionProps) {
 
       {loading ? (
         <div className={styles.loadingContainer}>
+          <PhotoSkeleton size="large" />
           <PhotoSkeleton size="medium" />
-          <div className={styles.skeletonBorder}>
-            <CardSkeleton />
-          </div>
           <PhotoSkeleton size="small" />
-          <div className={styles.skeletonBorder}>
-            <CardSkeleton />
-          </div>
         </div>
       ) : (
         <div className={`mobile-content-grid ${styles.contentGrid}`}>
-          {mixedContent.map((item, index) => {
-            if (item.type === 'photoGroup') {
-              const group = item.data as PhotoGroup;
-              return (
-                <ContentCard
-                  key={`group-${group.groupId}`}
-                  position={item.position}
-                  imageUrl={group.coverPhoto.url}
-                  imageAlt={group.groupName}
-                  imageBlurDataUrl={group.coverPhoto.blurDataUrl}
-                  title={group.groupName}
-                  onClick={() => handleGroupClick(group)}
-                />
-              );
-            } else if (item.type === 'project') {
-              const project = item.data as typeof sampleProjects[0];
-              return (
-                <ContentCard
-                  key={`project-${index}`}
-                  position={item.position}
-                  title={project.title}
-                  subtitle={project.subtitle}
-                  excerpt={project.excerpt}
-                  onClick={() => onSectionChange?.('projects')}
-                />
-              );
-            } else if (item.type === 'writing') {
-              const writing = item.data as typeof sampleWriting[0];
-              return (
-                <ContentCard
-                  key={`writing-${index}`}
-                  position={item.position}
-                  title={writing.title}
-                  subtitle={writing.subtitle}
-                  excerpt={writing.excerpt}
-                  onClick={() => onSectionChange?.('writing')}
-                />
-              );
-            }
-            return null;
+          {mixedContent.map((item) => {
+            const group = item.data as PhotoGroup;
+            return (
+              <ContentCard
+                key={`group-${group.groupId}`}
+                position={item.position}
+                imageUrl={group.coverPhoto.url}
+                imageAlt={group.groupName}
+                imageBlurDataUrl={group.coverPhoto.blurDataUrl}
+                onClick={() => handleGroupClick(group)}
+              />
+            );
           })}
         </div>
       )}
