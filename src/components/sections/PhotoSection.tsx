@@ -10,6 +10,7 @@ interface Photo {
   id: string;
   url: string;
   title: string;
+  description?: string;
   location: string;
   date: string;
   width: number;
@@ -36,6 +37,30 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
   useEffect(() => {
     fetchPhotos();
   }, []);
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (!selectedPhoto) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const currentIndex = photos.findIndex(p => p.id === selectedPhoto.id);
+
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        const nextIndex = (currentIndex + 1) % photos.length;
+        setSelectedPhoto(photos[nextIndex]);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prevIndex = currentIndex === 0 ? photos.length - 1 : currentIndex - 1;
+        setSelectedPhoto(photos[prevIndex]);
+      } else if (e.key === 'Escape') {
+        setSelectedPhoto(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedPhoto, photos]);
 
   const fetchPhotos = async () => {
     try {
@@ -106,10 +131,12 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
                       />
                     </div>
 
-                    {/* Caption */}
-                    <div className={`type-serif-italic ${styles.photoCaption}`}>
-                      {photo.title}
-                    </div>
+                    {/* Caption - only show if description exists */}
+                    {photo.description && (
+                      <div className={`type-serif-italic ${styles.photoCaption}`}>
+                        {photo.description}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -135,12 +162,14 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
               blurDataURL={selectedPhoto.blurDataUrl}
             />
             <div className={styles.lightboxCaption}>
-              <div className={`type-serif-italic ${styles.lightboxTitle}`}>
-                {selectedPhoto.title}
-              </div>
-              {selectedPhoto.location && (
+              {selectedPhoto.description && (
+                <div className={`type-serif-italic ${styles.lightboxTitle}`}>
+                  {selectedPhoto.description}
+                </div>
+              )}
+              {(selectedPhoto.location || selectedPhoto.date) && (
                 <div className={`type-sans ${styles.lightboxMeta}`}>
-                  {selectedPhoto.location} · {selectedPhoto.date}
+                  {selectedPhoto.location}{selectedPhoto.location && selectedPhoto.date && ' · '}{selectedPhoto.date}
                 </div>
               )}
             </div>
