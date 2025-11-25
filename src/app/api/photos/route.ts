@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { del } from '@vercel/blob';
 import { getPhotos, updatePhoto, deletePhoto } from '@/lib/photos';
 import { getIdentifier, checkLenientRateLimit, checkStandardRateLimit } from '@/lib/ratelimit';
 
@@ -88,7 +89,18 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await deletePhoto(id);
+    // Delete from database and get the blob URL
+    const blobUrl = await deletePhoto(id);
+
+    // Delete from Vercel Blob storage
+    if (blobUrl) {
+      try {
+        await del(blobUrl, { token: process.env.BLOB_READ_WRITE_TOKEN });
+        console.log('Deleted blob:', blobUrl);
+      } catch (blobError) {
+        console.error('Error deleting blob (continuing anyway):', blobError);
+      }
+    }
 
     return NextResponse.json({
       success: true,

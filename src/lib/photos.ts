@@ -141,11 +141,16 @@ export async function updatePhoto(id: string, updates: Partial<DbPhoto>): Promis
 }
 
 /**
- * Delete a photo
+ * Delete a photo and return its URL for blob cleanup
  */
-export async function deletePhoto(id: string): Promise<void> {
+export async function deletePhoto(id: string): Promise<string | null> {
   try {
-    await db.delete(photos).where(eq(photos.id, id));
+    const result = await db
+      .delete(photos)
+      .where(eq(photos.id, id))
+      .returning({ url: photos.url });
+
+    return result[0]?.url || null;
   } catch (error) {
     console.error('Error deleting photo:', error);
     throw error;
