@@ -8,7 +8,7 @@
   padding: 1.5rem 0;
   margin-bottom: 2rem;
   z-index: 100;
-  background: var(--background);
+  /* No background - content scrolls behind text */
 }
 
 .navButton {
