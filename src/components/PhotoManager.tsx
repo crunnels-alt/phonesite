@@ -7,6 +7,32 @@ interface SelectedFile {
   preview: string;
 }
 
+const inputStyle = {
+  width: '100%',
+  padding: '0.5rem',
+  border: '1px solid var(--border-light)',
+  background: 'var(--background)',
+  fontFamily: 'inherit',
+  fontSize: '14px',
+  marginBottom: '0.75rem',
+};
+
+const labelStyle = {
+  display: 'block',
+  marginBottom: '0.25rem',
+  fontSize: '12px',
+  color: 'var(--text-tertiary)',
+};
+
+const buttonStyle = {
+  padding: '0.5rem 1rem',
+  border: '1px solid var(--border-light)',
+  background: 'transparent',
+  cursor: 'pointer',
+  fontSize: '13px',
+  transition: 'all 0.2s',
+};
+
 export default function PhotoManager() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
@@ -23,7 +49,6 @@ export default function PhotoManager() {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    // Validate file types
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
     const invalidFiles = files.filter(file => !validTypes.includes(file.type));
 
@@ -37,7 +62,6 @@ export default function PhotoManager() {
 
     setMessage(null);
 
-    // Create previews for all files
     const filePromises = files.map(file => {
       return new Promise<SelectedFile>((resolve) => {
         const reader = new FileReader();
@@ -72,13 +96,10 @@ export default function PhotoManager() {
     setIsUploading(true);
     setMessage(null);
 
-    // Generate a unique groupId for this batch
     const groupId = crypto.randomUUID();
-
     let successCount = 0;
     let errorCount = 0;
 
-    // Upload files one by one
     for (let i = 0; i < selectedFiles.length; i++) {
       const { file } = selectedFiles[i];
       setUploadProgress(`Uploading ${i + 1} of ${selectedFiles.length}...`);
@@ -86,7 +107,7 @@ export default function PhotoManager() {
       try {
         const formDataToSend = new FormData();
         formDataToSend.append('file', file);
-        formDataToSend.append('title', file.name.replace(/\.[^/.]+$/, '')); // Use filename without extension as title
+        formDataToSend.append('title', file.name.replace(/\.[^/.]+$/, ''));
         formDataToSend.append('description', formData.description);
         formDataToSend.append('location', formData.location);
         formDataToSend.append('date', formData.date);
@@ -99,18 +120,16 @@ export default function PhotoManager() {
         });
 
         const data = await response.json();
-
         if (data.success) {
           successCount++;
         } else {
           errorCount++;
         }
-      } catch (error) {
+      } catch {
         errorCount++;
       }
     }
 
-    // Show final message
     if (successCount > 0 && errorCount === 0) {
       setMessage({ type: 'success', text: `Successfully uploaded ${successCount} photo(s)!` });
     } else if (successCount > 0 && errorCount > 0) {
@@ -119,7 +138,6 @@ export default function PhotoManager() {
       setMessage({ type: 'error', text: `Failed to upload ${errorCount} photo(s).` });
     }
 
-    // Reset form
     setSelectedFiles([]);
     setFormData({
       groupName: '',
@@ -132,73 +150,64 @@ export default function PhotoManager() {
   };
 
   return (
-    <div style={{
-      border: '1px solid var(--accent-gray)',
-      padding: '1.5rem',
-      marginTop: '2rem',
-    }}>
-      <div className="type-mono text-xs mb-4 opacity-60">
-        PHOTO_MANAGER
-      </div>
+    <div style={{ padding: '1.5rem', marginTop: '2rem' }}>
+      <h2 style={{ fontSize: '24px', fontWeight: 400, marginBottom: '1.5rem' }}>Photo Upload</h2>
 
-      <form onSubmit={handleUpload} style={{ display: 'grid', gap: '1.5rem' }}>
+      {/* Messages */}
+      {message && (
+        <div
+          style={{
+            padding: '0.75rem 1rem',
+            border: `1px solid ${message.type === 'success' ? '#16a34a' : '#dc2626'}`,
+            color: message.type === 'success' ? '#16a34a' : '#dc2626',
+            marginBottom: '1rem',
+            fontSize: '14px',
+          }}
+        >
+          {message.text}
+        </div>
+      )}
+
+      <form onSubmit={handleUpload} style={{ padding: '1rem', border: '1px solid var(--border-light)' }}>
+        {/* Group Name */}
+        <div>
+          <label style={labelStyle}>Group Name *</label>
+          <input
+            type="text"
+            value={formData.groupName}
+            onChange={(e) => setFormData({ ...formData, groupName: e.target.value })}
+            placeholder="e.g., Tokyo 2024, Portraits, Street"
+            disabled={isUploading}
+            required
+            style={inputStyle}
+          />
+          <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '-0.5rem', marginBottom: '0.75rem' }}>
+            URL: /photos/{formData.groupName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'group-name'}
+          </div>
+        </div>
+
         {/* File Upload */}
         <div>
-          <label className="type-mono text-xs mb-2 block opacity-60">
-            SELECT_IMAGES
-          </label>
+          <label style={labelStyle}>Select Images</label>
           <input
             type="file"
             accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
             multiple
             onChange={handleFileSelect}
             disabled={isUploading}
-            className="type-mono text-xs"
-            style={{
-              width: '100%',
-              padding: '0.5rem',
-              border: '1px solid var(--accent-gray)',
-              background: 'var(--background)',
-            }}
+            style={{ ...inputStyle, padding: '0.4rem' }}
           />
-        </div>
-
-        {/* Group Name (Required) */}
-        <div>
-          <label className="type-mono text-xs mb-2 block opacity-60">
-            GROUP_NAME * (required)
-          </label>
-          <input
-            type="text"
-            value={formData.groupName}
-            onChange={(e) => setFormData({ ...formData, groupName: e.target.value })}
-            placeholder="e.g., tokyo-2024, portraits, street"
-            disabled={isUploading}
-            required
-            className="type-mono text-sm"
-            style={{
-              width: '100%',
-              padding: '0.5rem',
-              border: `1px solid ${formData.groupName.trim() ? 'var(--accent-gray)' : 'var(--accent-red)'}`,
-              background: 'var(--background)',
-              color: 'var(--foreground)',
-            }}
-          />
-          <div className="type-mono text-xs mt-1 opacity-40">
-            Used in URL: /photos/{formData.groupName.trim().toLowerCase().replace(/\s+/g, '-') || 'group-name'}
-          </div>
         </div>
 
         {/* Preview Grid */}
         {selectedFiles.length > 0 && (
-          <div>
-            <div className="type-mono text-xs mb-2 opacity-60">
-              SELECTED: {selectedFiles.length} FILE(S)
-            </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={labelStyle}>{selectedFiles.length} file(s) selected</label>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-              gap: '1rem'
+              gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
+              gap: '0.75rem',
+              marginTop: '0.5rem'
             }}>
               {selectedFiles.map((file, index) => (
                 <div key={index} style={{ position: 'relative' }}>
@@ -207,39 +216,29 @@ export default function PhotoManager() {
                     alt={`Preview ${index + 1}`}
                     style={{
                       width: '100%',
-                      height: '120px',
+                      height: '80px',
                       objectFit: 'cover',
-                      border: '1px solid var(--accent-gray)',
+                      border: '1px solid var(--border-light)',
                     }}
                   />
                   <button
                     type="button"
                     onClick={() => removeFile(index)}
-                    className="type-mono text-xs"
                     style={{
                       position: 'absolute',
-                      top: '4px',
-                      right: '4px',
-                      background: 'var(--accent-red)',
+                      top: '2px',
+                      right: '2px',
+                      background: '#dc2626',
                       color: 'white',
                       border: 'none',
                       padding: '2px 6px',
                       cursor: 'pointer',
-                      fontSize: '10px'
+                      fontSize: '11px',
+                      lineHeight: 1,
                     }}
                   >
                     ×
                   </button>
-                  <div className="type-mono" style={{
-                    fontSize: '9px',
-                    marginTop: '4px',
-                    opacity: 0.6,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    {file.file.name}
-                  </div>
                 </div>
               ))}
             </div>
@@ -248,67 +247,38 @@ export default function PhotoManager() {
 
         {/* Description */}
         <div>
-          <label className="type-mono text-xs mb-2 block opacity-60">
-            DESCRIPTION (applies to all)
-          </label>
+          <label style={labelStyle}>Description (applies to all)</label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Add a caption or description for this photo..."
+            placeholder="Caption or description for these photos"
             disabled={isUploading}
-            rows={3}
-            className="type-mono text-sm"
-            style={{
-              width: '100%',
-              padding: '0.5rem',
-              border: '1px solid var(--accent-gray)',
-              background: 'var(--background)',
-              color: 'var(--foreground)',
-              resize: 'vertical',
-            }}
+            rows={2}
+            style={{ ...inputStyle, resize: 'vertical' }}
           />
         </div>
 
-        {/* Metadata */}
+        {/* Location & Date */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           <div>
-            <label className="type-mono text-xs mb-2 block opacity-60">
-              LOCATION (applies to all)
-            </label>
+            <label style={labelStyle}>Location</label>
             <input
               type="text"
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              placeholder="Location"
+              placeholder="Where were these taken?"
               disabled={isUploading}
-              className="type-mono text-sm"
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid var(--accent-gray)',
-                background: 'var(--background)',
-                color: 'var(--foreground)',
-              }}
+              style={inputStyle}
             />
           </div>
-
           <div>
-            <label className="type-mono text-xs mb-2 block opacity-60">
-              DATE (applies to all)
-            </label>
+            <label style={labelStyle}>Date</label>
             <input
               type="date"
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               disabled={isUploading}
-              className="type-mono text-sm"
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid var(--accent-gray)',
-                background: 'var(--background)',
-                color: 'var(--foreground)',
-              }}
+              style={inputStyle}
             />
           </div>
         </div>
@@ -317,31 +287,24 @@ export default function PhotoManager() {
         <button
           type="submit"
           disabled={selectedFiles.length === 0 || isUploading || !formData.groupName.trim()}
-          className="type-mono text-xs uppercase tracking-wide hover-glitch"
+          className="type-sans"
           style={{
-            padding: '0.75rem',
-            border: `1px solid ${selectedFiles.length === 0 || isUploading || !formData.groupName.trim() ? 'var(--accent-gray)' : 'var(--accent-blue)'}`,
-            background: 'transparent',
-            color: selectedFiles.length === 0 || isUploading || !formData.groupName.trim() ? 'var(--accent-gray)' : 'var(--accent-blue)',
-            cursor: selectedFiles.length === 0 || isUploading || !formData.groupName.trim() ? 'not-allowed' : 'pointer',
+            ...buttonStyle,
+            width: '100%',
+            marginTop: '0.5rem',
+            background: selectedFiles.length === 0 || isUploading || !formData.groupName.trim()
+              ? 'transparent'
+              : 'var(--foreground)',
+            color: selectedFiles.length === 0 || isUploading || !formData.groupName.trim()
+              ? 'var(--text-tertiary)'
+              : 'var(--background)',
+            cursor: selectedFiles.length === 0 || isUploading || !formData.groupName.trim()
+              ? 'not-allowed'
+              : 'pointer',
           }}
         >
-          {isUploading ? uploadProgress : `UPLOAD ${selectedFiles.length} PHOTO(S)`}
+          {isUploading ? uploadProgress : `Upload ${selectedFiles.length} Photo(s)`}
         </button>
-
-        {/* Messages */}
-        {message && (
-          <div
-            className="type-mono text-xs"
-            style={{
-              padding: '0.75rem',
-              border: `1px solid ${message.type === 'success' ? 'var(--accent-blue)' : 'var(--accent-red)'}`,
-              color: message.type === 'success' ? 'var(--accent-blue)' : 'var(--accent-red)',
-            }}
-          >
-            {message.text}
-          </div>
-        )}
       </form>
     </div>
   );
