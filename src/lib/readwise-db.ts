@@ -15,7 +15,7 @@ export async function getHighlights(): Promise<HighlightWithBook[]> {
     const highlights = await db
       .select()
       .from(readwiseHighlights)
-      .orderBy(desc(readwiseHighlights.highlightedAt));
+      .orderBy(desc(readwiseHighlights.createdAt));
 
     const books = await db.select().from(readwiseBooks);
     const bookMap = new Map(books.map(book => [book.id, book]));
