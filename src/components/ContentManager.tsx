@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 type ContentType = 'photos' | 'projects' | 'writings';
 
@@ -73,6 +73,11 @@ export default function ContentManager() {
   // Create states
   const [isCreating, setIsCreating] = useState(false);
   const [createForm, setCreateForm] = useState<Partial<Project | Writing>>({});
+
+  // Image upload states
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeTextarea, setActiveTextarea] = useState<'create' | 'edit' | null>(null);
 
   useEffect(() => {
     loadContent();
@@ -173,6 +178,50 @@ export default function ContentManager() {
     } catch (error) {
       console.error('Error creating:', error);
       setMessage({ type: 'error', text: 'Create failed' });
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const markdown = `![](${data.url})`;
+
+        // Insert into the appropriate form's excerpt
+        if (activeTextarea === 'create') {
+          const currentExcerpt = (createForm as Partial<Writing>).excerpt || '';
+          setCreateForm({ ...createForm, excerpt: currentExcerpt + markdown });
+        } else if (activeTextarea === 'edit') {
+          const currentExcerpt = (editForm as Partial<Writing>).excerpt || '';
+          setEditForm({ ...editForm, excerpt: currentExcerpt + markdown });
+        }
+
+        setMessage({ type: 'success', text: 'Image uploaded! Markdown inserted.' });
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Upload failed' });
+      }
+    } catch (error) {
+      console.error('Error uploading:', error);
+      setMessage({ type: 'error', text: 'Upload failed' });
+    } finally {
+      setIsUploading(false);
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -378,7 +427,7 @@ export default function ContentManager() {
     </div>
   );
 
-  const renderWritingForm = (form: Partial<Writing>, setForm: (f: Partial<Writing>) => void, onSave: () => void, onCancel: () => void) => (
+  const renderWritingForm = (form: Partial<Writing>, setForm: (f: Partial<Writing>) => void, onSave: () => void, onCancel: () => void, mode: 'create' | 'edit') => (
     <div style={{ padding: '1rem', border: '1px solid var(--border-light)', marginBottom: '1rem' }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         <div>
@@ -401,13 +450,31 @@ export default function ContentManager() {
         </div>
       </div>
       <div>
-        <label style={labelStyle}>Excerpt *</label>
+        <label style={labelStyle}>Content (Markdown supported)</label>
         <textarea
-          style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
+          style={{ ...inputStyle, minHeight: '150px', resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: '13px' }}
           value={form.excerpt || ''}
           onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
-          placeholder="Short description or excerpt"
+          onFocus={() => setActiveTextarea(mode)}
+          placeholder="Write your content here. Supports **bold**, *italic*, [links](url), and ![images](url)"
         />
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '-0.5rem', marginBottom: '0.75rem' }}>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTextarea(mode);
+              fileInputRef.current?.click();
+            }}
+            disabled={isUploading}
+            className="type-sans"
+            style={{ ...buttonStyle, fontSize: '12px', padding: '0.25rem 0.5rem' }}
+          >
+            {isUploading ? 'Uploading...' : '+ Image'}
+          </button>
+          <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', alignSelf: 'center' }}>
+            Tip: Use ![](url) for images inline with text
+          </span>
+        </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         <div>
@@ -520,7 +587,8 @@ export default function ContentManager() {
         createForm as Partial<Writing>,
         (f) => setCreateForm(f),
         handleCreate,
-        () => { setIsCreating(false); setCreateForm({}); }
+        () => { setIsCreating(false); setCreateForm({}); },
+        'create'
       )}
 
       {writings.length === 0 && !isCreating ? (
@@ -533,7 +601,8 @@ export default function ContentManager() {
                 editForm as Partial<Writing>,
                 (f) => setEditForm(f),
                 handleSaveEdit,
-                () => { setEditingId(null); setEditForm({}); }
+                () => { setEditingId(null); setEditForm({}); },
+                'edit'
               )
             ) : (
               <div
@@ -584,6 +653,15 @@ export default function ContentManager() {
 
   return (
     <div style={{ padding: '1.5rem', marginTop: '2rem' }}>
+      {/* Hidden file input for image uploads */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImageUpload}
+        accept="image/jpeg,image/png,image/gif,image/webp"
+        style={{ display: 'none' }}
+      />
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '24px', fontWeight: 400 }}>Content Manager</h2>
         {activeTab !== 'photos' && (
