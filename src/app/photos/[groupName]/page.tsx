@@ -83,6 +83,11 @@ export default function PhotoGroupPage() {
         <h1 className={`type-display ${styles.title}`}>
           {displayGroupName}
         </h1>
+        {photos[0]?.description && (
+          <div className={`type-serif-italic ${styles.description}`}>
+            {photos[0].description}
+          </div>
+        )}
         <div className={`type-mono ${styles.photoCount}`}>
           {photos.length} photo{photos.length !== 1 ? 's' : ''}
         </div>
@@ -116,11 +121,6 @@ export default function PhotoGroupPage() {
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
-              {photo.description && (
-                <div className={`type-serif-italic ${styles.caption}`}>
-                  {photo.description}
-                </div>
-              )}
             </div>
           ))}
         </div>
