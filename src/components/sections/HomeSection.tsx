@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import SectionNavigation from '@/components/SectionNavigation';
 import ContentCard from '@/components/ContentCard';
+import { CardSkeleton, PhotoSkeleton } from '@/components/Skeleton';
+import styles from './HomeSection.module.css';
 
 interface Photo {
   id: string;
@@ -12,6 +14,7 @@ interface Photo {
   date: string;
   width: number;
   height: number;
+  blurDataUrl?: string;
 }
 
 interface HomeSectionProps {
@@ -115,27 +118,25 @@ export default function HomeSection({ onSectionChange }: HomeSectionProps) {
   });
 
   return (
-    <div style={{ minHeight: '100vh', position: 'relative', paddingBottom: '4rem' }}>
+    <div className={styles.container}>
       <SectionNavigation
         currentSection="home"
         onSectionChange={onSectionChange}
       />
 
       {loading ? (
-        <div className="type-serif-italic" style={{
-          textAlign: 'center',
-          padding: '4rem',
-          color: 'var(--text-secondary)'
-        }}>
-          Loading...
+        <div className={styles.loadingContainer}>
+          <PhotoSkeleton size="medium" />
+          <div className={styles.skeletonBorder}>
+            <CardSkeleton />
+          </div>
+          <PhotoSkeleton size="small" />
+          <div className={styles.skeletonBorder}>
+            <CardSkeleton />
+          </div>
         </div>
       ) : (
-        <div style={{
-          position: 'relative',
-          width: '100%',
-          minHeight: '140vh',
-          padding: '2rem 0'
-        }}>
+        <div className={`mobile-content-grid ${styles.contentGrid}`}>
           {mixedContent.map((item, index) => {
             if (item.type === 'photo') {
               const photo = item.data as Photo;
@@ -145,8 +146,7 @@ export default function HomeSection({ onSectionChange }: HomeSectionProps) {
                   position={item.position}
                   imageUrl={photo.url}
                   imageAlt={photo.title}
-                  imageWidth={photo.width}
-                  imageHeight={photo.height}
+                  imageBlurDataUrl={photo.blurDataUrl}
                   title={photo.title}
                   onClick={() => onSectionChange?.('photo')}
                 />

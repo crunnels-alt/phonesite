@@ -9,6 +9,7 @@ export const photos = pgTable('photos', {
   date: text('date').notNull(),
   width: integer('width').notNull().default(1600),
   height: integer('height').notNull().default(1200),
+  blurDataUrl: text('blur_data_url'), // Base64 blur placeholder for fast loading
   uploadedAt: timestamp('uploaded_at').notNull().defaultNow(),
   position: jsonb('position').$type<{
     x: number;

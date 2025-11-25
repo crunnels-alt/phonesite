@@ -1,0 +1,95 @@
+.wrapper {
+  position: absolute;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+
+.wrapperClickable {
+  cursor: pointer;
+}
+
+.wrapper:hover.wrapperClickable {
+  opacity: 0.7;
+}
+
+.card {
+  position: relative;
+  background: #ffffff;
+}
+
+/* Image card sizes */
+.imageSmall {
+  width: 220px;
+  height: 300px;
+}
+
+.imageMedium {
+  width: 320px;
+  height: 420px;
+}
+
+.imageLarge {
+  width: 420px;
+  height: 560px;
+}
+
+/* Text card sizes */
+.textSmall {
+  width: 260px;
+  min-height: 180px;
+}
+
+.textMedium {
+  width: 340px;
+  min-height: 240px;
+}
+
+.textLarge {
+  width: 420px;
+  min-height: 300px;
+}
+
+.imageContainer {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 40px);
+  overflow: hidden;
+}
+
+.image {
+  object-fit: cover;
+}
+
+.imageCaption {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.textContent {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 400;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.excerpt {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0.5rem 0 0 0;
+  flex: 1;
+}

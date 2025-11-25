@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import SectionNavigation from '@/components/SectionNavigation';
 import ContentCard from '@/components/ContentCard';
+import { CardSkeleton } from '@/components/Skeleton';
+import styles from './Section.module.css';
 
 interface WritingSectionProps {
   onSectionChange?: (section: string) => void;
@@ -43,35 +45,30 @@ export default function WritingSection({ onSectionChange }: WritingSectionProps)
 
   if (isLoading) {
     return (
-      <div style={{ minHeight: '100vh', position: 'relative', paddingBottom: '4rem' }}>
+      <div className={styles.container}>
         <SectionNavigation
           currentSection="writing"
           onSectionChange={onSectionChange}
         />
-        <div className="type-serif-italic" style={{
-          padding: '4rem 2rem',
-          textAlign: 'center',
-          color: 'var(--text-secondary)'
-        }}>
-          Loading writings...
+        <div className={styles.loadingGrid}>
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className={styles.skeletonBorder}>
+              <CardSkeleton />
+            </div>
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', position: 'relative', paddingBottom: '4rem' }}>
+    <div className={styles.container}>
       <SectionNavigation
         currentSection="writing"
         onSectionChange={onSectionChange}
       />
 
-      <div style={{
-        position: 'relative',
-        width: '100%',
-        minHeight: '160vh',
-        padding: '2rem 0'
-      }}>
+      <div className={`mobile-content-grid ${styles.contentGrid}`} style={{ minHeight: '160vh' }}>
         {writings.map((post) => {
           const position = post.position || { x: 10, y: 50, size: 'medium' as const };
 
@@ -83,20 +80,14 @@ export default function WritingSection({ onSectionChange }: WritingSectionProps)
               subtitle={post.subtitle}
               excerpt={
                 <>
-                  <div style={{ marginBottom: '1rem' }}>
+                  <div className={styles.cardBody}>
                     {post.excerpt}
                   </div>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingTop: '0.75rem',
-                    borderTop: '1px solid var(--border-light)'
-                  }}>
-                    <span className="type-sans" style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                  <div className={styles.cardFooter}>
+                    <span className={`type-sans ${styles.cardDate}`}>
                       {post.date}
                     </span>
-                    <span className="type-serif-italic" style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                    <span className={`type-serif-italic ${styles.cardStatus}`}>
                       {post.category}
                     </span>
                   </div>

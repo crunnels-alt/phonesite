@@ -3,7 +3,9 @@
 import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import SectionNavigation from '@/components/SectionNavigation';
+import { HighlightSkeleton } from '@/components/Skeleton';
 import type { ReadwiseHighlightWithBook } from '@/lib/readwise';
+import styles from './ReadingNotesSection.module.css';
 
 interface ReadingNotesSectionProps {
   onSectionChange?: (section: string) => void;
@@ -117,34 +119,29 @@ export default function ReadingNotesSection({ onSectionChange }: ReadingNotesSec
   };
 
   return (
-    <div style={{ minHeight: '100vh', padding: '0 2rem', maxWidth: '900px', margin: '0 auto' }}>
+    <div className={styles.container}>
       <SectionNavigation
         currentSection="reading"
         onSectionChange={onSectionChange}
       />
 
       {/* Header */}
-      <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '36px', fontWeight: 400, marginBottom: '0.75rem' }}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>
           Reading Notes
         </h1>
-        <p className="type-serif-italic" style={{ color: 'var(--text-secondary)', fontSize: '18px' }}>
+        <p className={`type-serif-italic ${styles.subtitle}`}>
           {isLoading ? 'Loading...' : `${filteredHighlights.length} highlights`}
         </p>
       </div>
 
       {/* Error */}
       {error && (
-        <div style={{
-          padding: '2rem',
-          border: '1px solid var(--border-light)',
-          marginBottom: '2rem',
-          textAlign: 'center',
-        }}>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+        <div className={styles.errorBox}>
+          <p className={styles.errorText}>
             {error}
           </p>
-          <p className="type-sans" style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>
+          <p className={`type-sans ${styles.errorHelp}`}>
             Make sure your READWISE_ACCESS_TOKEN is set correctly.
           </p>
         </div>
@@ -152,34 +149,20 @@ export default function ReadingNotesSection({ onSectionChange }: ReadingNotesSec
 
       {/* Loading */}
       {isLoading && (
-        <div className="type-serif-italic" style={{
-          padding: '4rem 2rem',
-          textAlign: 'center',
-          color: 'var(--text-secondary)'
-        }}>
-          Loading highlights...
+        <div className={styles.loadingGrid}>
+          {[...Array(5)].map((_, i) => (
+            <HighlightSkeleton key={i} />
+          ))}
         </div>
       )}
 
       {/* Filters */}
       {!isLoading && !error && (
         <>
-          <div style={{
-            marginBottom: '3rem',
-            padding: '1.5rem',
-            border: '1px solid var(--border-light)',
-            display: 'grid',
-            gap: '1rem',
-          }}>
+          <div className={styles.filtersBox}>
             {/* Search */}
             <div>
-              <label className="type-sans" style={{
-                display: 'block',
-                marginBottom: '0.5rem',
-                fontSize: '12px',
-                color: 'var(--text-tertiary)',
-                letterSpacing: '0.05em'
-              }}>
+              <label className={`type-sans ${styles.filterLabel}`}>
                 Search
               </label>
               <input
@@ -187,42 +170,20 @@ export default function ReadingNotesSection({ onSectionChange }: ReadingNotesSec
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search highlights, books, authors..."
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  border: '1px solid var(--border-light)',
-                  background: 'var(--background)',
-                  color: 'var(--foreground)',
-                  fontFamily: 'inherit',
-                  fontSize: '16px',
-                }}
+                className={styles.filterInput}
               />
             </div>
 
             {/* Filter Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+            <div className={`reading-filters ${styles.filterRow}`}>
               <div>
-                <label className="type-sans" style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  fontSize: '12px',
-                  color: 'var(--text-tertiary)',
-                  letterSpacing: '0.05em'
-                }}>
+                <label className={`type-sans ${styles.filterLabel}`}>
                   Source
                 </label>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid var(--border-light)',
-                    background: 'var(--background)',
-                    color: 'var(--foreground)',
-                    fontFamily: 'inherit',
-                    fontSize: '16px',
-                  }}
+                  className={styles.filterSelect}
                 >
                   {categories.map(cat => (
                     <option key={cat} value={cat}>{cat === 'all' ? 'All Sources' : cat}</option>
@@ -231,27 +192,13 @@ export default function ReadingNotesSection({ onSectionChange }: ReadingNotesSec
               </div>
 
               <div>
-                <label className="type-sans" style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  fontSize: '12px',
-                  color: 'var(--text-tertiary)',
-                  letterSpacing: '0.05em'
-                }}>
+                <label className={`type-sans ${styles.filterLabel}`}>
                   Sort
                 </label>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid var(--border-light)',
-                    background: 'var(--background)',
-                    color: 'var(--foreground)',
-                    fontFamily: 'inherit',
-                    fontSize: '16px',
-                  }}
+                  className={styles.filterSelect}
                 >
                   <option value="newest">Newest</option>
                   <option value="oldest">Oldest</option>
@@ -260,27 +207,13 @@ export default function ReadingNotesSection({ onSectionChange }: ReadingNotesSec
               </div>
 
               <div>
-                <label className="type-sans" style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  fontSize: '12px',
-                  color: 'var(--text-tertiary)',
-                  letterSpacing: '0.05em'
-                }}>
+                <label className={`type-sans ${styles.filterLabel}`}>
                   View
                 </label>
                 <select
                   value={viewMode}
                   onChange={(e) => setViewMode(e.target.value as ViewMode)}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid var(--border-light)',
-                    background: 'var(--background)',
-                    color: 'var(--foreground)',
-                    fontFamily: 'inherit',
-                    fontSize: '16px',
-                  }}
+                  className={styles.filterSelect}
                 >
                   <option value="timeline">Timeline</option>
                   <option value="grouped">By Book</option>
@@ -291,57 +224,44 @@ export default function ReadingNotesSection({ onSectionChange }: ReadingNotesSec
 
           {/* Results */}
           {viewMode === 'timeline' ? (
-            <div style={{ display: 'grid', gap: '2.5rem' }}>
+            <div className={styles.timelineGrid}>
               {filteredHighlights.map((highlight) => (
                 <article
                   key={highlight.id}
-                  style={{
-                    paddingBottom: '2.5rem',
-                    borderBottom: '1px solid var(--border-light)',
-                  }}
+                  className={styles.highlightArticle}
                 >
                   {/* Book info */}
-                  <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem', alignItems: 'flex-start' }}>
+                  <div className={styles.bookInfo}>
                     {highlight.book.cover_image_url && (
                       <Image
                         src={highlight.book.cover_image_url}
                         alt={highlight.book.title}
                         width={50}
                         height={75}
-                        style={{ objectFit: 'cover' }}
+                        className={styles.bookCover}
                       />
                     )}
-                    <div style={{ flex: 1 }}>
-                      <h3 style={{ fontSize: '18px', fontWeight: 400, marginBottom: '0.25rem' }}>
+                    <div className={styles.bookDetails}>
+                      <h3 className={styles.bookTitle}>
                         {highlight.book.title}
                       </h3>
-                      <p className="type-serif-italic" style={{ fontSize: '15px', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                      <p className={`type-serif-italic ${styles.bookAuthor}`}>
                         {highlight.book.author}
                       </p>
-                      <span className="type-sans" style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                      <span className={`type-sans ${styles.highlightDate}`}>
                         {formatDate(highlight.highlighted_at)}
                       </span>
                     </div>
                   </div>
 
                   {/* Highlight */}
-                  <blockquote style={{
-                    fontSize: '18px',
-                    lineHeight: '1.7',
-                    marginBottom: '1rem',
-                    paddingLeft: '1.25rem',
-                    borderLeft: '2px solid var(--border-light)',
-                  }}>
+                  <blockquote className={styles.blockquote}>
                     {highlight.text}
                   </blockquote>
 
                   {/* Note */}
                   {highlight.note && (
-                    <div className="type-serif-italic" style={{
-                      padding: '1rem',
-                      background: 'rgba(0,0,0,0.02)',
-                      color: 'var(--text-secondary)',
-                    }}>
+                    <div className={`type-serif-italic ${styles.highlightNote}`}>
                       {highlight.note}
                     </div>
                   )}
@@ -349,41 +269,38 @@ export default function ReadingNotesSection({ onSectionChange }: ReadingNotesSec
               ))}
             </div>
           ) : (
-            <div style={{ display: 'grid', gap: '3rem' }}>
+            <div className={styles.groupedGrid}>
               {groupedHighlights?.map(({ book, highlights: bookHighlights }) => (
                 <section
                   key={book.id}
-                  style={{
-                    paddingBottom: '3rem',
-                    borderBottom: '1px solid var(--border-light)',
-                  }}
+                  className={styles.bookSection}
                 >
                   {/* Book header */}
-                  <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '2rem', alignItems: 'flex-start' }}>
+                  <div className={styles.bookHeader}>
                     {book.cover_image_url && (
                       <Image
                         src={book.cover_image_url}
                         alt={book.title}
                         width={80}
                         height={120}
-                        style={{ objectFit: 'cover' }}
+                        className={styles.bookHeaderCover}
                       />
                     )}
                     <div>
-                      <h2 style={{ fontSize: '24px', fontWeight: 400, marginBottom: '0.5rem' }}>
+                      <h2 className={styles.bookHeaderTitle}>
                         {book.title}
                       </h2>
-                      <p className="type-serif-italic" style={{ fontSize: '16px', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                      <p className={`type-serif-italic ${styles.bookHeaderAuthor}`}>
                         {book.author}
                       </p>
-                      <span className="type-sans" style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>
+                      <span className={`type-sans ${styles.bookHighlightCount}`}>
                         {bookHighlights.length} highlight{bookHighlights.length !== 1 ? 's' : ''}
                       </span>
                     </div>
                   </div>
 
                   {/* Highlights */}
-                  <div style={{ display: 'grid', gap: '1.5rem' }}>
+                  <div className={styles.highlightsGrid}>
                     {(() => {
                       const isExpanded = expandedBooks.has(book.id);
                       const previewCount = 3;
@@ -395,20 +312,17 @@ export default function ReadingNotesSection({ onSectionChange }: ReadingNotesSec
                           {displayedHighlights.map((highlight) => (
                             <div
                               key={highlight.id}
-                              style={{
-                                paddingLeft: '1.25rem',
-                                borderLeft: '2px solid var(--border-light)',
-                              }}
+                              className={styles.groupedHighlight}
                             >
-                              <blockquote style={{ fontSize: '16px', lineHeight: '1.7', marginBottom: '0.5rem' }}>
+                              <blockquote className={styles.groupedBlockquote}>
                                 {highlight.text}
                               </blockquote>
                               {highlight.note && (
-                                <p className="type-serif-italic" style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                                <p className={`type-serif-italic ${styles.groupedNote}`}>
                                   {highlight.note}
                                 </p>
                               )}
-                              <span className="type-sans" style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                              <span className={`type-sans ${styles.groupedDate}`}>
                                 {formatDate(highlight.highlighted_at)}
                               </span>
                             </div>
@@ -417,22 +331,7 @@ export default function ReadingNotesSection({ onSectionChange }: ReadingNotesSec
                           {hasMore && (
                             <button
                               onClick={() => toggleBookExpanded(book.id)}
-                              className="type-sans"
-                              style={{
-                                padding: '0.75rem',
-                                border: '1px solid var(--border-light)',
-                                background: 'transparent',
-                                cursor: 'pointer',
-                                fontSize: '13px',
-                                color: 'var(--text-secondary)',
-                                transition: 'all 0.2s',
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.borderColor = 'var(--foreground)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.borderColor = 'var(--border-light)';
-                              }}
+                              className={`type-sans ${styles.showMoreButton}`}
                             >
                               {isExpanded ? 'Show less' : `Show ${bookHighlights.length - previewCount} more`}
                             </button>
@@ -448,11 +347,7 @@ export default function ReadingNotesSection({ onSectionChange }: ReadingNotesSec
 
           {/* No results */}
           {filteredHighlights.length === 0 && (
-            <div className="type-serif-italic" style={{
-              textAlign: 'center',
-              padding: '4rem 2rem',
-              color: 'var(--text-secondary)'
-            }}>
+            <div className={`type-serif-italic ${styles.emptyMessage}`}>
               No highlights found
             </div>
           )}

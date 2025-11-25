@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import SectionNavigation from '@/components/SectionNavigation';
+import { PhotoSkeleton } from '@/components/Skeleton';
+import styles from './PhotoSection.module.css';
 
 interface Photo {
   id: string;
@@ -12,6 +14,7 @@ interface Photo {
   date: string;
   width: number;
   height: number;
+  blurDataUrl?: string;
   uploadedAt: string;
   position?: {
     x: number;
@@ -48,99 +51,63 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
     }
   };
 
-  const getSizeStyles = (size: 'small' | 'medium' | 'large') => {
+  const getSizeClass = (size: 'small' | 'medium' | 'large') => {
     switch (size) {
-      case 'small':
-        return { width: '220px', height: '300px' };
-      case 'medium':
-        return { width: '320px', height: '420px' };
-      case 'large':
-        return { width: '420px', height: '560px' };
+      case 'small': return styles.photoSmall;
+      case 'medium': return styles.photoMedium;
+      case 'large': return styles.photoLarge;
     }
   };
 
   return (
     <>
-      <div style={{ minHeight: '100vh', position: 'relative', paddingBottom: '4rem' }}>
+      <div className={styles.container}>
         <SectionNavigation
           currentSection="photo"
           onSectionChange={onSectionChange}
         />
 
         {/* Gallery */}
-        <div style={{
-          position: 'relative',
-          width: '100%',
-          minHeight: '100vh',
-          padding: '2rem 0'
-        }}>
+        <div className={`mobile-content-grid ${styles.gallery}`}>
           {loading ? (
-            <div className="type-serif-italic" style={{
-              textAlign: 'center',
-              padding: '4rem',
-              color: 'var(--text-secondary)'
-            }}>
-              Loading photos...
+            <div className={styles.loadingContainer}>
+              {[...Array(4)].map((_, i) => (
+                <PhotoSkeleton key={i} size={(['small', 'medium', 'large'] as const)[i % 3]} />
+              ))}
             </div>
           ) : photos.length === 0 ? (
-            <div className="type-serif-italic" style={{
-              textAlign: 'center',
-              padding: '4rem',
-              color: 'var(--text-secondary)'
-            }}>
+            <div className={`type-serif-italic ${styles.emptyMessage}`}>
               No photos yet.
             </div>
           ) : (
             photos.map((photo) => {
               const position = photo.position || { x: 10, y: 50, size: 'medium' as const };
-              const sizeStyles = getSizeStyles(position.size);
 
               return (
                 <div
                   key={photo.id}
                   onClick={() => setSelectedPhoto(photo)}
+                  className={styles.photoWrapper}
                   style={{
-                    position: 'absolute',
                     left: `${position.x}%`,
                     top: `${position.y}px`,
-                    transition: 'opacity 0.2s ease',
-                    cursor: 'pointer',
-                    zIndex: 10
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = '0.85';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = '1';
                   }}
                 >
-                  <div style={{
-                    ...sizeStyles,
-                    position: 'relative',
-                    background: '#ffffff',
-                  }}>
+                  <div className={`${styles.photoCard} ${getSizeClass(position.size)}`}>
                     {/* Image */}
-                    <div style={{
-                      position: 'relative',
-                      width: '100%',
-                      height: 'calc(100% - 36px)',
-                      overflow: 'hidden'
-                    }}>
+                    <div className={styles.photoImageContainer}>
                       <Image
                         src={photo.url}
                         alt={photo.title}
                         fill
-                        style={{ objectFit: 'cover' }}
+                        className={styles.photoImage}
+                        placeholder={photo.blurDataUrl ? 'blur' : 'empty'}
+                        blurDataURL={photo.blurDataUrl}
                       />
                     </div>
 
                     {/* Caption */}
-                    <div className="type-serif-italic" style={{
-                      marginTop: '10px',
-                      fontSize: '14px',
-                      color: 'var(--text-secondary)',
-                      textAlign: 'center'
-                    }}>
+                    <div className={`type-serif-italic ${styles.photoCaption}`}>
                       {photo.title}
                     </div>
                   </div>
@@ -155,51 +122,24 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
       {selectedPhoto && (
         <div
           onClick={() => setSelectedPhoto(null)}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            background: 'rgba(255,255,255,0.97)',
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '3rem',
-            cursor: 'pointer'
-          }}
+          className={`mobile-lightbox ${styles.lightbox}`}
         >
-          <div style={{
-            maxWidth: '85vw',
-            maxHeight: '85vh',
-            position: 'relative'
-          }}>
+          <div className={styles.lightboxContent}>
             <Image
               src={selectedPhoto.url}
               alt={selectedPhoto.title}
               width={selectedPhoto.width}
               height={selectedPhoto.height}
-              style={{
-                maxWidth: '100%',
-                maxHeight: '80vh',
-                width: 'auto',
-                height: 'auto',
-                objectFit: 'contain'
-              }}
+              className={styles.lightboxImage}
+              placeholder={selectedPhoto.blurDataUrl ? 'blur' : 'empty'}
+              blurDataURL={selectedPhoto.blurDataUrl}
             />
-            <div style={{
-              marginTop: '1.5rem',
-              textAlign: 'center',
-            }}>
-              <div className="type-serif-italic" style={{ fontSize: '18px', marginBottom: '0.5rem' }}>
+            <div className={styles.lightboxCaption}>
+              <div className={`type-serif-italic ${styles.lightboxTitle}`}>
                 {selectedPhoto.title}
               </div>
               {selectedPhoto.location && (
-                <div className="type-sans" style={{
-                  fontSize: '13px',
-                  color: 'var(--text-tertiary)',
-                }}>
+                <div className={`type-sans ${styles.lightboxMeta}`}>
                   {selectedPhoto.location} · {selectedPhoto.date}
                 </div>
               )}

@@ -31,17 +31,52 @@ interface Writing {
   category: string;
 }
 
+const inputStyle = {
+  width: '100%',
+  padding: '0.5rem',
+  border: '1px solid var(--border-light)',
+  background: 'var(--background)',
+  fontFamily: 'inherit',
+  fontSize: '14px',
+  marginBottom: '0.75rem',
+};
+
+const labelStyle = {
+  display: 'block',
+  marginBottom: '0.25rem',
+  fontSize: '12px',
+  color: 'var(--text-tertiary)',
+};
+
+const buttonStyle = {
+  padding: '0.5rem 1rem',
+  border: '1px solid var(--border-light)',
+  background: 'transparent',
+  cursor: 'pointer',
+  fontSize: '13px',
+  transition: 'all 0.2s',
+};
+
 export default function ContentManager() {
-  const [activeTab, setActiveTab] = useState<ContentType>('photos');
+  const [activeTab, setActiveTab] = useState<ContentType>('projects');
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [writings, setWritings] = useState<Writing[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Edit states
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Partial<Project | Writing>>({});
+
+  // Create states
+  const [isCreating, setIsCreating] = useState(false);
+  const [createForm, setCreateForm] = useState<Partial<Project | Writing>>({});
+
   useEffect(() => {
     loadContent();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setEditingId(null);
+    setIsCreating(false);
   }, [activeTab]);
 
   const loadContent = async () => {
@@ -75,7 +110,7 @@ export default function ContentManager() {
       const data = await response.json();
 
       if (data.success) {
-        setMessage({ type: 'success', text: `${activeTab.slice(0, -1)} deleted successfully` });
+        setMessage({ type: 'success', text: 'Deleted successfully' });
         loadContent();
       } else {
         setMessage({ type: 'error', text: data.error || 'Delete failed' });
@@ -86,20 +121,74 @@ export default function ContentManager() {
     }
   };
 
+  const handleEdit = (item: Project | Writing) => {
+    setEditingId(item.id);
+    setEditForm(item);
+    setIsCreating(false);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      const response = await fetch(`/api/${activeTab}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setMessage({ type: 'success', text: 'Updated successfully' });
+        setEditingId(null);
+        setEditForm({});
+        loadContent();
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Update failed' });
+      }
+    } catch (error) {
+      console.error('Error updating:', error);
+      setMessage({ type: 'error', text: 'Update failed' });
+    }
+  };
+
+  const handleCreate = async () => {
+    try {
+      const response = await fetch(`/api/${activeTab}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(createForm),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setMessage({ type: 'success', text: 'Created successfully' });
+        setIsCreating(false);
+        setCreateForm({});
+        loadContent();
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Create failed' });
+      }
+    } catch (error) {
+      console.error('Error creating:', error);
+      setMessage({ type: 'error', text: 'Create failed' });
+    }
+  };
+
   const renderPhotosList = () => (
     <div style={{ display: 'grid', gap: '1rem' }}>
       {photos.length === 0 ? (
-        <div className="type-mono text-xs opacity-60">NO_PHOTOS_FOUND</div>
+        <div className="type-serif-italic" style={{ color: 'var(--text-tertiary)' }}>No photos found</div>
       ) : (
         photos.map((photo) => (
           <div
             key={photo.id}
             style={{
               display: 'grid',
-              gridTemplateColumns: '100px 1fr auto',
+              gridTemplateColumns: '80px 1fr auto',
               gap: '1rem',
               padding: '1rem',
-              border: '1px solid var(--accent-gray)',
+              border: '1px solid var(--border-light)',
               alignItems: 'center',
             }}
           >
@@ -107,32 +196,25 @@ export default function ContentManager() {
               src={photo.url}
               alt={photo.title}
               style={{
-                width: '100px',
-                height: '75px',
+                width: '80px',
+                height: '60px',
                 objectFit: 'cover',
-                border: '1px solid var(--accent-gray)',
               }}
             />
             <div>
-              <div className="type-mono text-sm" style={{ marginBottom: '0.25rem' }}>
+              <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>
                 {photo.title}
               </div>
-              <div className="type-mono text-xs opacity-60">
+              <div className="type-sans" style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
                 {photo.location && `${photo.location} · `}{photo.date}
               </div>
             </div>
             <button
               onClick={() => handleDelete(photo.id)}
-              className="type-mono text-xs uppercase tracking-wide hover-glitch"
-              style={{
-                padding: '0.5rem 1rem',
-                border: '1px solid var(--accent-red)',
-                background: 'transparent',
-                color: 'var(--accent-red)',
-                cursor: 'pointer',
-              }}
+              className="type-sans"
+              style={{ ...buttonStyle, color: '#dc2626', borderColor: '#dc2626' }}
             >
-              DELETE
+              Delete
             </button>
           </div>
         ))
@@ -140,50 +222,209 @@ export default function ContentManager() {
     </div>
   );
 
+  const renderProjectForm = (form: Partial<Project>, setForm: (f: Partial<Project>) => void, onSave: () => void, onCancel: () => void) => (
+    <div style={{ padding: '1rem', border: '1px solid var(--border-light)', marginBottom: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div>
+          <label style={labelStyle}>Title *</label>
+          <input
+            style={inputStyle}
+            value={form.title || ''}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            placeholder="Project title"
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>Subtitle</label>
+          <input
+            style={inputStyle}
+            value={form.subtitle || ''}
+            onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
+            placeholder="Brief subtitle"
+          />
+        </div>
+      </div>
+      <div>
+        <label style={labelStyle}>Excerpt *</label>
+        <textarea
+          style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
+          value={form.excerpt || ''}
+          onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
+          placeholder="Short description"
+        />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+        <div>
+          <label style={labelStyle}>Tech</label>
+          <input
+            style={inputStyle}
+            value={form.tech || ''}
+            onChange={(e) => setForm({ ...form, tech: e.target.value })}
+            placeholder="React, Node.js..."
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>Year</label>
+          <input
+            style={inputStyle}
+            value={form.year || ''}
+            onChange={(e) => setForm({ ...form, year: e.target.value })}
+            placeholder="2024"
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>Status</label>
+          <select
+            style={inputStyle}
+            value={form.status || 'ONGOING'}
+            onChange={(e) => setForm({ ...form, status: e.target.value })}
+          >
+            <option value="ONGOING">Ongoing</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="ARCHIVED">Archived</option>
+          </select>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+        <button onClick={onSave} className="type-sans" style={{ ...buttonStyle, background: 'var(--foreground)', color: 'var(--background)' }}>
+          Save
+        </button>
+        <button onClick={onCancel} className="type-sans" style={buttonStyle}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderWritingForm = (form: Partial<Writing>, setForm: (f: Partial<Writing>) => void, onSave: () => void, onCancel: () => void) => (
+    <div style={{ padding: '1rem', border: '1px solid var(--border-light)', marginBottom: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div>
+          <label style={labelStyle}>Title *</label>
+          <input
+            style={inputStyle}
+            value={form.title || ''}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            placeholder="Writing title"
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>Subtitle</label>
+          <input
+            style={inputStyle}
+            value={form.subtitle || ''}
+            onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
+            placeholder="Brief subtitle"
+          />
+        </div>
+      </div>
+      <div>
+        <label style={labelStyle}>Excerpt *</label>
+        <textarea
+          style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
+          value={form.excerpt || ''}
+          onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
+          placeholder="Short description or excerpt"
+        />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div>
+          <label style={labelStyle}>Date</label>
+          <input
+            style={inputStyle}
+            value={form.date || ''}
+            onChange={(e) => setForm({ ...form, date: e.target.value })}
+            placeholder="2024.01.15"
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>Category</label>
+          <select
+            style={inputStyle}
+            value={form.category || 'GENERAL'}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+          >
+            <option value="GENERAL">General</option>
+            <option value="ESSAY">Essay</option>
+            <option value="NOTES">Notes</option>
+            <option value="REVIEW">Review</option>
+          </select>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+        <button onClick={onSave} className="type-sans" style={{ ...buttonStyle, background: 'var(--foreground)', color: 'var(--background)' }}>
+          Save
+        </button>
+        <button onClick={onCancel} className="type-sans" style={buttonStyle}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+
   const renderProjectsList = () => (
     <div style={{ display: 'grid', gap: '1rem' }}>
-      {projects.length === 0 ? (
-        <div className="type-mono text-xs opacity-60">NO_PROJECTS_FOUND</div>
+      {/* Create form */}
+      {isCreating && renderProjectForm(
+        createForm as Partial<Project>,
+        (f) => setCreateForm(f),
+        handleCreate,
+        () => { setIsCreating(false); setCreateForm({}); }
+      )}
+
+      {projects.length === 0 && !isCreating ? (
+        <div className="type-serif-italic" style={{ color: 'var(--text-tertiary)' }}>No projects found</div>
       ) : (
         projects.map((project) => (
-          <div
-            key={project.id}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr auto',
-              gap: '1rem',
-              padding: '1rem',
-              border: '1px solid var(--accent-gray)',
-            }}
-          >
-            <div>
-              <div style={{ marginBottom: '0.5rem' }}>
-                <span className="type-mono text-sm">{project.title}</span>
-                <span className="type-mono text-xs opacity-60" style={{ marginLeft: '0.5rem' }}>
-                  {project.subtitle}
-                </span>
+          <div key={project.id}>
+            {editingId === project.id ? (
+              renderProjectForm(
+                editForm as Partial<Project>,
+                (f) => setEditForm(f),
+                handleSaveEdit,
+                () => { setEditingId(null); setEditForm({}); }
+              )
+            ) : (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto auto',
+                  gap: '0.5rem',
+                  padding: '1rem',
+                  border: '1px solid var(--border-light)',
+                  alignItems: 'start',
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>
+                    {project.title}
+                    <span className="type-serif-italic" style={{ fontWeight: 400, marginLeft: '0.5rem', color: 'var(--text-secondary)' }}>
+                      {project.subtitle}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                    {project.excerpt}
+                  </div>
+                  <div className="type-sans" style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                    {project.tech} · {project.year} · {project.status}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleEdit(project)}
+                  className="type-sans"
+                  style={buttonStyle}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(project.id)}
+                  className="type-sans"
+                  style={{ ...buttonStyle, color: '#dc2626', borderColor: '#dc2626' }}
+                >
+                  Delete
+                </button>
               </div>
-              <div className="type-mono text-xs opacity-60" style={{ marginBottom: '0.5rem' }}>
-                {project.excerpt}
-              </div>
-              <div className="type-mono text-xs opacity-40">
-                {project.tech} · {project.year} · {project.status}
-              </div>
-            </div>
-            <button
-              onClick={() => handleDelete(project.id)}
-              className="type-mono text-xs uppercase tracking-wide hover-glitch"
-              style={{
-                padding: '0.5rem 1rem',
-                border: '1px solid var(--accent-red)',
-                background: 'transparent',
-                color: 'var(--accent-red)',
-                cursor: 'pointer',
-                height: 'fit-content',
-              }}
-            >
-              DELETE
-            </button>
+            )}
           </div>
         ))
       )}
@@ -192,48 +433,67 @@ export default function ContentManager() {
 
   const renderWritingsList = () => (
     <div style={{ display: 'grid', gap: '1rem' }}>
-      {writings.length === 0 ? (
-        <div className="type-mono text-xs opacity-60">NO_WRITINGS_FOUND</div>
+      {/* Create form */}
+      {isCreating && renderWritingForm(
+        createForm as Partial<Writing>,
+        (f) => setCreateForm(f),
+        handleCreate,
+        () => { setIsCreating(false); setCreateForm({}); }
+      )}
+
+      {writings.length === 0 && !isCreating ? (
+        <div className="type-serif-italic" style={{ color: 'var(--text-tertiary)' }}>No writings found</div>
       ) : (
         writings.map((writing) => (
-          <div
-            key={writing.id}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr auto',
-              gap: '1rem',
-              padding: '1rem',
-              border: '1px solid var(--accent-gray)',
-            }}
-          >
-            <div>
-              <div style={{ marginBottom: '0.5rem' }}>
-                <span className="type-mono text-sm">{writing.title}</span>
-                <span className="type-mono text-xs opacity-60" style={{ marginLeft: '0.5rem' }}>
-                  {writing.subtitle}
-                </span>
+          <div key={writing.id}>
+            {editingId === writing.id ? (
+              renderWritingForm(
+                editForm as Partial<Writing>,
+                (f) => setEditForm(f),
+                handleSaveEdit,
+                () => { setEditingId(null); setEditForm({}); }
+              )
+            ) : (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto auto',
+                  gap: '0.5rem',
+                  padding: '1rem',
+                  border: '1px solid var(--border-light)',
+                  alignItems: 'start',
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>
+                    {writing.title}
+                    <span className="type-serif-italic" style={{ fontWeight: 400, marginLeft: '0.5rem', color: 'var(--text-secondary)' }}>
+                      {writing.subtitle}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                    {writing.excerpt}
+                  </div>
+                  <div className="type-sans" style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                    {writing.date} · {writing.category}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleEdit(writing)}
+                  className="type-sans"
+                  style={buttonStyle}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(writing.id)}
+                  className="type-sans"
+                  style={{ ...buttonStyle, color: '#dc2626', borderColor: '#dc2626' }}
+                >
+                  Delete
+                </button>
               </div>
-              <div className="type-mono text-xs opacity-60" style={{ marginBottom: '0.5rem' }}>
-                {writing.excerpt}
-              </div>
-              <div className="type-mono text-xs opacity-40">
-                {writing.date} · {writing.category}
-              </div>
-            </div>
-            <button
-              onClick={() => handleDelete(writing.id)}
-              className="type-mono text-xs uppercase tracking-wide hover-glitch"
-              style={{
-                padding: '0.5rem 1rem',
-                border: '1px solid var(--accent-red)',
-                background: 'transparent',
-                color: 'var(--accent-red)',
-                cursor: 'pointer',
-                height: 'fit-content',
-              }}
-            >
-              DELETE
-            </button>
+            )}
           </div>
         ))
       )}
@@ -241,30 +501,36 @@ export default function ContentManager() {
   );
 
   return (
-    <div
-      style={{
-        border: '1px solid var(--accent-gray)',
-        padding: '1.5rem',
-        marginTop: '2rem',
-      }}
-    >
-      <div className="type-mono text-xs mb-4 opacity-60">CONTENT_MANAGER</div>
+    <div style={{ padding: '1.5rem', marginTop: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: 400 }}>Content Manager</h2>
+        {activeTab !== 'photos' && (
+          <button
+            onClick={() => { setIsCreating(true); setEditingId(null); setCreateForm({}); }}
+            className="type-sans"
+            style={{ ...buttonStyle, background: 'var(--foreground)', color: 'var(--background)' }}
+          >
+            + New {activeTab.slice(0, -1)}
+          </button>
+        )}
+      </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--accent-gray)' }}>
-        {(['photos', 'projects', 'writings'] as ContentType[]).map((tab) => (
+      <div style={{ display: 'flex', gap: '0', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-light)' }}>
+        {(['projects', 'writings', 'photos'] as ContentType[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className="type-mono text-xs uppercase tracking-wide"
+            className="type-sans"
             style={{
-              padding: '0.75rem 1rem',
+              padding: '0.75rem 1.5rem',
               background: 'transparent',
               border: 'none',
-              borderBottom: activeTab === tab ? '2px solid var(--accent-blue)' : '2px solid transparent',
-              color: activeTab === tab ? 'var(--accent-blue)' : 'var(--foreground)',
-              opacity: activeTab === tab ? 1 : 0.5,
+              borderBottom: activeTab === tab ? '2px solid var(--foreground)' : '2px solid transparent',
+              color: activeTab === tab ? 'var(--foreground)' : 'var(--text-tertiary)',
               cursor: 'pointer',
+              fontSize: '14px',
+              textTransform: 'capitalize',
             }}
           >
             {tab}
@@ -275,12 +541,12 @@ export default function ContentManager() {
       {/* Messages */}
       {message && (
         <div
-          className="type-mono text-xs"
           style={{
-            padding: '0.75rem',
-            border: `1px solid ${message.type === 'success' ? 'var(--accent-blue)' : 'var(--accent-red)'}`,
-            color: message.type === 'success' ? 'var(--accent-blue)' : 'var(--accent-red)',
+            padding: '0.75rem 1rem',
+            border: `1px solid ${message.type === 'success' ? '#16a34a' : '#dc2626'}`,
+            color: message.type === 'success' ? '#16a34a' : '#dc2626',
             marginBottom: '1rem',
+            fontSize: '14px',
           }}
         >
           {message.text}
@@ -289,7 +555,7 @@ export default function ContentManager() {
 
       {/* Loading */}
       {isLoading && (
-        <div className="type-mono text-xs opacity-60">LOADING_{activeTab.toUpperCase()}...</div>
+        <div className="type-serif-italic" style={{ color: 'var(--text-tertiary)' }}>Loading...</div>
       )}
 
       {/* Content Lists */}

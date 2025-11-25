@@ -125,7 +125,7 @@ export default function SearchInput({ onNavigate }: SearchInputProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search..."
-            className="type-sans"
+            className="type-sans mobile-search-input"
             style={{
               width: '200px',
               padding: '0.25rem 0',
@@ -148,6 +148,7 @@ export default function SearchInput({ onNavigate }: SearchInputProps) {
           {/* Results dropdown */}
           {(results.length > 0 || isLoading) && (
             <div
+              className="mobile-search-dropdown"
               style={{
                 position: 'absolute',
                 top: '100%',
@@ -232,6 +233,7 @@ export default function SearchInput({ onNavigate }: SearchInputProps) {
           {/* No results */}
           {query.length >= 2 && !isLoading && results.length === 0 && (
             <div
+              className="mobile-search-dropdown"
               style={{
                 position: 'absolute',
                 top: '100%',

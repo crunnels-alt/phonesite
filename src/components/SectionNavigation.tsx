@@ -1,6 +1,7 @@
 'use client';
 
 import SearchInput from './SearchInput';
+import styles from './SectionNavigation.module.css';
 
 interface SectionNavigationProps {
   currentSection: string;
@@ -22,39 +23,12 @@ export default function SectionNavigation({
   onSectionChange,
 }: SectionNavigationProps) {
   return (
-    <nav className="type-sans" style={{
-      position: 'sticky',
-      top: 0,
-      display: 'flex',
-      gap: '2.5rem',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: '1.5rem 0',
-      marginBottom: '2rem',
-      zIndex: 100,
-    }}>
+    <nav className={`type-sans mobile-nav ${styles.nav}`}>
       {SECTIONS.map((section) => (
         <button
           key={section.id}
           onClick={() => onSectionChange?.(section.id)}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            color: 'var(--foreground)',
-            fontSize: '13px',
-            fontWeight: section.id === currentSection ? 500 : 400,
-            opacity: section.id === currentSection ? 1 : 0.5,
-            transition: 'opacity 0.2s ease',
-            padding: 0,
-            letterSpacing: '0.02em',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '1';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = section.id === currentSection ? '1' : '0.5';
-          }}
+          className={`${styles.navButton} ${section.id === currentSection ? styles.navButtonActive : ''}`}
         >
           {section.label}
         </button>

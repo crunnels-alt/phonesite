@@ -3,13 +3,13 @@ import { put } from '@vercel/blob';
 import { randomUUID } from 'crypto';
 import { addPhoto, autoAssignPosition } from '@/lib/photos';
 import sharp from 'sharp';
-import { uploadRateLimit, getIdentifier, checkRateLimit } from '@/lib/ratelimit';
+import { getIdentifier, checkUploadRateLimit } from '@/lib/ratelimit';
 
 export async function POST(request: NextRequest) {
   try {
     // Apply upload rate limiting
     const identifier = getIdentifier(request);
-    const rateLimitResponse = await checkRateLimit(uploadRateLimit, identifier);
+    const rateLimitResponse = await checkUploadRateLimit(identifier);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
@@ -35,9 +35,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Detect image dimensions using Sharp
+    // Detect image dimensions and generate blur placeholder using Sharp
     let width = 1600;
     let height = 1200;
+    let blurDataUrl: string | undefined;
 
     try {
       // Convert File to Buffer for Sharp processing
@@ -54,9 +55,19 @@ export async function POST(request: NextRequest) {
       } else {
         console.warn('Could not detect dimensions, using defaults');
       }
+
+      // Generate blur placeholder (tiny 10px wide version)
+      const blurBuffer = await sharp(buffer)
+        .resize(10, Math.round(10 * (height / width)), { fit: 'inside' })
+        .blur(2)
+        .jpeg({ quality: 50 })
+        .toBuffer();
+
+      blurDataUrl = `data:image/jpeg;base64,${blurBuffer.toString('base64')}`;
+      console.log('Generated blur placeholder');
     } catch (error) {
-      console.error('Error detecting image dimensions:', error);
-      console.log('Using default dimensions as fallback');
+      console.error('Error processing image:', error);
+      console.log('Using defaults as fallback');
     }
 
     // Upload to Vercel Blob
@@ -74,6 +85,7 @@ export async function POST(request: NextRequest) {
       date: date || new Date().toISOString().split('T')[0],
       width,
       height,
+      blurDataUrl,
       uploadedAt: new Date(),
       position: await autoAssignPosition(),
     };

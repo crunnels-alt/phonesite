@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react';
 import Image from 'next/image';
+import styles from './ContentCard.module.css';
 
 interface Position {
   x: number;
@@ -16,8 +17,7 @@ interface ContentCardProps {
   // For image cards
   imageUrl?: string;
   imageAlt?: string;
-  imageWidth?: number;
-  imageHeight?: number;
+  imageBlurDataUrl?: string;
   // For text cards
   title?: string;
   subtitle?: string;
@@ -30,86 +30,55 @@ export default function ContentCard({
   onClick,
   imageUrl,
   imageAlt,
-  imageWidth,
-  imageHeight,
+  imageBlurDataUrl,
   title,
   subtitle,
   excerpt,
 }: ContentCardProps) {
-  const getSizeStyles = (size: 'small' | 'medium' | 'large', isImage: boolean) => {
-    if (isImage) {
-      switch (size) {
-        case 'small':
-          return { width: '220px', height: '300px' };
-        case 'medium':
-          return { width: '320px', height: '420px' };
-        case 'large':
-          return { width: '420px', height: '560px' };
+  const isImageCard = !!imageUrl;
+
+  const getSizeClass = () => {
+    if (isImageCard) {
+      switch (position.size) {
+        case 'small': return styles.imageSmall;
+        case 'medium': return styles.imageMedium;
+        case 'large': return styles.imageLarge;
       }
     } else {
-      switch (size) {
-        case 'small':
-          return { width: '260px', minHeight: '180px' };
-        case 'medium':
-          return { width: '340px', minHeight: '240px' };
-        case 'large':
-          return { width: '420px', minHeight: '300px' };
+      switch (position.size) {
+        case 'small': return styles.textSmall;
+        case 'medium': return styles.textMedium;
+        case 'large': return styles.textLarge;
       }
     }
   };
 
-  const isImageCard = !!imageUrl;
-  const sizeStyles = getSizeStyles(position.size, isImageCard);
-
   return (
     <div
       onClick={onClick}
+      className={`${styles.wrapper} ${onClick ? styles.wrapperClickable : ''}`}
       style={{
-        position: 'absolute',
         left: `${position.x}%`,
         top: `${position.y}px`,
-        transition: 'opacity 0.2s ease',
-        cursor: onClick ? 'pointer' : 'default',
-        zIndex: 10
-      }}
-      onMouseEnter={(e) => {
-        if (onClick) {
-          e.currentTarget.style.opacity = '0.7';
-        }
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.opacity = '1';
       }}
     >
-      <div style={{
-        ...sizeStyles,
-        position: 'relative',
-        background: '#ffffff',
-      }}>
+      <div className={`mobile-card ${styles.card} ${getSizeClass()}`}>
         {isImageCard ? (
           <>
             {/* Image content */}
-            <div style={{
-              position: 'relative',
-              width: '100%',
-              height: 'calc(100% - 40px)',
-              overflow: 'hidden'
-            }}>
+            <div className={styles.imageContainer}>
               <Image
                 src={imageUrl}
                 alt={imageAlt || ''}
                 fill
-                style={{ objectFit: 'cover' }}
+                className={styles.image}
+                placeholder={imageBlurDataUrl ? 'blur' : 'empty'}
+                blurDataURL={imageBlurDataUrl}
               />
             </div>
             {/* Image caption */}
             {title && (
-              <div className="type-serif-italic" style={{
-                marginTop: '12px',
-                fontSize: '14px',
-                color: 'var(--text-secondary)',
-                textAlign: 'center'
-              }}>
+              <div className={`type-serif-italic ${styles.imageCaption}`}>
                 {title}
               </div>
             )}
@@ -117,38 +86,19 @@ export default function ContentCard({
         ) : (
           <>
             {/* Text content */}
-            <div style={{
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.5rem'
-            }}>
+            <div className={styles.textContent}>
               {title && (
-                <h3 style={{
-                  fontSize: '22px',
-                  fontWeight: 400,
-                  margin: 0,
-                  lineHeight: 1.3
-                }}>
+                <h3 className={styles.title}>
                   {title}
                 </h3>
               )}
               {subtitle && (
-                <div className="type-serif-italic" style={{
-                  fontSize: '14px',
-                  color: 'var(--text-secondary)',
-                }}>
+                <div className={`type-serif-italic ${styles.subtitle}`}>
                   {subtitle}
                 </div>
               )}
               {excerpt && (
-                <p style={{
-                  fontSize: '16px',
-                  lineHeight: 1.6,
-                  color: 'var(--text-secondary)',
-                  margin: '0.5rem 0 0 0',
-                  flex: 1
-                }}>
+                <p className={styles.excerpt}>
                   {excerpt}
                 </p>
               )}

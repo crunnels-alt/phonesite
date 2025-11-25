@@ -2,6 +2,7 @@
 
 import SectionNavigation from '@/components/SectionNavigation';
 import ContactForm from '@/components/ContactForm';
+import styles from './AboutSection.module.css';
 
 interface AboutSectionProps {
   onSectionChange?: (section: string) => void;
@@ -9,74 +10,42 @@ interface AboutSectionProps {
 
 export default function AboutSection({ onSectionChange }: AboutSectionProps) {
   return (
-    <div style={{ minHeight: '100vh', padding: '0 2rem' }}>
+    <div className={styles.container}>
       <SectionNavigation
         currentSection="about"
         onSectionChange={onSectionChange}
       />
 
-      <div style={{
-        maxWidth: '540px',
-        margin: '6rem auto',
-        textAlign: 'center'
-      }}>
+      <div className={styles.content}>
         {/* Name */}
-        <h1 style={{
-          fontSize: '42px',
-          fontWeight: 400,
-          marginBottom: '1.5rem',
-          letterSpacing: '-0.01em'
-        }}>
+        <h1 className={styles.name}>
           Connor Runnels
         </h1>
 
         {/* Subtitle */}
-        <p className="type-serif-italic" style={{
-          fontSize: '20px',
-          marginBottom: '3rem',
-          color: 'var(--text-secondary)'
-        }}>
+        <p className={`type-serif-italic ${styles.subtitle}`}>
           Digital practitioner working across media
         </p>
 
         {/* Bio */}
-        <p style={{
-          fontSize: '18px',
-          lineHeight: '1.7',
-          marginBottom: '3rem',
-          color: 'var(--text-secondary)'
-        }}>
+        <p className={styles.bio}>
           Based in San Francisco. Currently exploring the intersections of
           technology, art, and human experience. Call the number below to
           navigate this site by phone.
         </p>
 
         {/* Divider */}
-        <div style={{
-          width: '40px',
-          height: '1px',
-          background: 'var(--border-light)',
-          margin: '3rem auto'
-        }} />
+        <div className={styles.divider} />
 
         {/* Phone */}
-        <div className="type-sans" style={{
-          fontSize: '15px',
-          marginBottom: '2rem',
-          letterSpacing: '0.05em',
-          color: 'var(--text-secondary)'
-        }}>
+        <div className={`type-sans ${styles.phone}`}>
           (415) 680-9353
         </div>
 
         {/* Contact Links */}
-        <div className="type-sans" style={{
-          fontSize: '13px',
-          lineHeight: '2.2',
-          color: 'var(--text-tertiary)'
-        }}>
+        <div className={`type-sans ${styles.contactLinks}`}>
           <div>
-            <a href="mailto:connorrunnels@gmail.com" style={{ transition: 'opacity 0.2s' }}>
+            <a href="mailto:connorrunnels@gmail.com">
               connorrunnels@gmail.com
             </a>
           </div>
@@ -93,21 +62,11 @@ export default function AboutSection({ onSectionChange }: AboutSectionProps) {
         </div>
 
         {/* Divider */}
-        <div style={{
-          width: '40px',
-          height: '1px',
-          background: 'var(--border-light)',
-          margin: '3rem auto'
-        }} />
+        <div className={styles.divider} />
 
         {/* Contact Form */}
-        <div style={{ textAlign: 'left' }}>
-          <h2 className="type-serif-italic" style={{
-            fontSize: '18px',
-            marginBottom: '1.5rem',
-            textAlign: 'center',
-            color: 'var(--text-secondary)'
-          }}>
+        <div className={styles.contactFormSection}>
+          <h2 className={`type-serif-italic ${styles.contactFormTitle}`}>
             Send a message
           </h2>
           <ContactForm />

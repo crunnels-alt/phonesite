@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPhotos, updatePhoto, deletePhoto } from '@/lib/photos';
-import { lenientRateLimit, standardRateLimit, getIdentifier, checkRateLimit } from '@/lib/ratelimit';
+import { getIdentifier, checkLenientRateLimit, checkStandardRateLimit } from '@/lib/ratelimit';
 
 export async function GET(request: NextRequest) {
   try {
     // Apply lenient rate limiting for read operations
     const identifier = getIdentifier(request);
-    const rateLimitResponse = await checkRateLimit(lenientRateLimit, identifier);
+    const rateLimitResponse = await checkLenientRateLimit(identifier);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
@@ -32,7 +32,7 @@ export async function PUT(request: NextRequest) {
   try {
     // Apply standard rate limiting for write operations
     const identifier = getIdentifier(request);
-    const rateLimitResponse = await checkRateLimit(standardRateLimit, identifier);
+    const rateLimitResponse = await checkStandardRateLimit(identifier);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
@@ -69,7 +69,7 @@ export async function DELETE(request: NextRequest) {
   try {
     // Apply standard rate limiting for delete operations
     const identifier = getIdentifier(request);
-    const rateLimitResponse = await checkRateLimit(standardRateLimit, identifier);
+    const rateLimitResponse = await checkStandardRateLimit(identifier);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }

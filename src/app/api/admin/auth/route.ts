@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authRateLimit, getIdentifier, checkRateLimit } from '@/lib/ratelimit';
+import { getIdentifier, checkAuthRateLimit } from '@/lib/ratelimit';
 
 export async function POST(request: NextRequest) {
   try {
     // Apply strict rate limiting to prevent brute force attacks
     const identifier = getIdentifier(request);
-    const rateLimitResponse = await checkRateLimit(authRateLimit, identifier);
+    const rateLimitResponse = await checkAuthRateLimit(identifier);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }

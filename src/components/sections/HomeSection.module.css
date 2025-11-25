@@ -1,0 +1,24 @@
+.container {
+  min-height: 100vh;
+  position: relative;
+  padding-bottom: 4rem;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  padding: 2rem;
+  justify-content: center;
+}
+
+.skeletonBorder {
+  border: 1px solid var(--border-light);
+}
+
+.contentGrid {
+  position: relative;
+  width: 100%;
+  min-height: 140vh;
+  padding: 2rem 0;
+}

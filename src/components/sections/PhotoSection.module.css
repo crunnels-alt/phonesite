@@ -1,0 +1,120 @@
+.container {
+  min-height: 100vh;
+  position: relative;
+  padding-bottom: 4rem;
+}
+
+.gallery {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  padding: 2rem 0;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.emptyMessage {
+  text-align: center;
+  padding: 4rem;
+  color: var(--text-secondary);
+}
+
+.photoWrapper {
+  position: absolute;
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.photoWrapper:hover {
+  opacity: 0.85;
+}
+
+.photoCard {
+  position: relative;
+  background: #ffffff;
+}
+
+.photoSmall {
+  width: 220px;
+  height: 300px;
+}
+
+.photoMedium {
+  width: 320px;
+  height: 420px;
+}
+
+.photoLarge {
+  width: 420px;
+  height: 560px;
+}
+
+.photoImageContainer {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 36px);
+  overflow: hidden;
+}
+
+.photoImage {
+  object-fit: cover;
+}
+
+.photoCaption {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* Lightbox */
+.lightbox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.97);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  cursor: pointer;
+}
+
+.lightboxContent {
+  max-width: 85vw;
+  max-height: 85vh;
+  position: relative;
+}
+
+.lightboxImage {
+  max-width: 100%;
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.lightboxCaption {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.lightboxTitle {
+  font-size: 18px;
+  margin-bottom: 0.5rem;
+}
+
+.lightboxMeta {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}

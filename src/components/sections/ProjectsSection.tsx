@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import SectionNavigation from '@/components/SectionNavigation';
 import ContentCard from '@/components/ContentCard';
+import { CardSkeleton } from '@/components/Skeleton';
+import styles from './Section.module.css';
 
 interface ProjectsSectionProps {
   onSectionChange?: (section: string) => void;
@@ -44,35 +46,30 @@ export default function ProjectsSection({ onSectionChange }: ProjectsSectionProp
 
   if (isLoading) {
     return (
-      <div style={{ minHeight: '100vh', position: 'relative', paddingBottom: '4rem' }}>
+      <div className={styles.container}>
         <SectionNavigation
           currentSection="projects"
           onSectionChange={onSectionChange}
         />
-        <div className="type-serif-italic" style={{
-          padding: '4rem 2rem',
-          textAlign: 'center',
-          color: 'var(--text-secondary)'
-        }}>
-          Loading projects...
+        <div className={styles.loadingGrid}>
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className={styles.skeletonBorder}>
+              <CardSkeleton />
+            </div>
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', position: 'relative', paddingBottom: '4rem' }}>
+    <div className={styles.container}>
       <SectionNavigation
         currentSection="projects"
         onSectionChange={onSectionChange}
       />
 
-      <div style={{
-        position: 'relative',
-        width: '100%',
-        minHeight: '120vh',
-        padding: '2rem 0'
-      }}>
+      <div className={`mobile-content-grid ${styles.contentGrid}`} style={{ minHeight: '120vh' }}>
         {projects.map((project) => {
           const position = project.position || { x: 10, y: 100, size: 'medium' as const };
 
@@ -84,27 +81,17 @@ export default function ProjectsSection({ onSectionChange }: ProjectsSectionProp
               subtitle={project.subtitle}
               excerpt={
                 <>
-                  <div style={{ marginBottom: '1rem' }}>
+                  <div className={styles.cardBody}>
                     {project.excerpt}
                   </div>
-                  <div className="type-sans" style={{
-                    fontSize: '12px',
-                    color: 'var(--text-tertiary)',
-                    marginBottom: '0.75rem'
-                  }}>
+                  <div className={`type-sans ${styles.cardTech}`}>
                     {project.tech}
                   </div>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingTop: '0.75rem',
-                    borderTop: '1px solid var(--border-light)'
-                  }}>
-                    <span className="type-sans" style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                  <div className={styles.cardFooter}>
+                    <span className={`type-sans ${styles.cardDate}`}>
                       {project.year}
                     </span>
-                    <span className="type-serif-italic" style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                    <span className={`type-serif-italic ${styles.cardStatus}`}>
                       {project.status}
                     </span>
                   </div>
