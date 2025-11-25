@@ -16,6 +16,7 @@ export const SECTIONS = [
   { id: 'photo', label: 'Photo', key: '3' },
   { id: 'writing', label: 'Writing', key: '4' },
   { id: 'reading', label: 'Reading', key: '5' },
+  { id: 'listening', label: 'Listening', key: '6' },
 ] as const;
 
 export default function SectionNavigation({

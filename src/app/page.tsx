@@ -10,6 +10,7 @@ import ProjectsSection from '@/components/sections/ProjectsSection';
 import PhotoSection from '@/components/sections/PhotoSection';
 import WritingSection from '@/components/sections/WritingSection';
 import ReadingNotesSection from '@/components/sections/ReadingNotesSection';
+import ListeningSection from '@/components/sections/ListeningSection';
 import { SECTIONS } from '@/components/SectionNavigation';
 
 export default function Home() {
@@ -54,7 +55,7 @@ export default function Home() {
     }
 
     const key = e.key;
-    if (key >= '0' && key <= '5') {
+    if (key >= '0' && key <= '6') {
       const section = SECTIONS.find(s => s.key === key);
       if (section) {
         handleSectionChange(section.id);
@@ -81,6 +82,8 @@ export default function Home() {
         return <WritingSection onSectionChange={handleSectionChange} />;
       case 'reading':
         return <ReadingNotesSection onSectionChange={handleSectionChange} />;
+      case 'listening':
+        return <ListeningSection onSectionChange={handleSectionChange} />;
       default:
         return <HomeSection onSectionChange={handleSectionChange} />;
     }
