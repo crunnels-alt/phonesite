@@ -261,3 +261,128 @@
   max-height: 150px;
   border: 1px solid var(--border-light);
 }
+
+/* Admin panel specific */
+.adminContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.adminHeader {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.adminHeaderInner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.adminTitle {
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.devToolsSection {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.devToolsTitle {
+  font-size: 16px;
+  font-weight: 400;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.devToolsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.devToolsCard {
+  padding: 1rem;
+  border: 1px solid var(--border-light);
+}
+
+.devToolsCardTitle {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.buttonSecondary {
+  composes: button;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.buttonSecondary:hover {
+  opacity: 1;
+}
+
+.buttonFull {
+  width: 100%;
+}
+
+.buttonLoading {
+  composes: button;
+  width: 100%;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.buttonPrimaryFull {
+  composes: buttonPrimary;
+  width: 100%;
+}
+
+/* Content Manager specific */
+.contentSection {
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.contentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.contentTitle {
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.listGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.imagePreview {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  margin-bottom: 1rem;
+}
+
+.imageUploadRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: -0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.hidden {
+  display: none;
+}

@@ -33,26 +33,26 @@ export default function ListeningSection({ onSectionChange }: ListeningSectionPr
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/lastfm');
+        const data = await response.json();
+        if (data.success) {
+          setRecentTracks(data.recentTracks || []);
+          setTopAlbums(data.topAlbums || []);
+        }
+      } catch (error) {
+        console.error('Error fetching listening data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchData();
     // Refresh every 60 seconds for now playing updates
     const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
   }, []);
-
-  const fetchData = async () => {
-    try {
-      const response = await fetch('/api/lastfm');
-      const data = await response.json();
-      if (data.success) {
-        setRecentTracks(data.recentTracks || []);
-        setTopAlbums(data.topAlbums || []);
-      }
-    } catch (error) {
-      console.error('Error fetching listening data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const nowPlaying = recentTracks.find(t => t.nowPlaying);
   const recentList = recentTracks.filter(t => !t.nowPlaying).slice(0, 19);

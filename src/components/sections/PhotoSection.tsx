@@ -6,6 +6,7 @@ import Image from 'next/image';
 import SectionNavigation from '@/components/SectionNavigation';
 import { PhotoSkeleton } from '@/components/Skeleton';
 import type { Photo } from '@/lib/photos';
+import { useContentRegistry } from '@/lib/content-context';
 import styles from './PhotoSection.module.css';
 
 interface PhotoSectionProps {
@@ -17,6 +18,7 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const { registerContent } = useContentRegistry();
 
   const handlePhotoClick = (photo: Photo) => {
     if (photo.groupName) {
@@ -30,8 +32,29 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
   };
 
   useEffect(() => {
+    const fetchPhotos = async () => {
+      try {
+        const response = await fetch('/api/photos');
+        const data = await response.json();
+        if (data.success) {
+          setPhotos(data.photos);
+        }
+      } catch (error) {
+        console.error('Error fetching photos:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchPhotos();
   }, []);
+
+  // Register photos with content registry for session tracking
+  useEffect(() => {
+    if (photos.length > 0) {
+      registerContent('photo', 'photo', photos.map(p => p.id));
+    }
+  }, [photos, registerContent]);
 
   // Keyboard navigation for lightbox
   useEffect(() => {
@@ -56,20 +79,6 @@ export default function PhotoSection({ onSectionChange }: PhotoSectionProps) {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedPhoto, photos]);
-
-  const fetchPhotos = async () => {
-    try {
-      const response = await fetch('/api/photos');
-      const data = await response.json();
-      if (data.success) {
-        setPhotos(data.photos);
-      }
-    } catch (error) {
-      console.error('Error fetching photos:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getSizeClass = (size: 'small' | 'medium' | 'large') => {
     switch (size) {

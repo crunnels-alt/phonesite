@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Pusher from 'pusher-js';
 
 interface NavigationUpdate {
+  sessionId?: string;
   currentSection: string;
   pressedDigit: string;
   timestamp: string;
@@ -15,6 +17,16 @@ interface NavigationUpdate {
     lastDigit: string;
     timestamp: string;
   };
+}
+
+interface SessionStartedEvent {
+  sessionId: string;
+  timestamp: string;
+}
+
+interface SessionEndedEvent {
+  sessionId: string;
+  timestamp: string;
 }
 
 interface NavigationEvent {
@@ -32,11 +44,18 @@ interface WebsiteState {
   recentEvents: NavigationEvent[];
 }
 
-interface PhoneNavigationMonitorProps {
-  onSectionChange?: (section: string) => void;
+interface VisibleContent {
+  contentType: string;
+  contentIds: string[];
 }
 
-export default function PhoneNavigationMonitor({ onSectionChange }: PhoneNavigationMonitorProps) {
+interface PhoneNavigationMonitorProps {
+  onSectionChange?: (section: string) => void;
+  getVisibleContent?: (section: string) => VisibleContent | null;
+}
+
+export default function PhoneNavigationMonitor({ onSectionChange, getVisibleContent }: PhoneNavigationMonitorProps) {
+  const router = useRouter();
   const [websiteState, setWebsiteState] = useState<WebsiteState>({
     currentSection: 'home',
     lastActivity: new Date(),
@@ -44,6 +63,31 @@ export default function PhoneNavigationMonitor({ onSectionChange }: PhoneNavigat
     recentEvents: []
   });
   const [isConnected, setIsConnected] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
+
+  // Report visible content to the server
+  const reportVisibleContent = useCallback(async (section: string, sid: string) => {
+    if (!sid || !getVisibleContent) return;
+
+    const visibleContent = getVisibleContent(section);
+    if (!visibleContent) return;
+
+    try {
+      await fetch('/api/session/event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: sid,
+          section,
+          contentType: visibleContent.contentType,
+          contentIds: visibleContent.contentIds,
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to report visible content:', error);
+    }
+  }, [getVisibleContent]);
 
   useEffect(() => {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
@@ -60,8 +104,34 @@ export default function PhoneNavigationMonitor({ onSectionChange }: PhoneNavigat
       setIsConnected(false);
     });
 
+    // Handle new session started
+    channel.bind('session-started', (data: SessionStartedEvent) => {
+      console.log('Session started:', data.sessionId);
+      setSessionId(data.sessionId);
+      sessionIdRef.current = data.sessionId;
+
+      // Report the initial home section
+      reportVisibleContent('home', data.sessionId);
+    });
+
+    // Handle session ended - redirect to artifact page
+    channel.bind('session-ended', (data: SessionEndedEvent) => {
+      console.log('Session ended:', data.sessionId);
+      if (data.sessionId) {
+        router.push(`/session/${data.sessionId}`);
+      }
+      setSessionId(null);
+      sessionIdRef.current = null;
+    });
+
     channel.bind('section-changed', (data: NavigationUpdate) => {
       const newSection = data.currentSection;
+
+      // Update sessionId if provided in the event
+      if (data.sessionId && !sessionIdRef.current) {
+        setSessionId(data.sessionId);
+        sessionIdRef.current = data.sessionId;
+      }
 
       setWebsiteState(prevState => ({
         currentSection: newSection,
@@ -80,6 +150,12 @@ export default function PhoneNavigationMonitor({ onSectionChange }: PhoneNavigat
       if (onSectionChange) {
         onSectionChange(newSection);
       }
+
+      // Report visible content for this section
+      const currentSid = data.sessionId || sessionIdRef.current;
+      if (currentSid) {
+        reportVisibleContent(newSection, currentSid);
+      }
     });
 
     return () => {
@@ -87,7 +163,7 @@ export default function PhoneNavigationMonitor({ onSectionChange }: PhoneNavigat
       pusher.unsubscribe('website-navigation');
       pusher.disconnect();
     };
-  }, [onSectionChange]);
+  }, [onSectionChange, reportVisibleContent, router]);
 
   const getStateDisplayName = (state: string): string => {
     const stateNames: Record<string, string> = {
@@ -156,10 +232,10 @@ export default function PhoneNavigationMonitor({ onSectionChange }: PhoneNavigat
                 width: '6px',
                 height: '6px',
                 borderRadius: '50%',
-                background: isConnected ? '#22c55e' : '#d1d5db'
+                background: sessionId ? '#22c55e' : isConnected ? '#fbbf24' : '#d1d5db'
               }}
             />
-            <span>{isConnected ? 'Phone connected' : 'Waiting for call'}</span>
+            <span>{sessionId ? 'Session active' : isConnected ? 'Phone connected' : 'Waiting for call'}</span>
           </div>
 
           {/* Divider */}

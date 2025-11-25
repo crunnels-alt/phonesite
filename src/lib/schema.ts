@@ -99,6 +99,25 @@ export const contactMessages = pgTable('contact_messages', {
   read: timestamp('read_at'),
 });
 
+// Phone navigation sessions table
+export const sessions = pgTable('sessions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  callSid: text('call_sid').notNull().unique(), // Twilio's call identifier
+  phoneNumberHash: text('phone_number_hash'), // Hashed for privacy
+  startedAt: timestamp('started_at').notNull().defaultNow(),
+  endedAt: timestamp('ended_at'),
+});
+
+// Session events - what content was viewed during a session
+export const sessionEvents = pgTable('session_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  sessionId: uuid('session_id').notNull().references(() => sessions.id),
+  section: text('section').notNull(), // home, projects, photos, writing, reading, listening
+  contentType: text('content_type'), // photo, project, writing, highlight, photoGroup
+  contentIds: jsonb('content_ids').$type<string[]>().default([]), // IDs of visible items
+  timestamp: timestamp('timestamp').notNull().defaultNow(),
+});
+
 // Export types
 export type Photo = typeof photos.$inferSelect;
 export type NewPhoto = typeof photos.$inferInsert;
@@ -117,3 +136,9 @@ export type NewReadwiseBook = typeof readwiseBooks.$inferInsert;
 
 export type ReadwiseHighlight = typeof readwiseHighlights.$inferSelect;
 export type NewReadwiseHighlight = typeof readwiseHighlights.$inferInsert;
+
+export type Session = typeof sessions.$inferSelect;
+export type NewSession = typeof sessions.$inferInsert;
+
+export type SessionEvent = typeof sessionEvents.$inferSelect;
+export type NewSessionEvent = typeof sessionEvents.$inferInsert;

@@ -6,6 +6,7 @@ import SectionNavigation from '@/components/SectionNavigation';
 import ContentCard from '@/components/ContentCard';
 import { CardSkeleton } from '@/components/Skeleton';
 import type { Writing } from '@/lib/writings';
+import { useContentRegistry } from '@/lib/content-context';
 import styles from './Section.module.css';
 
 interface WritingSectionProps {
@@ -15,6 +16,7 @@ interface WritingSectionProps {
 export default function WritingSection({ onSectionChange }: WritingSectionProps) {
   const [writings, setWritings] = useState<Writing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { registerContent } = useContentRegistry();
 
   useEffect(() => {
     fetch('/api/writings')
@@ -30,6 +32,13 @@ export default function WritingSection({ onSectionChange }: WritingSectionProps)
         setIsLoading(false);
       });
   }, []);
+
+  // Register writings with content registry for session tracking
+  useEffect(() => {
+    if (writings.length > 0) {
+      registerContent('writing', 'writing', writings.map(w => w.id));
+    }
+  }, [writings, registerContent]);
 
   if (isLoading) {
     return (

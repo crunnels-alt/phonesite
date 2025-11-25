@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Pusher from 'pusher';
 import { recordWebsiteNavigation, navigationDB } from '@/lib/database';
+import { db } from '@/lib/db';
+import { sessions } from '@/lib/schema';
+import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 
 interface TwilioWebhookBody {
@@ -129,8 +132,26 @@ export async function POST(request: NextRequest) {
     const pressedDigit = webhookData.Digits;
     const callSid = webhookData.CallSid;
 
-    // If no digit was pressed yet (initial call), provide the main menu
+    // If no digit was pressed yet (initial call), create session and provide the main menu
     if (!pressedDigit) {
+      // Create a new session for this call
+      const phoneHash = phoneNumber
+        ? crypto.createHash('sha256').update(phoneNumber).digest('hex').slice(0, 16)
+        : null;
+
+      const [session] = await db.insert(sessions).values({
+        callSid,
+        phoneNumberHash: phoneHash,
+      }).returning();
+
+      // Notify the website that a new session has started
+      await pusher.trigger('website-navigation', 'session-started', {
+        sessionId: session.id,
+        timestamp: session.startedAt,
+      });
+
+      console.log(`New session created: ${session.id} for call ${callSid}`);
+
       const welcomeTwiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Say voice="alice">Welcome to the phone navigation system! Press 1 for About, 2 for Projects, 3 for Photo, 4 for Writing, 5 for Reading Notes, or 0 for Home.</Say>
@@ -163,9 +184,13 @@ export async function POST(request: NextRequest) {
       callSid
     );
 
+    // Look up the session for this call
+    const [session] = await db.select().from(sessions).where(eq(sessions.callSid, callSid));
+
     const currentWebsiteState = await navigationDB.getCurrentState();
 
     await pusher.trigger('website-navigation', 'section-changed', {
+      sessionId: session?.id,
       currentSection: currentWebsiteState.currentSection,
       pressedDigit,
       timestamp: navigationEvent.timestamp,

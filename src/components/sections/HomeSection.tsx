@@ -18,22 +18,22 @@ export default function HomeSection({ onSectionChange }: HomeSectionProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const fetchPhotoGroups = async () => {
+      try {
+        const response = await fetch('/api/photos/group');
+        const data = await response.json();
+        if (data.success) {
+          setPhotoGroups(data.groups);
+        }
+      } catch (error) {
+        console.error('Error fetching photo groups:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchPhotoGroups();
   }, []);
-
-  const fetchPhotoGroups = async () => {
-    try {
-      const response = await fetch('/api/photos/group');
-      const data = await response.json();
-      if (data.success) {
-        setPhotoGroups(data.groups);
-      }
-    } catch (error) {
-      console.error('Error fetching photo groups:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleGroupClick = (group: PhotoGroup) => {
     // Normalize to URL-safe slug (lowercase, alphanumeric and dashes only)

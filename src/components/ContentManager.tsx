@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import styles from './admin.module.css';
 
 type ContentType = 'photos' | 'projects' | 'writings';
 
@@ -32,32 +33,6 @@ interface Writing {
   category: string;
 }
 
-const inputStyle = {
-  width: '100%',
-  padding: '0.5rem',
-  border: '1px solid var(--border-light)',
-  background: 'var(--background)',
-  fontFamily: 'inherit',
-  fontSize: '14px',
-  marginBottom: '0.75rem',
-};
-
-const labelStyle = {
-  display: 'block',
-  marginBottom: '0.25rem',
-  fontSize: '12px',
-  color: 'var(--text-tertiary)',
-};
-
-const buttonStyle = {
-  padding: '0.5rem 1rem',
-  border: '1px solid var(--border-light)',
-  background: 'transparent',
-  cursor: 'pointer',
-  fontSize: '13px',
-  transition: 'all 0.2s',
-};
-
 export default function ContentManager() {
   const [activeTab, setActiveTab] = useState<ContentType>('projects');
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -79,13 +54,7 @@ export default function ContentManager() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTextarea, setActiveTextarea] = useState<'create' | 'edit' | null>(null);
 
-  useEffect(() => {
-    loadContent();
-    setEditingId(null);
-    setIsCreating(false);
-  }, [activeTab]);
-
-  const loadContent = async () => {
+  const loadContent = useCallback(async () => {
     setIsLoading(true);
     setMessage(null);
     try {
@@ -101,7 +70,13 @@ export default function ContentManager() {
       setMessage({ type: 'error', text: `Failed to load ${activeTab}` });
     }
     setIsLoading(false);
-  };
+  }, [activeTab]);
+
+  useEffect(() => {
+    loadContent();
+    setEditingId(null);
+    setIsCreating(false);
+  }, [loadContent]);
 
   const handleDelete = async (id: string) => {
     if (!confirm(`Are you sure you want to delete this ${activeTab.slice(0, -1)}?`)) {
@@ -226,57 +201,53 @@ export default function ContentManager() {
   };
 
   const renderPhotoForm = (form: Partial<Photo>, setForm: (f: Partial<Photo>) => void, onSave: () => void, onCancel: () => void, photoUrl?: string) => (
-    <div style={{ padding: '1rem', border: '1px solid var(--border-light)', marginBottom: '1rem' }}>
+    <div className={styles.formBox}>
       {photoUrl && (
-        <img
-          src={photoUrl}
-          alt="Preview"
-          style={{ width: '120px', height: '90px', objectFit: 'cover', marginBottom: '1rem' }}
-        />
+        <img src={photoUrl} alt="Preview" className={styles.imagePreview} />
       )}
       <div>
-        <label style={labelStyle}>Title</label>
+        <label className={styles.label}>Title</label>
         <input
-          style={inputStyle}
+          className={styles.input}
           value={form.title || ''}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
           placeholder="Photo title"
         />
       </div>
       <div>
-        <label style={labelStyle}>Description</label>
+        <label className={styles.label}>Description</label>
         <textarea
-          style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
+          className={styles.textarea}
           value={form.description || ''}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
           placeholder="Caption or description for the photo"
         />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+      <div className={styles.gridTwo}>
         <div>
-          <label style={labelStyle}>Location</label>
+          <label className={styles.label}>Location</label>
           <input
-            style={inputStyle}
+            className={styles.input}
             value={form.location || ''}
             onChange={(e) => setForm({ ...form, location: e.target.value })}
             placeholder="Where was this taken?"
           />
         </div>
         <div>
-          <label style={labelStyle}>Date</label>
+          <label className={styles.label}>Date</label>
           <input
-            style={inputStyle}
+            className={styles.input}
             value={form.date || ''}
             onChange={(e) => setForm({ ...form, date: e.target.value })}
             placeholder="2024-01-15"
           />
         </div>
       </div>
-      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-        <button onClick={onSave} className="type-sans" style={{ ...buttonStyle, background: 'var(--foreground)', color: 'var(--background)' }}>
+      <div className={styles.buttonGroup}>
+        <button onClick={onSave} className={`type-sans ${styles.buttonPrimary}`}>
           Save
         </button>
-        <button onClick={onCancel} className="type-sans" style={buttonStyle}>
+        <button onClick={onCancel} className={`type-sans ${styles.button}`}>
           Cancel
         </button>
       </div>
@@ -284,9 +255,9 @@ export default function ContentManager() {
   );
 
   const renderPhotosList = () => (
-    <div style={{ display: 'grid', gap: '1rem' }}>
+    <div className={styles.listGrid}>
       {photos.length === 0 ? (
-        <div className="type-serif-italic" style={{ color: 'var(--text-tertiary)' }}>No photos found</div>
+        <div className={`type-serif-italic ${styles.emptyState}`}>No photos found</div>
       ) : (
         photos.map((photo) => (
           <div key={photo.id}>
@@ -299,50 +270,21 @@ export default function ContentManager() {
                 photo.url
               )
             ) : (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '80px 1fr auto auto',
-                  gap: '1rem',
-                  padding: '1rem',
-                  border: '1px solid var(--border-light)',
-                  alignItems: 'center',
-                }}
-              >
-                <img
-                  src={photo.url}
-                  alt={photo.title}
-                  style={{
-                    width: '80px',
-                    height: '60px',
-                    objectFit: 'cover',
-                  }}
-                />
+              <div className={styles.listItemWithImage}>
+                <img src={photo.url} alt={photo.title} className={styles.listItemImage} />
                 <div>
-                  <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>
-                    {photo.title}
-                  </div>
+                  <div className={styles.listItemTitle}>{photo.title}</div>
                   {photo.description && (
-                    <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
-                      {photo.description}
-                    </div>
+                    <div className={styles.listItemBody}>{photo.description}</div>
                   )}
-                  <div className="type-sans" style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                  <div className={`type-sans ${styles.listItemMeta}`}>
                     {photo.location && `${photo.location} · `}{photo.date}
                   </div>
                 </div>
-                <button
-                  onClick={() => handleEdit(photo)}
-                  className="type-sans"
-                  style={buttonStyle}
-                >
+                <button onClick={() => handleEdit(photo)} className={`type-sans ${styles.button}`}>
                   Edit
                 </button>
-                <button
-                  onClick={() => handleDelete(photo.id)}
-                  className="type-sans"
-                  style={{ ...buttonStyle, color: '#dc2626', borderColor: '#dc2626' }}
-                >
+                <button onClick={() => handleDelete(photo.id)} className={`type-sans ${styles.buttonDanger}`}>
                   Delete
                 </button>
               </div>
@@ -354,21 +296,21 @@ export default function ContentManager() {
   );
 
   const renderProjectForm = (form: Partial<Project>, setForm: (f: Partial<Project>) => void, onSave: () => void, onCancel: () => void) => (
-    <div style={{ padding: '1rem', border: '1px solid var(--border-light)', marginBottom: '1rem' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+    <div className={styles.formBox}>
+      <div className={styles.gridTwo}>
         <div>
-          <label style={labelStyle}>Title *</label>
+          <label className={styles.label}>Title *</label>
           <input
-            style={inputStyle}
+            className={styles.input}
             value={form.title || ''}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             placeholder="Project title"
           />
         </div>
         <div>
-          <label style={labelStyle}>Subtitle</label>
+          <label className={styles.label}>Subtitle</label>
           <input
-            style={inputStyle}
+            className={styles.input}
             value={form.subtitle || ''}
             onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
             placeholder="Brief subtitle"
@@ -376,37 +318,37 @@ export default function ContentManager() {
         </div>
       </div>
       <div>
-        <label style={labelStyle}>Excerpt *</label>
+        <label className={styles.label}>Excerpt *</label>
         <textarea
-          style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
+          className={styles.textarea}
           value={form.excerpt || ''}
           onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
           placeholder="Short description"
         />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+      <div className={styles.gridThree}>
         <div>
-          <label style={labelStyle}>Tech</label>
+          <label className={styles.label}>Tech</label>
           <input
-            style={inputStyle}
+            className={styles.input}
             value={form.tech || ''}
             onChange={(e) => setForm({ ...form, tech: e.target.value })}
             placeholder="React, Node.js..."
           />
         </div>
         <div>
-          <label style={labelStyle}>Year</label>
+          <label className={styles.label}>Year</label>
           <input
-            style={inputStyle}
+            className={styles.input}
             value={form.year || ''}
             onChange={(e) => setForm({ ...form, year: e.target.value })}
             placeholder="2024"
           />
         </div>
         <div>
-          <label style={labelStyle}>Status</label>
+          <label className={styles.label}>Status</label>
           <select
-            style={inputStyle}
+            className={styles.input}
             value={form.status || 'ONGOING'}
             onChange={(e) => setForm({ ...form, status: e.target.value })}
           >
@@ -416,11 +358,11 @@ export default function ContentManager() {
           </select>
         </div>
       </div>
-      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-        <button onClick={onSave} className="type-sans" style={{ ...buttonStyle, background: 'var(--foreground)', color: 'var(--background)' }}>
+      <div className={styles.buttonGroup}>
+        <button onClick={onSave} className={`type-sans ${styles.buttonPrimary}`}>
           Save
         </button>
-        <button onClick={onCancel} className="type-sans" style={buttonStyle}>
+        <button onClick={onCancel} className={`type-sans ${styles.button}`}>
           Cancel
         </button>
       </div>
@@ -428,21 +370,21 @@ export default function ContentManager() {
   );
 
   const renderWritingForm = (form: Partial<Writing>, setForm: (f: Partial<Writing>) => void, onSave: () => void, onCancel: () => void, mode: 'create' | 'edit') => (
-    <div style={{ padding: '1rem', border: '1px solid var(--border-light)', marginBottom: '1rem' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+    <div className={styles.formBox}>
+      <div className={styles.gridTwo}>
         <div>
-          <label style={labelStyle}>Title *</label>
+          <label className={styles.label}>Title *</label>
           <input
-            style={inputStyle}
+            className={styles.input}
             value={form.title || ''}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             placeholder="Writing title"
           />
         </div>
         <div>
-          <label style={labelStyle}>Subtitle</label>
+          <label className={styles.label}>Subtitle</label>
           <input
-            style={inputStyle}
+            className={styles.input}
             value={form.subtitle || ''}
             onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
             placeholder="Brief subtitle"
@@ -450,15 +392,16 @@ export default function ContentManager() {
         </div>
       </div>
       <div>
-        <label style={labelStyle}>Content (Markdown supported)</label>
+        <label className={styles.label}>Content (Markdown supported)</label>
         <textarea
-          style={{ ...inputStyle, minHeight: '150px', resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: '13px' }}
+          className={styles.monoTextarea}
+          style={{ minHeight: '150px' }}
           value={form.excerpt || ''}
           onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
           onFocus={() => setActiveTextarea(mode)}
           placeholder="Write your content here. Supports **bold**, *italic*, [links](url), and ![images](url)"
         />
-        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '-0.5rem', marginBottom: '0.75rem' }}>
+        <div className={styles.imageUploadRow}>
           <button
             type="button"
             onClick={() => {
@@ -466,30 +409,29 @@ export default function ContentManager() {
               fileInputRef.current?.click();
             }}
             disabled={isUploading}
-            className="type-sans"
-            style={{ ...buttonStyle, fontSize: '12px', padding: '0.25rem 0.5rem' }}
+            className={`type-sans ${styles.button} ${styles.buttonSmall}`}
           >
             {isUploading ? 'Uploading...' : '+ Image'}
           </button>
-          <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', alignSelf: 'center' }}>
+          <span className={styles.hint} style={{ alignSelf: 'center', marginTop: 0, marginBottom: 0 }}>
             Tip: Use ![](url) for images inline with text
           </span>
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+      <div className={styles.gridTwo}>
         <div>
-          <label style={labelStyle}>Date</label>
+          <label className={styles.label}>Date</label>
           <input
-            style={inputStyle}
+            className={styles.input}
             value={form.date || ''}
             onChange={(e) => setForm({ ...form, date: e.target.value })}
             placeholder="2024.01.15"
           />
         </div>
         <div>
-          <label style={labelStyle}>Category</label>
+          <label className={styles.label}>Category</label>
           <select
-            style={inputStyle}
+            className={styles.input}
             value={form.category || 'GENERAL'}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
           >
@@ -500,11 +442,11 @@ export default function ContentManager() {
           </select>
         </div>
       </div>
-      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-        <button onClick={onSave} className="type-sans" style={{ ...buttonStyle, background: 'var(--foreground)', color: 'var(--background)' }}>
+      <div className={styles.buttonGroup}>
+        <button onClick={onSave} className={`type-sans ${styles.buttonPrimary}`}>
           Save
         </button>
-        <button onClick={onCancel} className="type-sans" style={buttonStyle}>
+        <button onClick={onCancel} className={`type-sans ${styles.button}`}>
           Cancel
         </button>
       </div>
@@ -512,7 +454,7 @@ export default function ContentManager() {
   );
 
   const renderProjectsList = () => (
-    <div style={{ display: 'grid', gap: '1rem' }}>
+    <div className={styles.listGrid}>
       {/* Create form */}
       {isCreating && renderProjectForm(
         createForm as Partial<Project>,
@@ -522,7 +464,7 @@ export default function ContentManager() {
       )}
 
       {projects.length === 0 && !isCreating ? (
-        <div className="type-serif-italic" style={{ color: 'var(--text-tertiary)' }}>No projects found</div>
+        <div className={`type-serif-italic ${styles.emptyState}`}>No projects found</div>
       ) : (
         projects.map((project) => (
           <div key={project.id}>
@@ -534,42 +476,23 @@ export default function ContentManager() {
                 () => { setEditingId(null); setEditForm({}); }
               )
             ) : (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr auto auto',
-                  gap: '0.5rem',
-                  padding: '1rem',
-                  border: '1px solid var(--border-light)',
-                  alignItems: 'start',
-                }}
-              >
+              <div className={styles.listItem}>
                 <div>
-                  <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>
+                  <div className={styles.listItemTitle}>
                     {project.title}
-                    <span className="type-serif-italic" style={{ fontWeight: 400, marginLeft: '0.5rem', color: 'var(--text-secondary)' }}>
+                    <span className={`type-serif-italic ${styles.listItemSubtitle}`}>
                       {project.subtitle}
                     </span>
                   </div>
-                  <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                    {project.excerpt}
-                  </div>
-                  <div className="type-sans" style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                  <div className={styles.listItemBody}>{project.excerpt}</div>
+                  <div className={`type-sans ${styles.listItemMeta}`}>
                     {project.tech} · {project.year} · {project.status}
                   </div>
                 </div>
-                <button
-                  onClick={() => handleEdit(project)}
-                  className="type-sans"
-                  style={buttonStyle}
-                >
+                <button onClick={() => handleEdit(project)} className={`type-sans ${styles.button}`}>
                   Edit
                 </button>
-                <button
-                  onClick={() => handleDelete(project.id)}
-                  className="type-sans"
-                  style={{ ...buttonStyle, color: '#dc2626', borderColor: '#dc2626' }}
-                >
+                <button onClick={() => handleDelete(project.id)} className={`type-sans ${styles.buttonDanger}`}>
                   Delete
                 </button>
               </div>
@@ -581,7 +504,7 @@ export default function ContentManager() {
   );
 
   const renderWritingsList = () => (
-    <div style={{ display: 'grid', gap: '1rem' }}>
+    <div className={styles.listGrid}>
       {/* Create form */}
       {isCreating && renderWritingForm(
         createForm as Partial<Writing>,
@@ -592,7 +515,7 @@ export default function ContentManager() {
       )}
 
       {writings.length === 0 && !isCreating ? (
-        <div className="type-serif-italic" style={{ color: 'var(--text-tertiary)' }}>No writings found</div>
+        <div className={`type-serif-italic ${styles.emptyState}`}>No writings found</div>
       ) : (
         writings.map((writing) => (
           <div key={writing.id}>
@@ -605,42 +528,23 @@ export default function ContentManager() {
                 'edit'
               )
             ) : (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr auto auto',
-                  gap: '0.5rem',
-                  padding: '1rem',
-                  border: '1px solid var(--border-light)',
-                  alignItems: 'start',
-                }}
-              >
+              <div className={styles.listItem}>
                 <div>
-                  <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>
+                  <div className={styles.listItemTitle}>
                     {writing.title}
-                    <span className="type-serif-italic" style={{ fontWeight: 400, marginLeft: '0.5rem', color: 'var(--text-secondary)' }}>
+                    <span className={`type-serif-italic ${styles.listItemSubtitle}`}>
                       {writing.subtitle}
                     </span>
                   </div>
-                  <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                    {writing.excerpt}
-                  </div>
-                  <div className="type-sans" style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                  <div className={styles.listItemBody}>{writing.excerpt}</div>
+                  <div className={`type-sans ${styles.listItemMeta}`}>
                     {writing.date} · {writing.category}
                   </div>
                 </div>
-                <button
-                  onClick={() => handleEdit(writing)}
-                  className="type-sans"
-                  style={buttonStyle}
-                >
+                <button onClick={() => handleEdit(writing)} className={`type-sans ${styles.button}`}>
                   Edit
                 </button>
-                <button
-                  onClick={() => handleDelete(writing.id)}
-                  className="type-sans"
-                  style={{ ...buttonStyle, color: '#dc2626', borderColor: '#dc2626' }}
-                >
+                <button onClick={() => handleDelete(writing.id)} className={`type-sans ${styles.buttonDanger}`}>
                   Delete
                 </button>
               </div>
@@ -652,23 +556,22 @@ export default function ContentManager() {
   );
 
   return (
-    <div style={{ padding: '1.5rem', marginTop: '2rem' }}>
+    <div className={styles.contentSection}>
       {/* Hidden file input for image uploads */}
       <input
         type="file"
         ref={fileInputRef}
         onChange={handleImageUpload}
         accept="image/jpeg,image/png,image/gif,image/webp"
-        style={{ display: 'none' }}
+        className={styles.hidden}
       />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: 400 }}>Content Manager</h2>
+      <div className={styles.contentHeader}>
+        <h2 className={styles.contentTitle}>Content Manager</h2>
         {activeTab !== 'photos' && (
           <button
             onClick={() => { setIsCreating(true); setEditingId(null); setCreateForm({}); }}
-            className="type-sans"
-            style={{ ...buttonStyle, background: 'var(--foreground)', color: 'var(--background)' }}
+            className={`type-sans ${styles.buttonPrimary}`}
           >
             + New {activeTab.slice(0, -1)}
           </button>
@@ -676,22 +579,12 @@ export default function ContentManager() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '0', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-light)' }}>
+      <div className={styles.tabs}>
         {(['projects', 'writings', 'photos'] as ContentType[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className="type-sans"
-            style={{
-              padding: '0.75rem 1.5rem',
-              background: 'transparent',
-              border: 'none',
-              borderBottom: activeTab === tab ? '2px solid var(--foreground)' : '2px solid transparent',
-              color: activeTab === tab ? 'var(--foreground)' : 'var(--text-tertiary)',
-              cursor: 'pointer',
-              fontSize: '14px',
-              textTransform: 'capitalize',
-            }}
+            className={`type-sans ${activeTab === tab ? styles.tabActive : styles.tab}`}
           >
             {tab}
           </button>
@@ -700,22 +593,14 @@ export default function ContentManager() {
 
       {/* Messages */}
       {message && (
-        <div
-          style={{
-            padding: '0.75rem 1rem',
-            border: `1px solid ${message.type === 'success' ? '#16a34a' : '#dc2626'}`,
-            color: message.type === 'success' ? '#16a34a' : '#dc2626',
-            marginBottom: '1rem',
-            fontSize: '14px',
-          }}
-        >
+        <div className={message.type === 'success' ? styles.messageSuccess : styles.messageError}>
           {message.text}
         </div>
       )}
 
       {/* Loading */}
       {isLoading && (
-        <div className="type-serif-italic" style={{ color: 'var(--text-tertiary)' }}>Loading...</div>
+        <div className={`type-serif-italic ${styles.emptyState}`}>Loading...</div>
       )}
 
       {/* Content Lists */}

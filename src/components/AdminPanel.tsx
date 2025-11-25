@@ -3,30 +3,8 @@
 import { useState } from 'react';
 import PhotoManager from './PhotoManager';
 import ContentManager from './ContentManager';
-
-const inputStyle = {
-  width: '100%',
-  padding: '0.5rem',
-  border: '1px solid var(--border-light)',
-  background: 'var(--background)',
-  fontFamily: 'inherit',
-  fontSize: '14px',
-};
-
-const labelStyle = {
-  display: 'block',
-  marginBottom: '0.25rem',
-  fontSize: '12px',
-  color: 'var(--text-tertiary)',
-};
-
-const buttonStyle = {
-  padding: '0.5rem 1rem',
-  border: '1px solid var(--border-light)',
-  background: 'transparent',
-  cursor: 'pointer',
-  fontSize: '13px',
-};
+import ContactMessages from './ContactMessages';
+import styles from './admin.module.css';
 
 export default function AdminPanel() {
   const [phoneNumber, setPhoneNumber] = useState('+1234567890');
@@ -62,19 +40,14 @@ export default function AdminPanel() {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div className={styles.adminContainer}>
       {/* Header */}
-      <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-light)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: 400 }}>Admin</h1>
+      <div className={styles.adminHeader}>
+        <div className={styles.adminHeaderInner}>
+          <h1 className={styles.adminTitle}>Admin</h1>
           <button
             onClick={() => setShowDevTools(!showDevTools)}
-            className="type-sans"
-            style={{
-              ...buttonStyle,
-              fontSize: '12px',
-              opacity: 0.6,
-            }}
+            className={`type-sans ${styles.buttonSecondary}`}
           >
             {showDevTools ? 'Hide' : 'Show'} Dev Tools
           </button>
@@ -83,31 +56,31 @@ export default function AdminPanel() {
 
       {/* Dev Tools (Collapsible) */}
       {showDevTools && (
-        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-light)', background: 'rgba(0,0,0,0.02)' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 400, marginBottom: '1rem', opacity: 0.7 }}>Developer Tools</h2>
+        <div className={styles.devToolsSection}>
+          <h2 className={styles.devToolsTitle}>Developer Tools</h2>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+          <div className={styles.devToolsGrid}>
             {/* Webhook Testing */}
-            <div style={{ padding: '1rem', border: '1px solid var(--border-light)' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: 500, marginBottom: '1rem' }}>Webhook Simulation</h3>
+            <div className={styles.devToolsCard}>
+              <h3 className={styles.devToolsCardTitle}>Webhook Simulation</h3>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+              <div className={styles.gridTwo} style={{ marginBottom: '0.75rem' }}>
                 <div>
-                  <label style={labelStyle}>Phone Number</label>
+                  <label className={styles.label}>Phone Number</label>
                   <input
                     type="text"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    style={inputStyle}
+                    className={styles.input}
                     placeholder="+1234567890"
                   />
                 </div>
                 <div>
-                  <label style={labelStyle}>Digit</label>
+                  <label className={styles.label}>Digit</label>
                   <select
                     value={digit}
                     onChange={(e) => setDigit(e.target.value)}
-                    style={inputStyle}
+                    className={styles.input}
                   >
                     <option value="0">0 - Home</option>
                     <option value="1">1 - About</option>
@@ -125,32 +98,20 @@ export default function AdminPanel() {
               <button
                 onClick={sendTestWebhook}
                 disabled={isLoading}
-                className="type-sans"
-                style={{
-                  ...buttonStyle,
-                  width: '100%',
-                  background: isLoading ? 'transparent' : 'var(--foreground)',
-                  color: isLoading ? 'var(--text-tertiary)' : 'var(--background)',
-                }}
+                className={`type-sans ${isLoading ? styles.buttonLoading : styles.buttonPrimaryFull}`}
               >
                 {isLoading ? 'Sending...' : 'Send Test Webhook'}
               </button>
             </div>
 
             {/* Data Operations */}
-            <div style={{ padding: '1rem', border: '1px solid var(--border-light)' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: 500, marginBottom: '1rem' }}>Data Operations</h3>
+            <div className={styles.devToolsCard}>
+              <h3 className={styles.devToolsCardTitle}>Data Operations</h3>
 
               <button
                 onClick={clearNavigationHistory}
-                className="type-sans"
-                style={{
-                  ...buttonStyle,
-                  width: '100%',
-                  marginBottom: '0.75rem',
-                  color: '#dc2626',
-                  borderColor: '#dc2626',
-                }}
+                className={`type-sans ${styles.buttonDanger} ${styles.buttonFull}`}
+                style={{ marginBottom: '0.75rem' }}
               >
                 Clear Navigation History
               </button>
@@ -158,17 +119,8 @@ export default function AdminPanel() {
               {/* Response Display */}
               {lastResponse && (
                 <div>
-                  <label style={labelStyle}>Last Response</label>
-                  <pre
-                    style={{
-                      fontSize: '11px',
-                      background: 'rgba(0,0,0,0.05)',
-                      padding: '0.5rem',
-                      overflow: 'auto',
-                      maxHeight: '150px',
-                      border: '1px solid var(--border-light)',
-                    }}
-                  >
+                  <label className={styles.label}>Last Response</label>
+                  <pre className={styles.codeBlock}>
                     {JSON.stringify(lastResponse, null, 2)}
                   </pre>
                 </div>
@@ -177,6 +129,9 @@ export default function AdminPanel() {
           </div>
         </div>
       )}
+
+      {/* Contact Messages */}
+      <ContactMessages />
 
       {/* Photo Upload */}
       <PhotoManager />

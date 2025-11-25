@@ -16,9 +16,23 @@ export default function PhotoGroupPage() {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
 
   useEffect(() => {
-    if (groupName) {
-      fetchPhotos();
-    }
+    if (!groupName) return;
+
+    const fetchPhotos = async () => {
+      try {
+        const response = await fetch(`/api/photos/group?name=${encodeURIComponent(groupName)}`);
+        const data = await response.json();
+        if (data.success) {
+          setPhotos(data.photos);
+        }
+      } catch (error) {
+        console.error('Error fetching photos:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPhotos();
   }, [groupName]);
 
   // Keyboard navigation for lightbox
@@ -44,20 +58,6 @@ export default function PhotoGroupPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedPhoto, photos]);
-
-  const fetchPhotos = async () => {
-    try {
-      const response = await fetch(`/api/photos/group?name=${encodeURIComponent(groupName)}`);
-      const data = await response.json();
-      if (data.success) {
-        setPhotos(data.photos);
-      }
-    } catch (error) {
-      console.error('Error fetching photos:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const displayGroupName = photos[0]?.groupName || decodeURIComponent(groupName).replace(/-/g, ' ');
 

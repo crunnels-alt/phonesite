@@ -5,6 +5,7 @@ import SectionNavigation from '@/components/SectionNavigation';
 import ContentCard from '@/components/ContentCard';
 import { CardSkeleton } from '@/components/Skeleton';
 import type { Project } from '@/lib/projects';
+import { useContentRegistry } from '@/lib/content-context';
 import styles from './Section.module.css';
 
 interface ProjectsSectionProps {
@@ -14,6 +15,7 @@ interface ProjectsSectionProps {
 export default function ProjectsSection({ onSectionChange }: ProjectsSectionProps) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { registerContent } = useContentRegistry();
 
   useEffect(() => {
     fetch('/api/projects')
@@ -29,6 +31,13 @@ export default function ProjectsSection({ onSectionChange }: ProjectsSectionProp
         setIsLoading(false);
       });
   }, []);
+
+  // Register projects with content registry for session tracking
+  useEffect(() => {
+    if (projects.length > 0) {
+      registerContent('projects', 'project', projects.map(p => p.id));
+    }
+  }, [projects, registerContent]);
 
   if (isLoading) {
     return (

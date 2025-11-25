@@ -5,6 +5,7 @@ import Image from 'next/image';
 import SectionNavigation from '@/components/SectionNavigation';
 import { HighlightSkeleton } from '@/components/Skeleton';
 import type { ReadwiseHighlightWithBook } from '@/lib/readwise';
+import { useContentRegistry } from '@/lib/content-context';
 import styles from './ReadingNotesSection.module.css';
 
 interface ReadingNotesSectionProps {
@@ -27,6 +28,7 @@ export default function ReadingNotesSection({ onSectionChange }: ReadingNotesSec
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedBooks, setExpandedBooks] = useState<Set<number>>(new Set());
+  const { registerContent } = useContentRegistry();
 
   useEffect(() => {
     async function loadHighlights() {
@@ -50,6 +52,13 @@ export default function ReadingNotesSection({ onSectionChange }: ReadingNotesSec
 
     loadHighlights();
   }, []);
+
+  // Register highlights with content registry for session tracking
+  useEffect(() => {
+    if (highlights.length > 0) {
+      registerContent('reading', 'highlight', highlights.map(h => String(h.id)));
+    }
+  }, [highlights, registerContent]);
 
   // Group highlights by book
   const bookGroups = useMemo<BookGroup[]>(() => {

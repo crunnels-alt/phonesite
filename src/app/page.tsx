@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-// import Navigation from '@/components/Navigation';
 import PhoneNavigationMonitor from '@/components/PhoneStateMonitor';
 import AdminPanel from '@/components/AdminPanel';
 import HomeSection from '@/components/sections/HomeSection';
@@ -12,9 +11,11 @@ import WritingSection from '@/components/sections/WritingSection';
 import ReadingNotesSection from '@/components/sections/ReadingNotesSection';
 import ListeningSection from '@/components/sections/ListeningSection';
 import { SECTIONS } from '@/components/SectionNavigation';
+import { ContentProvider, useContentRegistry } from '@/lib/content-context';
 
-export default function Home() {
+function HomeContent() {
   const [currentSection, setCurrentSection] = useState('home');
+  const { getVisibleContent } = useContentRegistry();
 
   // Read hash from URL on mount and handle hash changes
   useEffect(() => {
@@ -91,8 +92,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen" style={{ background: '#ffffff' }}>
-      {/* Phone Navigation Monitor (Hidden, just for real-time updates) */}
-      <PhoneNavigationMonitor onSectionChange={handleSectionChange} />
+      {/* Phone Navigation Monitor */}
+      <PhoneNavigationMonitor
+        onSectionChange={handleSectionChange}
+        getVisibleContent={getVisibleContent}
+      />
 
       {/* Main Content */}
       <main style={{ background: '#ffffff' }}>
@@ -108,5 +112,13 @@ export default function Home() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <ContentProvider>
+      <HomeContent />
+    </ContentProvider>
   );
 }
