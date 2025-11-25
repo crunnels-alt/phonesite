@@ -1,6 +1,6 @@
 import { db } from './db';
 import { readwiseBooks, readwiseHighlights, type ReadwiseBook, type ReadwiseHighlight } from './schema';
-import { eq, desc, ne } from 'drizzle-orm';
+import { eq, desc, ne, notInArray, inArray } from 'drizzle-orm';
 import { fetchReadwiseHighlights as fetchFromAPI, type ReadwiseHighlightWithBook } from './readwise';
 
 export interface HighlightWithBook extends ReadwiseHighlight {
@@ -49,9 +49,9 @@ export async function getHighlightCount(): Promise<number> {
 
 /**
  * Sync highlights from Readwise API to database
- * Returns the number of new/updated highlights
+ * Returns the number of new/updated highlights and deleted highlights
  */
-export async function syncFromReadwise(): Promise<{ synced: number; error?: string }> {
+export async function syncFromReadwise(): Promise<{ synced: number; deleted: number; error?: string }> {
   try {
     console.log('Starting Readwise sync...');
 
@@ -60,7 +60,7 @@ export async function syncFromReadwise(): Promise<{ synced: number; error?: stri
 
     if (apiHighlights.length === 0) {
       console.log('No highlights returned from Readwise API');
-      return { synced: 0 };
+      return { synced: 0, deleted: 0 };
     }
 
     console.log(`Fetched ${apiHighlights.length} highlights from Readwise`);
@@ -143,12 +143,36 @@ export async function syncFromReadwise(): Promise<{ synced: number; error?: stri
       syncedCount++;
     }
 
+    // Delete highlights that no longer exist in Readwise
+    const apiHighlightIds = apiHighlights.map(h => h.id);
+    const deletedResult = await db
+      .delete(readwiseHighlights)
+      .where(notInArray(readwiseHighlights.id, apiHighlightIds))
+      .returning({ id: readwiseHighlights.id });
+
+    const deletedCount = deletedResult.length;
+    if (deletedCount > 0) {
+      console.log(`🗑️ Deleted ${deletedCount} highlights no longer in Readwise`);
+    }
+
+    // Delete books that no longer have any highlights
+    const apiBookIds = Array.from(booksMap.keys());
+    const orphanedBooksResult = await db
+      .delete(readwiseBooks)
+      .where(notInArray(readwiseBooks.id, apiBookIds))
+      .returning({ id: readwiseBooks.id });
+
+    if (orphanedBooksResult.length > 0) {
+      console.log(`🗑️ Deleted ${orphanedBooksResult.length} orphaned books`);
+    }
+
     console.log(`✅ Synced ${syncedCount} highlights to database`);
-    return { synced: syncedCount };
+    return { synced: syncedCount, deleted: deletedCount };
   } catch (error) {
     console.error('Error syncing from Readwise:', error);
     return {
       synced: 0,
+      deleted: 0,
       error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
