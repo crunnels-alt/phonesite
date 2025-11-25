@@ -1,6 +1,6 @@
 import { db } from './db';
 import { readwiseBooks, readwiseHighlights, type ReadwiseBook, type ReadwiseHighlight } from './schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, ne } from 'drizzle-orm';
 import { fetchReadwiseHighlights as fetchFromAPI, type ReadwiseHighlightWithBook } from './readwise';
 
 export interface HighlightWithBook extends ReadwiseHighlight {
@@ -17,13 +17,17 @@ export async function getHighlights(): Promise<HighlightWithBook[]> {
       .from(readwiseHighlights)
       .orderBy(desc(readwiseHighlights.createdAt));
 
-    const books = await db.select().from(readwiseBooks);
+    // Get non-supplemental books only
+    const books = await db
+      .select()
+      .from(readwiseBooks)
+      .where(ne(readwiseBooks.source, 'supplemental'));
     const bookMap = new Map(books.map(book => [book.id, book]));
 
     return highlights.map(highlight => ({
       ...highlight,
       book: bookMap.get(highlight.bookId)!,
-    })).filter(h => h.book); // Filter out any with missing books
+    })).filter(h => h.book); // Filter out highlights from supplemental books
   } catch (error) {
     console.error('Error fetching highlights from database:', error);
     return [];
