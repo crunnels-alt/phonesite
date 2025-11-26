@@ -16,12 +16,12 @@
   border: none;
   cursor: pointer;
   color: var(--foreground);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 400;
   opacity: 0.5;
   transition: opacity 0.2s ease;
   padding: 0;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 
 .navButtonActive {
@@ -34,9 +34,9 @@
 }
 
 .navKey {
-  font-size: 9px;
+  font-size: 10px;
   opacity: 0.4;
-  margin-right: 0.25rem;
+  margin-right: 0.3rem;
   vertical-align: super;
   font-feature-settings: 'tnum';
 }
