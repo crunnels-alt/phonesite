@@ -29,9 +29,7 @@ export default function AboutSection({ onSectionChange }: AboutSectionProps) {
 
         {/* Bio */}
         <p className={styles.bio}>
-          Based in San Francisco. Currently exploring the intersections of
-          technology, art, and human experience. Call the number below to
-          navigate this site by phone.
+          Based in San Francisco. Call the number below to navigate this site by phone.
         </p>
 
         {/* Divider */}
