@@ -31,6 +31,7 @@ export default function SectionNavigation({
           onClick={() => onSectionChange?.(section.id)}
           className={`${styles.navButton} ${section.id === currentSection ? styles.navButtonActive : ''}`}
         >
+          <span className={styles.navKey}>{section.key}</span>
           {section.label}
         </button>
       ))}

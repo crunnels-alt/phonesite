@@ -32,3 +32,11 @@
 .navButton:hover {
   opacity: 1;
 }
+
+.navKey {
+  font-size: 9px;
+  opacity: 0.4;
+  margin-right: 0.25rem;
+  vertical-align: super;
+  font-feature-settings: 'tnum';
+}
