@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
 
       const welcomeTwiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="alice">Welcome to the phone navigation system! Press 1 for About, 2 for Projects, 3 for Photo, 4 for Writing, 5 for Reading Notes, or 0 for Home.</Say>
+  <Say voice="alice">Welcome. Press 1 for About, 2 for Projects, 3 for Photo, 4 for Writing, 5 for Reading, 6 for Listening, or 0 for Home.</Say>
   <Gather numDigits="1" timeout="10" action="${new URL(request.url).origin}/api/webhook/twilio">
     <Say voice="alice">Please press a digit to navigate.</Say>
   </Gather>
@@ -286,17 +286,17 @@ export async function POST(request: NextRequest) {
 <Response>
   <Say voice="alice">${getStateDisplayName(newState)}. Nothing here yet.</Say>
   <Gather numDigits="1" timeout="10" action="${baseUrl}/api/webhook/twilio?section=${newState}">
-    <Say voice="alice">Press 1 for About, 2 for Projects, 3 for Photos, 4 for Writing, 5 for Reading, 0 for Home.</Say>
+    <Say voice="alice">Press 0 for Home, or 1 through 6 for other sections.</Say>
   </Gather>
 </Response>`;
       }
     } else {
-      // Non-content sections (home, about)
+      // Non-content sections (home, about, listening)
       twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Say voice="alice">${getStateDisplayName(newState)}.</Say>
   <Gather numDigits="1" timeout="10" action="${baseUrl}/api/webhook/twilio?section=${newState}">
-    <Say voice="alice">Press 1 for About, 2 for Projects, 3 for Photos, 4 for Writing, 5 for Reading, 0 for Home.</Say>
+    <Say voice="alice">Press 0 for Home, or 1 through 6 for other sections.</Say>
   </Gather>
   <Say voice="alice">Thank you for visiting!</Say>
 </Response>`;
@@ -328,12 +328,13 @@ export async function POST(request: NextRequest) {
 
 function getNextState(digit: string): string {
   const stateMap: Record<string, string> = {
+    '0': 'home',
     '1': 'about',
     '2': 'projects',
     '3': 'photo',
     '4': 'writing',
     '5': 'reading',
-    '0': 'home',
+    '6': 'listening',
     '*': 'previous',
     '#': 'confirm',
   };
@@ -343,12 +344,13 @@ function getNextState(digit: string): string {
 
 function getStateDisplayName(state: string): string {
   const stateNames: Record<string, string> = {
+    'home': 'Home',
     'about': 'About',
     'projects': 'Projects',
     'photo': 'Photo',
     'writing': 'Writing',
     'reading': 'Reading Notes',
-    'home': 'Home',
+    'listening': 'Listening',
     'previous': 'Previous',
     'confirm': 'Confirmed',
     'unknown': 'Unknown Section',
