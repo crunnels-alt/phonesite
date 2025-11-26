@@ -19,15 +19,15 @@ export default function PhonePrompt() {
       // Mark as seen for next time
       localStorage.setItem(STORAGE_KEY, 'true');
 
-      // Start fade after 10 seconds
+      // Start fade after 15 seconds
       const fadeTimer = setTimeout(() => {
         setIsFading(true);
-      }, 10000);
+      }, 15000);
 
       // Hide completely after fade animation
       const hideTimer = setTimeout(() => {
         setIsVisible(false);
-      }, 12000);
+      }, 18000);
 
       // Also fade on scroll
       const handleScroll = () => {
@@ -69,8 +69,8 @@ export default function PhonePrompt() {
         <p
           className="type-serif"
           style={{
-            fontSize: '18px',
-            color: 'var(--text-secondary)',
+            fontSize: '20px',
+            color: 'var(--foreground)',
             marginBottom: '0.5rem',
             lineHeight: 1.5,
           }}
@@ -80,8 +80,8 @@ export default function PhonePrompt() {
         <p
           className="type-serif"
           style={{
-            fontSize: '18px',
-            color: 'var(--text-secondary)',
+            fontSize: '20px',
+            color: 'var(--foreground)',
             marginBottom: '0.5rem',
             lineHeight: 1.5,
           }}
@@ -91,8 +91,8 @@ export default function PhonePrompt() {
         <p
           className="type-serif-italic"
           style={{
-            fontSize: '18px',
-            color: 'var(--text-tertiary)',
+            fontSize: '20px',
+            color: 'var(--text-secondary)',
             marginBottom: '1.5rem',
             lineHeight: 1.5,
           }}
