@@ -10,6 +10,7 @@
     "db:init": "tsx scripts/init-db.ts",
     "db:migrate": "tsx scripts/migrate-data.ts",
     "db:setup": "npm run db:init && npm run db:migrate",
+    "db:init-voice": "tsx scripts/init-voice-tables.ts",
     "readwise:sync": "tsx scripts/sync-readwise.ts"
   },
   "dependencies": {
