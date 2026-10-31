@@ -30,16 +30,6 @@ export default function AdminPanel() {
     setIsLoading(false);
   };
 
-  const clearNavigationHistory = async () => {
-    try {
-      const response = await adminFetch('/api/users', { method: 'DELETE' });
-      const result = await response.json();
-      setLastResponse(result);
-    } catch {
-      setLastResponse({ error: 'Failed to clear navigation history' });
-    }
-  };
-
   return (
     <div className={styles.adminContainer}>
       {/* Header */}
@@ -108,14 +98,6 @@ export default function AdminPanel() {
             {/* Data Operations */}
             <div className={styles.devToolsCard}>
               <h3 className={styles.devToolsCardTitle}>Data Operations</h3>
-
-              <button
-                onClick={clearNavigationHistory}
-                className={`type-sans ${styles.buttonDanger} ${styles.buttonFull}`}
-                style={{ marginBottom: '0.75rem' }}
-              >
-                Clear Navigation History
-              </button>
 
               {/* Response Display */}
               {lastResponse && (

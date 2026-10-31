@@ -14,11 +14,10 @@
     "readwise:sync": "tsx scripts/sync-readwise.ts"
   },
   "dependencies": {
-    "@types/twilio": "^3.19.2",
     "@upstash/ratelimit": "^2.0.7",
+    "@upstash/redis": "^1.35.6",
     "@vercel/analytics": "^1.5.0",
     "@vercel/blob": "^2.0.0",
-    "@vercel/kv": "^3.0.0",
     "@vercel/postgres": "^0.10.0",
     "@vercel/speed-insights": "^1.2.0",
     "dotenv": "^17.2.3",
@@ -30,8 +29,7 @@
     "react-dom": "19.1.10",
     "react-markdown": "^10.1.0",
     "resend": "^6.5.2",
-    "sharp": "^0.34.5",
-    "twilio": "^5.10.0"
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

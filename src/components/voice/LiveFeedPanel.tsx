@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Pusher from 'pusher-js';
+import { getPusherClient } from '@/lib/pusher-client';
 import { cn } from '@/lib/cn';
 import type { FeedEvent } from '@/lib/voice';
 import { buildFeed, eventKey } from './feed';
@@ -81,7 +81,7 @@ function LastTool({ call }: { call: ToolCall }) {
 }
 
 export function LiveFeedPanel() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>({ kind: 'waiting' });
   const [events, setEvents] = useState<FeedEvent[]>([]);
   const [pairing, setPairing] = useState<Pairing | null>(null);
@@ -140,7 +140,7 @@ export function LiveFeedPanel() {
 
   useEffect(() => {
     if (!pairing) return;
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, { cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER! });
+    const pusher = getPusherClient();
     const channel = pusher.subscribe(pairing.channel);
     channel.bind('paired', ({ callSid }: { callSid: string }) => {
       stopReplay();
@@ -150,7 +150,6 @@ export function LiveFeedPanel() {
     channel.bind('events', ({ events: incoming }: { callSid: string; events: FeedEvent[] }) => addEvents(incoming));
     return () => {
       pusher.unsubscribe(pairing.channel);
-      pusher.disconnect();
     };
   }, [pairing, addEvents]);
 

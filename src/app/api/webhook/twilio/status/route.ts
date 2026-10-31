@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Pusher from 'pusher';
+import { getPusher } from '@/lib/pusher';
 import { db } from '@/lib/db';
 import { sessions } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 
-const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID!,
-  key: process.env.PUSHER_KEY!,
-  secret: process.env.PUSHER_SECRET!,
-  cluster: process.env.PUSHER_CLUSTER!,
-  useTLS: true,
-});
 
 /**
  * Validates a Twilio webhook request signature using HMAC-SHA1
@@ -97,7 +90,7 @@ export async function POST(request: NextRequest) {
           .where(eq(sessions.id, session.id));
 
         // Notify website that session has ended
-        await pusher.trigger('website-navigation', 'session-ended', {
+        await getPusher().trigger('website-navigation', 'session-ended', {
           sessionId: session.id,
           timestamp: new Date().toISOString(),
         });

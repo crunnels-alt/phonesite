@@ -1,67 +1,43 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 
-export default function ContactForm() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: '',
-  });
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState('');
+type Status = 'idle' | 'sending' | 'sent' | 'error';
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setStatus('loading');
-    setErrorMessage('');
+const FIELD = 'border-0 border-b border-ink bg-transparent py-2 text-[17px] text-ink outline-none focus:border-ink-2';
+const LABEL = 'flex flex-col gap-1.5 text-[13px] text-ink-3';
 
+export function ContactForm() {
+  const [status, setStatus] = useState<Status>('idle');
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const { name, email, message } = Object.fromEntries(new FormData(form)) as Record<string, string>;
+    setStatus('sending');
+    setError('');
     try {
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ name, email, message }),
       });
-
       const data = await response.json();
-
-      if (data.success) {
-        setStatus('success');
-        setFormData({ name: '', email: '', message: '' });
-      } else {
-        setStatus('error');
-        setErrorMessage(data.error || 'Failed to send message');
-      }
-    } catch {
+      if (!data.success) throw new Error(data.error || 'Failed to send message');
+      form.reset();
+      setStatus('sent');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send message');
       setStatus('error');
-      setErrorMessage('Failed to send message');
     }
   };
 
-  if (status === 'success') {
+  if (status === 'sent') {
     return (
-      <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-        <p className="type-serif-italic" style={{ fontSize: '18px', marginBottom: '1rem' }}>
-          Thank you for your message
-        </p>
-        <button
-          onClick={() => setStatus('idle')}
-          className="type-sans"
-          style={{
-            background: 'transparent',
-            border: '1px solid var(--border-light)',
-            padding: '0.5rem 1rem',
-            fontSize: '13px',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'var(--foreground)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border-light)';
-          }}
-        >
+      <div className="flex flex-col gap-4">
+        <p className="text-[17px]">Thanks, your message is on its way.</p>
+        <button type="button" onClick={() => setStatus('idle')} className="self-start text-[15px] text-ink-3 underline underline-offset-4 hover:text-ink">
           Send another
         </button>
       </div>
@@ -69,147 +45,27 @@ export default function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: '400px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <label
-          htmlFor="name"
-          className="type-sans"
-          style={{
-            display: 'block',
-            marginBottom: '0.5rem',
-            fontSize: '12px',
-            color: 'var(--text-tertiary)',
-            letterSpacing: '0.05em',
-          }}
-        >
-          Name
-        </label>
-        <input
-          type="text"
-          id="name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          required
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            border: '1px solid var(--border-light)',
-            background: 'transparent',
-            color: 'var(--foreground)',
-            fontFamily: 'inherit',
-            fontSize: '16px',
-          }}
-        />
-      </div>
-
-      <div style={{ marginBottom: '1.5rem' }}>
-        <label
-          htmlFor="email"
-          className="type-sans"
-          style={{
-            display: 'block',
-            marginBottom: '0.5rem',
-            fontSize: '12px',
-            color: 'var(--text-tertiary)',
-            letterSpacing: '0.05em',
-          }}
-        >
-          Email
-        </label>
-        <input
-          type="email"
-          id="email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          required
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            border: '1px solid var(--border-light)',
-            background: 'transparent',
-            color: 'var(--foreground)',
-            fontFamily: 'inherit',
-            fontSize: '16px',
-          }}
-        />
-      </div>
-
-      <div style={{ marginBottom: '1.5rem' }}>
-        <label
-          htmlFor="message"
-          className="type-sans"
-          style={{
-            display: 'block',
-            marginBottom: '0.5rem',
-            fontSize: '12px',
-            color: 'var(--text-tertiary)',
-            letterSpacing: '0.05em',
-          }}
-        >
-          Message
-        </label>
-        <textarea
-          id="message"
-          value={formData.message}
-          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-          required
-          rows={5}
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            border: '1px solid var(--border-light)',
-            background: 'transparent',
-            color: 'var(--foreground)',
-            fontFamily: 'inherit',
-            fontSize: '16px',
-            resize: 'vertical',
-          }}
-        />
-      </div>
-
-      {status === 'error' && (
-        <div
-          style={{
-            marginBottom: '1rem',
-            padding: '0.75rem',
-            background: 'rgba(239, 68, 68, 0.1)',
-            color: '#dc2626',
-            fontSize: '14px',
-          }}
-        >
-          {errorMessage}
-        </div>
-      )}
-
+    <form onSubmit={handleSubmit} className="flex flex-col gap-7">
+      <h2 className="text-xs uppercase tracking-[0.1em] text-ink-3">Send a message</h2>
+      <label className={LABEL}>
+        Name
+        <input name="name" type="text" required autoComplete="name" className={FIELD} />
+      </label>
+      <label className={LABEL}>
+        Email
+        <input name="email" type="email" required autoComplete="email" className={FIELD} />
+      </label>
+      <label className={LABEL}>
+        Message
+        <textarea name="message" rows={4} required className={`${FIELD} min-h-24 resize-y`} />
+      </label>
+      {status === 'error' && <p role="alert" className="text-[13px] text-ink">{error}</p>}
       <button
         type="submit"
-        disabled={status === 'loading'}
-        className="type-sans"
-        style={{
-          width: '100%',
-          padding: '0.75rem',
-          border: '1px solid var(--foreground)',
-          background: status === 'loading' ? 'var(--foreground)' : 'transparent',
-          color: status === 'loading' ? 'var(--background)' : 'var(--foreground)',
-          fontSize: '13px',
-          letterSpacing: '0.05em',
-          cursor: status === 'loading' ? 'wait' : 'pointer',
-          transition: 'all 0.2s',
-        }}
-        onMouseEnter={(e) => {
-          if (status !== 'loading') {
-            e.currentTarget.style.background = 'var(--foreground)';
-            e.currentTarget.style.color = 'var(--background)';
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (status !== 'loading') {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = 'var(--foreground)';
-          }
-        }}
+        disabled={status === 'sending'}
+        className="flex min-h-11 items-center self-start text-base underline underline-offset-4 hover:text-ink-2 disabled:text-ink-3"
       >
-        {status === 'loading' ? 'Sending...' : 'Send Message'}
+        {status === 'sending' ? 'Sending' : 'Send'}
       </button>
     </form>
   );

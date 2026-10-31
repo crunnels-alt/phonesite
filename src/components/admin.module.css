@@ -249,7 +249,6 @@
 /* Empty state */
 .emptyState {
   color: var(--text-tertiary);
-  font-style: italic;
 }
 
 /* Responsive code display */

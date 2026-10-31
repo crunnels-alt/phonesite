@@ -1,22 +1,11 @@
-import { kv } from '@vercel/kv';
+import { getRedis } from './redis';
 
 const LASTFM_API_BASE = 'https://ws.audioscrobbler.com/2.0/';
 const API_KEY = process.env.LASTFM_API_KEY;
 const USERNAME = process.env.LASTFM_USERNAME;
 
 // Cache TTLs in seconds
-const RECENT_TRACKS_TTL = 60; // 1 minute for recent/now playing
 const TOP_ALBUMS_TTL = 3600; // 1 hour for top albums
-
-export interface Track {
-  name: string;
-  artist: string;
-  album: string;
-  albumArt: string;
-  url: string;
-  nowPlaying: boolean;
-  playedAt?: string;
-}
 
 export interface Album {
   name: string;
@@ -29,16 +18,6 @@ export interface Album {
 interface LastFmImage {
   '#text': string;
   size: string;
-}
-
-interface LastFmTrack {
-  name: string;
-  artist: { '#text': string } | string;
-  album?: { '#text': string };
-  image?: LastFmImage[];
-  url: string;
-  '@attr'?: { nowplaying: string };
-  date?: { '#text': string };
 }
 
 interface LastFmAlbum {
@@ -74,45 +53,6 @@ async function fetchFromLastFm(method: string, params: Record<string, string> = 
 }
 
 /**
- * Get recent tracks with now playing indicator
- */
-export async function getRecentTracks(limit: number = 20): Promise<Track[]> {
-  const cacheKey = `lastfm:recent:${limit}`;
-
-  // Try cache first
-  try {
-    const cached = await kv.get<Track[]>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-  } catch {
-    console.log('KV cache miss or error, fetching fresh');
-  }
-
-  // Fetch from Last.fm
-  const data = await fetchFromLastFm('user.getrecenttracks', { limit: String(limit) });
-
-  const tracks: Track[] = (data.recenttracks?.track || []).map((t: LastFmTrack) => ({
-    name: t.name,
-    artist: typeof t.artist === 'string' ? t.artist : t.artist['#text'],
-    album: t.album?.['#text'] || '',
-    albumArt: getImageUrl(t.image),
-    url: t.url,
-    nowPlaying: t['@attr']?.nowplaying === 'true',
-    playedAt: t.date?.['#text'],
-  }));
-
-  // Cache the result
-  try {
-    await kv.set(cacheKey, tracks, { ex: RECENT_TRACKS_TTL });
-  } catch (e) {
-    console.error('Failed to cache recent tracks:', e);
-  }
-
-  return tracks;
-}
-
-/**
  * Get top albums for a time period
  */
 export async function getTopAlbums(period: '1month' | '3month' | '6month' | '12month' | 'overall' = '6month', limit: number = 20): Promise<Album[]> {
@@ -120,7 +60,7 @@ export async function getTopAlbums(period: '1month' | '3month' | '6month' | '12m
 
   // Try cache first
   try {
-    const cached = await kv.get<Album[]>(cacheKey);
+    const cached = await getRedis()?.get<Album[]>(cacheKey);
     if (cached) {
       return cached;
     }
@@ -141,7 +81,7 @@ export async function getTopAlbums(period: '1month' | '3month' | '6month' | '12m
 
   // Cache the result
   try {
-    await kv.set(cacheKey, albums, { ex: TOP_ALBUMS_TTL });
+    await getRedis()?.set(cacheKey, albums, { ex: TOP_ALBUMS_TTL });
   } catch (e) {
     console.error('Failed to cache top albums:', e);
   }
@@ -149,11 +89,3 @@ export async function getTopAlbums(period: '1month' | '3month' | '6month' | '12m
   return albums;
 }
 
-/**
- * Get current now playing track (if any)
- */
-export async function getNowPlaying(): Promise<Track | null> {
-  const tracks = await getRecentTracks(1);
-  const current = tracks[0];
-  return current?.nowPlaying ? current : null;
-}

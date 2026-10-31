@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import Pusher from 'pusher';
 import { and, asc, eq, isNotNull, sql } from 'drizzle-orm';
 import { safeEqual } from '@/lib/auth';
+import { getPusher } from '@/lib/pusher';
 import { db } from '@/lib/db';
 import { callEvents, callers, calls, voicePairings } from '@/lib/schema';
 import type { CallEvent, CallPath } from '@/lib/schema';
@@ -117,16 +117,6 @@ export async function publicFeedEvents(callSid: string): Promise<FeedEvent[]> {
     .orderBy(asc(callEvents.at));
   return rows.map(toFeedEvent);
 }
-
-let pusher: Pusher | null = null;
-const getPusher = () =>
-  (pusher ??= new Pusher({
-    appId: process.env.PUSHER_APP_ID!,
-    key: process.env.PUSHER_KEY!,
-    secret: process.env.PUSHER_SECRET!,
-    cluster: process.env.PUSHER_CLUSTER!,
-    useTLS: true,
-  }));
 
 // Pusher rejects messages over 10KB, so events go out in batches under that.
 const MAX_MESSAGE_BYTES = 8000;
