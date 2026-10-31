@@ -1,31 +1,17 @@
 import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from 'drizzle-orm';
+import { safeEqual } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { callers, calls } from '@/lib/schema';
 import type { CallPath } from '@/lib/schema';
 
-const safeEqual = (a: string, b: string) => {
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-  return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
-};
 
 /** Voice servers authenticate with a shared secret. Returns an error response, or null when authorized. */
 export function requireVoiceSecret(request: NextRequest): NextResponse | null {
   const secret = process.env.VOICE_API_SECRET;
   const header = request.headers.get('authorization') ?? '';
   if (!secret || !safeEqual(header, `Bearer ${secret}`)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  return null;
-}
-
-/** Console reads use the existing admin password. */
-export function requireAdmin(request: NextRequest): NextResponse | null {
-  const password = process.env.ADMIN_PASSWORD;
-  const header = request.headers.get('authorization') ?? '';
-  if (!password || !safeEqual(header, `Bearer ${password}`)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   return null;

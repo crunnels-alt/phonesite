@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import AdminPanel from '@/components/AdminPanel';
+import { clearAdminPassword, storeAdminPassword } from '@/lib/admin-client';
 
 const inputStyle = {
   width: '100%',
@@ -41,6 +42,8 @@ export default function AdminPage() {
       const data = await response.json();
 
       if (data.authenticated) {
+        // Admin API calls send this password, so keep it for the browser session.
+        storeAdminPassword(password);
         setIsAuthenticated(true);
         setPassword('');
       } else {
@@ -60,7 +63,10 @@ export default function AdminPage() {
         <div style={{ padding: '2rem', maxWidth: '1600px', margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
             <button
-              onClick={() => setIsAuthenticated(false)}
+              onClick={() => {
+                clearAdminPassword();
+                setIsAuthenticated(false);
+              }}
               className="type-sans"
               style={{
                 ...buttonStyle,

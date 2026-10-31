@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { adminFetch } from '@/lib/admin-client';
 
 interface SelectedFile {
   file: File;
@@ -114,7 +115,7 @@ export default function PhotoManager() {
         formDataToSend.append('groupId', groupId);
         formDataToSend.append('groupName', formData.groupName.trim());
 
-        const response = await fetch('/api/photos/upload', {
+        const response = await adminFetch('/api/photos/upload', {
           method: 'POST',
           body: formDataToSend,
         });

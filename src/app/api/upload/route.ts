@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import { getIdentifier, checkStandardRateLimit } from '@/lib/ratelimit';
+import { requireAdmin } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireAdmin(request);
+  if (unauthorized) return unauthorized;
+
   try {
     // Apply rate limiting
     const identifier = getIdentifier(request);
