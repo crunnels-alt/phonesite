@@ -270,7 +270,8 @@ export function LiveFeedPanel() {
   }
 
   const current = stackFor(mode.kind === 'waiting' ? stack : mode.path);
-  const runsOwnSpeech = current.path === 'B';
+  // Every stack except Twilio runs its own speech to text and text to speech, so it can time them.
+  const runsOwnSpeech = current.path !== 'A';
 
   return (
     <aside className="fixed inset-y-0 right-0 z-40 flex w-full flex-col border-l border-rule bg-background text-sm sm:w-[380px]">
@@ -401,13 +402,13 @@ export function LiveFeedPanel() {
           {runsOwnSpeech ? (
             <LatencyRow label="Speech to text" values={feed.sttMs} />
           ) : (
-            <Unavailable label="Speech to text" note="Pipecat only" reason="Twilio transcribes the audio and doesn't report how long it took." />
+            <Unavailable label="Speech to text" note="Not on Twilio" reason="Twilio transcribes the audio and doesn't report how long it took." />
           )}
           <LatencyRow label="Language model" values={feed.ttfts} />
           {runsOwnSpeech ? (
             <LatencyRow label="Text to speech" values={feed.ttsMs} />
           ) : (
-            <Unavailable label="Text to speech" note="Pipecat only" reason="Twilio turns the reply into speech and doesn't report how long it took." />
+            <Unavailable label="Text to speech" note="Not on Twilio" reason="Twilio turns the reply into speech and doesn't report how long it took." />
           )}
         </div>
 
@@ -416,12 +417,12 @@ export function LiveFeedPanel() {
           <Unavailable
             label="Tone and emotion"
             note={runsOwnSpeech ? 'Not shown yet' : 'Not on Twilio'}
-            reason={runsOwnSpeech ? 'Pipecat has the audio; reading tone from it is still to come.' : "Twilio sends the words, not the audio, so there's nothing to read tone from."}
+            reason={runsOwnSpeech ? `${current.label} has the audio; reading tone from it is still to come.` : "Twilio sends the words, not the audio, so there's nothing to read tone from."}
           />
           <Unavailable
             label="Waveform"
             note={runsOwnSpeech ? 'Not shown yet' : 'Not on Twilio'}
-            reason={runsOwnSpeech ? 'Pipecat has the audio; drawing it is still to come.' : 'Twilio keeps the audio.'}
+            reason={runsOwnSpeech ? `${current.label} has the audio; drawing it is still to come.` : 'Twilio keeps the audio.'}
           />
         </div>
       </div>

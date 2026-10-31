@@ -9,7 +9,7 @@ import { checkRateLimit, getIdentifier, getStandardRateLimit } from '@/lib/ratel
 const CODE_TTL_MS = 10 * 60 * 1000;
 const MAX_ATTEMPTS = 10;
 // Stacks a visitor can pick. LiveKit (C) joins once it's built.
-const PATHS: CallPath[] = ['A', 'B'];
+const PATHS: CallPath[] = ['A', 'B', 'C'];
 
 /** A browser asks for a code to show. The caller types it on the keypad to pair this browser with their call. */
 export async function POST(request: NextRequest) {
