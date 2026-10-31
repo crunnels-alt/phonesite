@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, uuid, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, timestamp, uuid, jsonb, index } from 'drizzle-orm/pg-core';
 
 // Photos table
 export const photos = pgTable('photos', {
@@ -118,6 +118,92 @@ export const sessionEvents = pgTable('session_events', {
   timestamp: timestamp('timestamp').notNull().defaultNow(),
 });
 
+// --- Voice agent (voice-relay-lab) ---
+
+export type CallPath = 'A' | 'B' | 'C';
+export type EventSource = 'twilio' | 'runtime' | 'console' | 'page';
+export type EventStage = 'phone' | 'stt' | 'turn' | 'llm' | 'tool' | 'tts' | 'rcs' | 'control';
+export type EventVisibility = 'public' | 'private';
+
+// People who have called the agent line. Matched by a keyed hash of their number.
+export const callers = pgTable('callers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  phoneHash: text('phone_hash').notNull().unique(),
+  name: text('name'),
+  notes: text('notes').notNull().default(''),
+  callCount: integer('call_count').notNull().default(0),
+  firstSeenAt: timestamp('first_seen_at', { withTimezone: true }).notNull().defaultNow(),
+  lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const calls = pgTable('calls', {
+  callSid: text('call_sid').primaryKey(),
+  callerId: uuid('caller_id').references(() => callers.id),
+  path: text('path').$type<CallPath>(),
+  toNumber: text('to_number'),
+  model: text('model'),
+  startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+  endedAt: timestamp('ended_at', { withTimezone: true }),
+  endReason: text('end_reason'),
+  durationSec: integer('duration_sec'),
+  summary: text('summary'),
+  intent: text('intent'),
+  handoff: jsonb('handoff').$type<Record<string, unknown>>(),
+  recordingSid: text('recording_sid'),
+  sessionId: uuid('session_id').references(() => sessions.id),
+});
+
+// One row per thing that happened on a call, from any system. Drives the timeline and live feed.
+export const callEvents = pgTable(
+  'call_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    callSid: text('call_sid').notNull().references(() => calls.callSid),
+    at: timestamp('at', { withTimezone: true, precision: 3 }).notNull(),
+    source: text('source').$type<EventSource>().notNull(),
+    stage: text('stage').$type<EventStage>().notNull(),
+    visibility: text('visibility').$type<EventVisibility>().notNull().default('private'),
+    type: text('type').notNull(),
+    turn: integer('turn'),
+    data: jsonb('data').$type<Record<string, unknown>>().notNull().default({}),
+  },
+  (t) => [index('call_events_call_sid_at_idx').on(t.callSid, t.at)]
+);
+
+export const callTranscripts = pgTable('call_transcripts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  callSid: text('call_sid').notNull().references(() => calls.callSid),
+  kind: text('kind').$type<'live' | 'post'>().notNull(),
+  provider: text('provider'),
+  segments: jsonb('segments')
+    .$type<{ speaker: 'caller' | 'agent'; text: string; startMs?: number; endMs?: number }[]>()
+    .notNull()
+    .default([]),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const messages = pgTable('messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  callSid: text('call_sid').references(() => calls.callSid),
+  callerId: uuid('caller_id').references(() => callers.id),
+  name: text('name'),
+  callbackNumber: text('callback_number'),
+  body: text('body').notNull(),
+  urgency: text('urgency').$type<'low' | 'normal' | 'high'>().notNull().default('normal'),
+  status: text('status').$type<'new' | 'read' | 'done'>().notNull().default('new'),
+  todoistTaskId: text('todoist_task_id'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// The only facts the agent may say about Connor. Every row is reviewed by Connor.
+export const agentProfile = pgTable('agent_profile', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  topic: text('topic').notNull(),
+  body: text('body').notNull(),
+  reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 // Export types
 export type Photo = typeof photos.$inferSelect;
 export type NewPhoto = typeof photos.$inferInsert;
@@ -142,3 +228,10 @@ export type NewSession = typeof sessions.$inferInsert;
 
 export type SessionEvent = typeof sessionEvents.$inferSelect;
 export type NewSessionEvent = typeof sessionEvents.$inferInsert;
+
+export type Caller = typeof callers.$inferSelect;
+export type Call = typeof calls.$inferSelect;
+export type CallEvent = typeof callEvents.$inferSelect;
+export type NewCallEvent = typeof callEvents.$inferInsert;
+export type Message = typeof messages.$inferSelect;
+export type AgentProfileEntry = typeof agentProfile.$inferSelect;
