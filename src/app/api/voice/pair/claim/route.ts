@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
   if (!pairing) return NextResponse.json({ error: 'No browser is showing that code' }, { status: 404 });
 
   const picked: CallPath = pairing.path ?? 'A';
-  const actual: CallPath = body.path === 'A' || body.path === 'B' ? body.path : picked;
+  const actual: CallPath = body.path === 'A' || body.path === 'B' || body.path === 'C' ? body.path : picked;
   try {
     await notifyPaired(pairing.channel, callSid, actual);
     await sendFeedEvents(pairing.channel, callSid, await publicFeedEvents(callSid));
