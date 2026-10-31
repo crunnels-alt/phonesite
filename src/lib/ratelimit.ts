@@ -10,26 +10,7 @@
 
 import { Ratelimit } from '@upstash/ratelimit';
 import { NextRequest, NextResponse } from 'next/server';
-
-// Lazy-load KV to avoid import-time errors if not configured
-let kvInstance: typeof import('@vercel/kv').kv | null = null;
-let kvLoadAttempted = false;
-
-async function loadKV(): Promise<typeof import('@vercel/kv').kv | null> {
-  if (kvLoadAttempted) return kvInstance;
-  kvLoadAttempted = true;
-
-  try {
-    if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
-      return null;
-    }
-    const { kv } = await import('@vercel/kv');
-    kvInstance = kv;
-    return kv;
-  } catch {
-    return null;
-  }
-}
+import { getRedis } from './redis';
 
 // Lazy-initialized rate limiters
 let _authRateLimit: Ratelimit | null = null;
@@ -39,11 +20,11 @@ let _lenientRateLimit: Ratelimit | null = null;
 
 async function createRateLimiterAsync(prefix: string, requests: number, window: string): Promise<Ratelimit | null> {
   try {
-    const kv = await loadKV();
-    if (!kv) return null;
+    const redis = getRedis();
+    if (!redis) return null;
 
     return new Ratelimit({
-      redis: kv,
+      redis,
       limiter: Ratelimit.slidingWindow(requests, window as Parameters<typeof Ratelimit.slidingWindow>[1]),
       analytics: true,
       prefix,

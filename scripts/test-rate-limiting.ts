@@ -4,7 +4,7 @@
  */
 
 import { Ratelimit } from '@upstash/ratelimit';
-import { kv } from '@vercel/kv';
+import { getRedis } from '../src/lib/redis';
 import { config } from 'dotenv';
 
 // Load environment variables
@@ -23,7 +23,7 @@ async function testRateLimiting() {
 
   // Create a test rate limiter (5 requests per minute)
   const testRateLimit = new Ratelimit({
-    redis: kv,
+    redis: getRedis()!,
     limiter: Ratelimit.slidingWindow(5, '1 m'),
     analytics: true,
     prefix: '@upstash/ratelimit:test',
