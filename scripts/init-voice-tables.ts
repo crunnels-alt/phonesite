@@ -103,12 +103,14 @@ async function initVoiceTables() {
     CREATE TABLE IF NOT EXISTS voice_pairings (
       channel TEXT PRIMARY KEY,
       code TEXT NOT NULL,
+      path TEXT,
       expires_at TIMESTAMPTZ NOT NULL,
       call_sid TEXT,
       claimed_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+  await sql`ALTER TABLE voice_pairings ADD COLUMN IF NOT EXISTS path TEXT`;
   await sql`CREATE INDEX IF NOT EXISTS voice_pairings_code_idx ON voice_pairings (code)`;
   await sql`CREATE INDEX IF NOT EXISTS voice_pairings_call_sid_idx ON voice_pairings (call_sid)`;
   console.log('- voice_pairings');

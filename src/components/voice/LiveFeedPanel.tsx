@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getPusherClient } from '@/lib/pusher-client';
 import { cn } from '@/lib/cn';
 import { AGENT_PHONE_NUMBER as VOICE_NUMBER } from '@/lib/sections';
+import type { CallPath } from '@/lib/schema';
 import type { FeedEvent } from '@/lib/voice';
 import { buildFeed, eventKey } from './feed';
 import type { CallState, ToolCall } from './feed';
@@ -11,22 +12,32 @@ import type { CallState, ToolCall } from './feed';
 /** Window event that opens the panel, so links elsewhere on the page can point at it. */
 export const OPEN_FEED_EVENT = 'voice-feed:open';
 const OPEN_KEY = 'voice-feed-open';
+const STACK_KEY = 'voice-feed-stack';
+
+/** The ways the same agent is built. A stack shows up here once it takes calls; LiveKit joins when it's built. */
+const STACKS: { path: CallPath; label: string; line: string }[] = [
+  { path: 'A', label: 'Twilio', line: 'Twilio hears and speaks. My code does the thinking.' },
+  { path: 'B', label: 'Pipecat', line: 'My server does all of it: hearing, thinking, speaking.' },
+];
+const stackFor = (path: CallPath | null | undefined) => STACKS.find((stack) => stack.path === path) ?? STACKS[0];
 // Long silences in a replay are shortened to this, so it stays watchable.
 const MAX_REPLAY_GAP_MS = 3000;
 
 interface Pairing {
   code: string;
   channel: string;
+  path: CallPath;
   expiresAt: string;
 }
 
 interface Replay {
   callSid: string;
+  path: CallPath | null;
   startedAt: string;
   durationSec: number | null;
 }
 
-type Mode = { kind: 'waiting' } | { kind: 'live'; callSid: string } | { kind: 'replay'; callSid: string };
+type Mode = { kind: 'waiting' } | { kind: 'live'; callSid: string; path: CallPath } | { kind: 'replay'; callSid: string; path: CallPath };
 
 const STATE_LABELS: Record<CallState, string> = {
   waiting: 'Waiting for a call',
@@ -35,6 +46,15 @@ const STATE_LABELS: Record<CallState, string> = {
   tool: 'Using a tool',
   speaking: 'Speaking',
   ended: 'Call ended',
+};
+
+const readStack = (): CallPath => {
+  try {
+    const saved = localStorage.getItem(STACK_KEY);
+    return STACKS.some((stack) => stack.path === saved) ? (saved as CallPath) : 'A';
+  } catch {
+    return 'A';
+  }
 };
 
 const readOpen = () => {
@@ -61,12 +81,28 @@ function SectionLabel({ children, note }: { children: React.ReactNode; note?: st
   );
 }
 
-/** A row this path can't fill. Kept visible so the difference between paths shows. */
-function PathBOnly({ label, reason }: { label: string; reason: string }) {
+/** A row this stack can't fill. Kept visible so the difference between stacks shows. */
+function Unavailable({ label, note, reason }: { label: string; note: string; reason: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-1 text-ink-3" title={reason}>
       <span>{label}</span>
-      <span className="text-xs">Path B only</span>
+      <span className="text-xs">{note}</span>
+    </div>
+  );
+}
+
+function LatencyRow({ label, values }: { label: string; values: number[] }) {
+  const latest = values.at(-1);
+  const max = Math.max(...values, 1);
+  return (
+    <div className="flex items-center justify-between gap-3 py-1">
+      <span>{label}</span>
+      <span className="flex items-end gap-px" aria-hidden>
+        {values.slice(-12).map((ms, i) => (
+          <span key={i} className="w-1 bg-ink-3" style={{ height: `${Math.max(2, (ms / max) * 14)}px` }} />
+        ))}
+      </span>
+      <span className="w-16 text-right tabular-nums">{latest !== undefined ? `${latest} ms` : '—'}</span>
     </div>
   );
 }
@@ -84,6 +120,7 @@ function LastTool({ call }: { call: ToolCall }) {
 
 export function LiveFeedPanel() {
   const [open, setOpen] = useState(false);
+  const [stack, setStack] = useState<CallPath>('A');
   const [mode, setMode] = useState<Mode>({ kind: 'waiting' });
   const [events, setEvents] = useState<FeedEvent[]>([]);
   const [pairing, setPairing] = useState<Pairing | null>(null);
@@ -94,7 +131,20 @@ export function LiveFeedPanel() {
 
   const feed = useMemo(() => buildFeed(events), [events]);
 
-  useEffect(() => setOpen(readOpen()), []);
+  useEffect(() => {
+    setOpen(readOpen());
+    setStack(readStack());
+  }, []);
+
+  // A code belongs to one stack, so picking another one fetches a fresh code.
+  const pickStack = (path: CallPath) => {
+    if (path === stack) return;
+    try {
+      localStorage.setItem(STACK_KEY, path);
+    } catch {}
+    setStack(path);
+    setPairing(null);
+  };
 
   useEffect(() => {
     const show = () => {
@@ -132,13 +182,17 @@ export function LiveFeedPanel() {
   const requestPairing = useCallback(async () => {
     setPairingError('');
     try {
-      const response = await fetch('/api/voice/pair', { method: 'POST' });
+      const response = await fetch('/api/voice/pair', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: stack }),
+      });
       if (!response.ok) throw new Error(String(response.status));
       setPairing(await response.json());
     } catch {
       setPairingError("Couldn't get a code. Reload to try again.");
     }
-  }, []);
+  }, [stack]);
 
   useEffect(() => {
     if (open && mode.kind === 'waiting' && !pairing) requestPairing();
@@ -155,10 +209,10 @@ export function LiveFeedPanel() {
     if (!pairing) return;
     const pusher = getPusherClient();
     const channel = pusher.subscribe(pairing.channel);
-    channel.bind('paired', ({ callSid }: { callSid: string }) => {
+    channel.bind('paired', ({ callSid, path }: { callSid: string; path?: CallPath }) => {
       stopReplay();
       setEvents([]);
-      setMode({ kind: 'live', callSid });
+      setMode({ kind: 'live', callSid, path: path ?? pairing.path });
     });
     channel.bind('events', ({ events: incoming }: { callSid: string; events: FeedEvent[] }) => addEvents(incoming));
     return () => {
@@ -179,13 +233,13 @@ export function LiveFeedPanel() {
     transcriptEnd.current?.scrollIntoView({ block: 'end' });
   }, [feed.transcript.length]);
 
-  const playReplay = async (callSid: string) => {
+  const playReplay = async (callSid: string, path: CallPath | null) => {
     stopReplay();
     const response = await fetch(`/api/voice/replays/${callSid}`);
     if (!response.ok) return;
     const { events: recorded } = (await response.json()) as { events: FeedEvent[] };
     setEvents([]);
-    setMode({ kind: 'replay', callSid });
+    setMode({ kind: 'replay', callSid, path: path ?? 'A' });
     let delay = 0;
     let previous = recorded.length ? new Date(recorded[0].at).getTime() : 0;
     for (const event of recorded) {
@@ -215,8 +269,8 @@ export function LiveFeedPanel() {
     );
   }
 
-  const latestTtft = feed.ttfts.at(-1);
-  const maxTtft = Math.max(...feed.ttfts, 1);
+  const current = stackFor(mode.kind === 'waiting' ? stack : mode.path);
+  const runsOwnSpeech = current.path === 'B';
 
   return (
     <aside className="fixed inset-y-0 right-0 z-40 flex w-full flex-col border-l border-rule bg-background text-sm sm:w-[380px]">
@@ -229,7 +283,8 @@ export function LiveFeedPanel() {
         </div>
         <div className="mt-2 flex items-center justify-between gap-2">
           <span className="text-[13px] text-ink-2">
-            Path A · Twilio ConversationRelay{feed.model ? ` · ${feed.model}` : ''}
+            {current.label}
+            {feed.model ? ` · ${feed.model}` : ''}
           </span>
           <span
             className={cn(
@@ -246,9 +301,31 @@ export function LiveFeedPanel() {
       <div className="flex-1 overflow-y-auto px-5 py-5">
         {mode.kind === 'waiting' && (
           <div className="space-y-6">
+            {STACKS.length > 1 && (
+              <div>
+                <div role="tablist" aria-label="Which build answers your call" className="flex gap-5">
+                  {STACKS.map((option) => (
+                    <button
+                      key={option.path}
+                      type="button"
+                      role="tab"
+                      aria-selected={option.path === stack}
+                      onClick={() => pickStack(option.path)}
+                      className={cn(
+                        'border-b pb-1 text-[15px]',
+                        option.path === stack ? 'border-ink text-ink' : 'border-transparent text-ink-3 hover:text-ink'
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-3 text-[13px] text-ink-2">{current.line}</p>
+              </div>
+            )}
             <div>
               <p className="text-lg leading-snug">
-                Call <span className="whitespace-nowrap">{VOICE_NUMBER}</span>, then type this code on the keypad to watch your call here.
+                Call <span className="whitespace-nowrap">{VOICE_NUMBER}</span> and type this code on the keypad right away to watch your call here.
               </p>
               <p className="mt-4 text-[40px] tabular-nums tracking-[0.2em]">{pairing?.code ?? '····'}</p>
               {pairingError && <p role="alert" className="mt-2 text-[13px] text-ink">{pairingError}</p>}
@@ -259,7 +336,7 @@ export function LiveFeedPanel() {
                 <ul className="space-y-1">
                   {replays.map((replay) => (
                     <li key={replay.callSid}>
-                      <button type="button" onClick={() => playReplay(replay.callSid)} className="text-left underline-offset-2 hover:underline">
+                      <button type="button" onClick={() => playReplay(replay.callSid, replay.path)} className="text-left underline-offset-2 hover:underline">
                         {new Date(replay.startedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         {replay.durationSec != null && <span className="text-ink-3"> · {replay.durationSec}s</span>}
                       </button>
@@ -320,24 +397,32 @@ export function LiveFeedPanel() {
         </div>
 
         <div>
-          <SectionLabel>Latency · time to first token</SectionLabel>
-          <PathBOnly label="Speech to text" reason="Twilio transcribes the audio and doesn't report how long it took." />
-          <div className="flex items-center justify-between gap-3 py-1">
-            <span>Language model</span>
-            <span className="flex items-end gap-px" aria-hidden>
-              {feed.ttfts.slice(-12).map((ms, i) => (
-                <span key={i} className="w-1 bg-ink-3" style={{ height: `${Math.max(2, (ms / maxTtft) * 14)}px` }} />
-              ))}
-            </span>
-            <span className="w-16 text-right tabular-nums">{latestTtft !== undefined ? `${latestTtft} ms` : '—'}</span>
-          </div>
-          <PathBOnly label="Text to speech" reason="Twilio turns the reply into speech and doesn't report how long it took." />
+          <SectionLabel>Latency · time to first result</SectionLabel>
+          {runsOwnSpeech ? (
+            <LatencyRow label="Speech to text" values={feed.sttMs} />
+          ) : (
+            <Unavailable label="Speech to text" note="Pipecat only" reason="Twilio transcribes the audio and doesn't report how long it took." />
+          )}
+          <LatencyRow label="Language model" values={feed.ttfts} />
+          {runsOwnSpeech ? (
+            <LatencyRow label="Text to speech" values={feed.ttsMs} />
+          ) : (
+            <Unavailable label="Text to speech" note="Pipecat only" reason="Twilio turns the reply into speech and doesn't report how long it took." />
+          )}
         </div>
 
         <div>
           <SectionLabel>Caller tone and audio</SectionLabel>
-          <PathBOnly label="Tone and emotion" reason="Twilio sends the words, not the audio, so there's nothing to read tone from." />
-          <PathBOnly label="Waveform" reason="Twilio keeps the audio." />
+          <Unavailable
+            label="Tone and emotion"
+            note={runsOwnSpeech ? 'Not shown yet' : 'Not on Twilio'}
+            reason={runsOwnSpeech ? 'Pipecat has the audio; reading tone from it is still to come.' : "Twilio sends the words, not the audio, so there's nothing to read tone from."}
+          />
+          <Unavailable
+            label="Waveform"
+            note={runsOwnSpeech ? 'Not shown yet' : 'Not on Twilio'}
+            reason={runsOwnSpeech ? 'Pipecat has the audio; drawing it is still to come.' : 'Twilio keeps the audio.'}
+          />
         </div>
       </div>
     </aside>

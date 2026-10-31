@@ -28,6 +28,9 @@ export interface FeedState {
   toolCounts: Record<string, number>;
   lastTool: ToolCall | null;
   ttfts: number[];
+  /** Speech-to-text and voice latency, which only stacks that run those stages themselves (Pipecat) report. */
+  sttMs: number[];
+  ttsMs: number[];
 }
 
 export const eventKey = (event: FeedEvent) => `${event.at}|${event.type}|${event.turn ?? ''}`;
@@ -42,7 +45,7 @@ function unheardPart(full: string, heard: string): string {
 
 /** Turns a call's public events into what the panel shows. Pure, so live calls and replays share it. */
 export function buildFeed(events: FeedEvent[]): FeedState {
-  const feed: FeedState = { state: 'waiting', model: null, transcript: [], toolCounts: {}, lastTool: null, ttfts: [] };
+  const feed: FeedState = { state: 'waiting', model: null, transcript: [], toolCounts: {}, lastTool: null, ttfts: [], sttMs: [], ttsMs: [] };
   const sorted = [...events].sort((a, b) => a.at.localeCompare(b.at));
 
   sorted.forEach((event, index) => {
@@ -61,6 +64,12 @@ export function buildFeed(events: FeedEvent[]): FeedState {
       case 'agent.first_token':
         if (typeof data.ttftMs === 'number') feed.ttfts.push(data.ttftMs);
         feed.state = 'speaking';
+        break;
+      case 'stt.latency':
+        if (typeof data.ms === 'number') feed.sttMs.push(data.ms);
+        break;
+      case 'tts.latency':
+        if (typeof data.ms === 'number') feed.ttsMs.push(data.ms);
         break;
       case 'tool.start': {
         const tool = str(data.tool);

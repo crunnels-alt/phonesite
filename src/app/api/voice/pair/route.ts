@@ -3,15 +3,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { and, gt, isNull, lt, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { voicePairings } from '@/lib/schema';
+import type { CallPath } from '@/lib/schema';
 import { checkRateLimit, getIdentifier, getStandardRateLimit } from '@/lib/ratelimit';
 
 const CODE_TTL_MS = 10 * 60 * 1000;
 const MAX_ATTEMPTS = 10;
+// Stacks a visitor can pick. LiveKit (C) joins once it's built.
+const PATHS: CallPath[] = ['A', 'B'];
 
 /** A browser asks for a code to show. The caller types it on the keypad to pair this browser with their call. */
 export async function POST(request: NextRequest) {
   const limited = await checkRateLimit(await getStandardRateLimit(), getIdentifier(request));
   if (limited) return limited;
+
+  const body = await request.json().catch(() => ({}));
+  const path: CallPath = PATHS.includes(body?.path) ? body.path : 'A';
 
   const now = new Date();
   await db.delete(voicePairings).where(and(lt(voicePairings.expiresAt, now), isNull(voicePairings.claimedAt)));
@@ -28,8 +34,8 @@ export async function POST(request: NextRequest) {
       .where(and(eq(voicePairings.code, code), gt(voicePairings.expiresAt, now), isNull(voicePairings.claimedAt)))
       .limit(1);
     if (active.length) continue;
-    await db.insert(voicePairings).values({ channel, code, expiresAt });
-    return NextResponse.json({ code, channel, expiresAt: expiresAt.toISOString() });
+    await db.insert(voicePairings).values({ channel, code, path, expiresAt });
+    return NextResponse.json({ code, channel, path, expiresAt: expiresAt.toISOString() });
   }
 
   return NextResponse.json({ error: 'No code available, try again' }, { status: 503 });
