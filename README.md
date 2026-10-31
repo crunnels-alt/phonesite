@@ -1,6 +1,6 @@
 # Phone-Controlled Portfolio Website
 
-A unique portfolio website with phone navigation - call a number and use your dial pad to navigate sections in real-time. Built with Next.js, Twilio, Pusher, and Vercel Postgres.
+A portfolio website with two phone lines. Call the keypad line and use your dial pad to navigate sections in real time, or call the AI agent line and talk to an assistant while the site shows the call live. Built with Next.js, Twilio, Pusher, and Vercel Postgres.
 
 ## Features
 
@@ -9,7 +9,9 @@ A unique portfolio website with phone navigation - call a number and use your di
 - **Content Sections**: About, Projects, Photos, Writing, Reading Notes
 - **Admin Panel**: Manage photos, projects, and writings with CRUD operations
 - **Photo Gallery**: Upload to Vercel Blob with Montessori-style layout
-- **Readwise Integration**: Sync and display reading highlights
+- **Readwise Integration**: Sync and display reading highlights, refreshed daily by a Vercel cron
+- **Bookshelf**: Readwise books plus a Goodreads export (`src/content/goodreads.ts`), covers from Open Library
+- **AI Agent Line**: A voice agent on its own number, with a live feed panel on the site (see below)
 
 ## Tech Stack
 
@@ -60,6 +62,18 @@ NEXT_PUBLIC_PUSHER_CLUSTER=
 
 # Readwise (Optional)
 READWISE_ACCESS_TOKEN= # Get from https://readwise.io/access_token
+CRON_SECRET=           # Vercel cron auth for /api/cron/readwise
+
+# Voice agent (shared with the relay and Pipecat servers)
+VOICE_API_SECRET=      # Bearer token the voice servers use for /api/voice/*
+PHONE_HASH_KEY=        # HMAC key for hashing caller numbers
+
+# Optional
+LASTFM_API_KEY=
+LASTFM_USERNAME=
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=
+CONTACT_NOTIFICATION_EMAIL=
 
 # Admin
 ADMIN_PASSWORD=        # For /admin access
@@ -111,6 +125,12 @@ npm run db:migrate
 
 # Run both (complete setup)
 npm run db:setup
+
+# Create or extend the voice agent tables (additive, safe to re-run)
+npm run db:init-voice
+
+# Pull Readwise highlights now (the cron does this daily at 09:00 UTC)
+npm run readwise:sync
 ```
 
 ## Project Structure
@@ -124,7 +144,9 @@ src/
 │   │   ├── projects/   # Project CRUD
 │   │   ├── writings/   # Writing CRUD
 │   │   ├── readwise/   # Readwise sync
-│   │   └── webhook/    # Twilio webhooks
+│   │   ├── cron/       # Daily Readwise sync (Vercel cron)
+│   │   ├── voice/      # Agent line: pairing, events, calls, replays, messages
+│   │   └── webhook/    # Twilio webhooks (keypad line)
 │   ├── page.tsx        # Main app (phone navigation)
 │   └── layout.tsx
 ├── components/
@@ -132,6 +154,7 @@ src/
 │   ├── ContentManager.tsx  # CRUD UI for all content
 │   ├── PhotoManager.tsx    # Photo uploader
 │   ├── PhoneStateMonitor.tsx # HUD for phone state
+│   ├── voice/              # Live feed panel for the agent line
 │   └── sections/           # Content sections
 ├── lib/
 │   ├── db.ts           # Database connection
@@ -139,7 +162,10 @@ src/
 │   ├── photos.ts       # Photo model
 │   ├── projects.ts     # Project model
 │   ├── writings.ts     # Writing model
-│   └── readwise.ts     # Readwise integration
+│   ├── readwise.ts     # Readwise integration
+│   ├── books.ts        # Shelf: Readwise + Goodreads merge
+│   └── voice.ts        # Agent line helpers (Pusher, pairing)
+├── content/            # Static content (resume, Goodreads export)
 └── data/               # JSON data (legacy, can be deleted after migration)
 ```
 
@@ -155,6 +181,16 @@ src/
    - `3` - Photos
    - `4` - Writing
    - `5` - Reading Notes
+
+### AI Agent Line
+
+The agent number (+1 646 941 7945) is answered by the voice relay in a separate repo (`~/projects/voice-relay-lab`). This site is the agent's display and record:
+
+1. A visitor opens the feed panel and picks a stack: **Twilio** (ConversationRelay) or **Pipecat** (Deepgram, ElevenLabs, on Railway). The panel shows a 4-digit pairing code.
+2. On the call, the relay listens silently for 3 seconds. A typed code is claimed through `/api/voice/pair/claim` and the call goes to the stack the code was made for; no code or a used code goes to Twilio.
+3. Both stacks post events to `/api/voice/events`. The site stores them and pushes them over Pusher to the paired browser, which shows transcript, turn state and latency.
+
+Pairings live in `voice_pairings` (with a `path` column: `A` Twilio, `B` Pipecat); calls in `calls`, `call_events`, `call_transcripts` and `messages`.
 
 ### Admin Panel
 
@@ -276,14 +312,9 @@ When you upload a photo, you'll see logs like:
 Detected image dimensions: 640x480 (png)
 ```
 
-## TODOs
+## Backlog
 
-- [x] ~~Enable Twilio signature validation~~ ✅ Implemented with dev/prod modes
-- [x] ~~Implement Sharp for proper image dimension detection~~ ✅ Implemented
-- [x] ~~Add rate limiting to API endpoints~~ ✅ Implemented with tiered limits
-- [ ] Add proper admin authentication (currently simple password)
-- [ ] Implement edit UI for projects/writings (currently delete-only)
-- [ ] Add UI for creating new projects/writings (currently via API only)
+The backlog lives in Linear (team Crunnels, project Phonesite).
 
 ## License
 
@@ -291,4 +322,4 @@ Private project
 
 ## Contact
 
-[Your contact information]
+[crunnels.online](https://www.crunnels.online)
