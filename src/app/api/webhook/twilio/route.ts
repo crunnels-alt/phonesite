@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { getPusher } from '@/lib/pusher';
 import { sessions, sessionEvents, photos, readwiseHighlights } from '@/lib/schema';
 import { sectionById, sectionByDigit } from '@/lib/sections';
+import { isValidTwilioRequest } from '@/lib/twilio';
 
 // Pressing one of these digits again shows a random photo or highlight.
 const SPOTLIGHT_SECTIONS = ['photo', 'reading'];
@@ -18,65 +19,6 @@ interface TwilioWebhookBody {
 }
 
 
-/**
- * Validates a Twilio webhook request signature using HMAC-SHA1
- * Implementation based on Twilio's official documentation:
- * https://www.twilio.com/docs/usage/security#validating-requests
- *
- * @param url - The full URL of the webhook (including protocol and domain)
- * @param params - The POST body parameters as an object
- * @param signature - The X-Twilio-Signature header value
- * @returns true if signature is valid, false otherwise
- */
-function validateTwilioSignature(url: string, params: Record<string, string>, signature: string): boolean {
-  // In development, skip validation for easier testing
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Dev Mode] Skipping Twilio signature validation');
-    return true;
-  }
-
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  if (!authToken) {
-    console.error('TWILIO_AUTH_TOKEN not configured');
-    return false;
-  }
-
-  // Build the signature data per Twilio's spec:
-  // 1. Start with the full URL
-  // 2. Sort parameters alphabetically by key
-  // 3. Append each key-value pair (no separators)
-  let data = url;
-
-  // Sort parameters alphabetically and append to URL
-  const sortedKeys = Object.keys(params).sort();
-  for (const key of sortedKeys) {
-    data += key + params[key];
-  }
-
-  // Create HMAC-SHA1 hash and encode as base64
-  const expectedSignature = crypto
-    .createHmac('sha1', authToken)
-    .update(data, 'utf8')
-    .digest('base64');
-
-  // Compare signatures using timing-safe comparison
-  const isValid = crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  );
-
-  if (!isValid) {
-    console.error('Invalid Twilio signature', {
-      url,
-      receivedSignature: signature,
-      expectedSignature,
-      paramsKeys: sortedKeys
-    });
-  }
-
-  return isValid;
-}
-
 export async function GET() {
   return NextResponse.json({
     message: 'Twilio webhook endpoint is working',
@@ -86,32 +28,10 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.text();
-    const twilioSignature = request.headers.get('x-twilio-signature');
+    const formData = new URLSearchParams(await request.text());
+    const params = Object.fromEntries(formData);
 
-    if (!twilioSignature) {
-      return NextResponse.json(
-        { error: 'Missing Twilio signature' },
-        { status: 401 }
-      );
-    }
-
-    // Parse form data
-    const formData = new URLSearchParams(body);
-
-    // Convert URLSearchParams to plain object for validation
-    const params: Record<string, string> = {};
-    formData.forEach((value, key) => {
-      params[key] = value;
-    });
-
-    // Get the full URL for validation (must match what Twilio used to sign)
-    const url = request.url;
-
-    // Validate the Twilio signature
-    const isValid = validateTwilioSignature(url, params, twilioSignature);
-
-    if (!isValid) {
+    if (!isValidTwilioRequest(request, params, { skipInDevelopment: true })) {
       return NextResponse.json(
         { error: 'Invalid Twilio signature' },
         { status: 401 }
