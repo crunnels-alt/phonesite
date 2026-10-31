@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getIdentifier, checkAuthRateLimit } from '@/lib/ratelimit';
+import { safeEqual } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const authenticated = password === adminPassword;
+    const authenticated = typeof password === 'string' && safeEqual(password, adminPassword);
 
     return NextResponse.json({ authenticated });
   } catch (error) {

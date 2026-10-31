@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { desc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { calls } from '@/lib/schema';
-import { requireAdmin } from '@/lib/voice';
+import { requireAdmin } from '@/lib/auth';
 
 /** Recent calls for the console. */
 export async function GET(request: NextRequest) {

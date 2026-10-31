@@ -2,16 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { readAdminPassword, storeAdminPassword } from '@/lib/admin-client';
 
-const STORAGE_KEY = 'phonesite-admin-password';
-
-function readStored(): string {
-  try {
-    return sessionStorage.getItem(STORAGE_KEY) ?? '';
-  } catch {
-    return '';
-  }
-}
 
 /** Asks for the admin password once per browser session, then renders children with it. */
 export function AdminGate({ children }: { children: (password: string) => ReactNode }) {
@@ -19,7 +11,7 @@ export function AdminGate({ children }: { children: (password: string) => ReactN
   const [input, setInput] = useState('');
   const [error, setError] = useState('');
 
-  useEffect(() => setPassword(readStored()), []);
+  useEffect(() => setPassword(readAdminPassword()), []);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -34,9 +26,7 @@ export function AdminGate({ children }: { children: (password: string) => ReactN
       setError('Wrong password. Try again.');
       return;
     }
-    try {
-      sessionStorage.setItem(STORAGE_KEY, input);
-    } catch {}
+    storeAdminPassword(input);
     setPassword(input);
   };
 

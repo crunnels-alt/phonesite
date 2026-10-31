@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth';
 
 interface TestWebhookRequest {
   phoneNumber: string;
   digit: string;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const unauthorized = requireAdmin(request);
+  if (unauthorized) return unauthorized;
+
   return NextResponse.json({
     message: 'Test webhook endpoint is working',
     usage: 'Send POST request with phoneNumber and digit to test'
@@ -13,6 +17,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireAdmin(request);
+  if (unauthorized) return unauthorized;
+
   try {
     const { phoneNumber, digit }: TestWebhookRequest = await request.json();
 

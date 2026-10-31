@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './admin.module.css';
+import { adminFetch } from '@/lib/admin-client';
 
 type ContentType = 'photos' | 'projects' | 'writings';
 
@@ -84,7 +85,7 @@ export default function ContentManager() {
     }
 
     try {
-      const response = await fetch(`/api/${activeTab}?id=${id}`, {
+      const response = await adminFetch(`/api/${activeTab}?id=${id}`, {
         method: 'DELETE',
       });
 
@@ -110,7 +111,7 @@ export default function ContentManager() {
 
   const handleSaveEdit = async () => {
     try {
-      const response = await fetch(`/api/${activeTab}`, {
+      const response = await adminFetch(`/api/${activeTab}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editForm),
@@ -134,7 +135,7 @@ export default function ContentManager() {
 
   const handleCreate = async () => {
     try {
-      const response = await fetch(`/api/${activeTab}`, {
+      const response = await adminFetch(`/api/${activeTab}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(createForm),
@@ -165,7 +166,7 @@ export default function ContentManager() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/upload', {
+      const response = await adminFetch('/api/upload', {
         method: 'POST',
         body: formData,
       });

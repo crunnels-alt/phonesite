@@ -5,6 +5,7 @@ import PhotoManager from './PhotoManager';
 import ContentManager from './ContentManager';
 import ContactMessages from './ContactMessages';
 import styles from './admin.module.css';
+import { adminFetch } from '@/lib/admin-client';
 
 export default function AdminPanel() {
   const [phoneNumber, setPhoneNumber] = useState('+1234567890');
@@ -16,7 +17,7 @@ export default function AdminPanel() {
   const sendTestWebhook = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/test/webhook', {
+      const response = await adminFetch('/api/test/webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber, digit }),
@@ -31,7 +32,7 @@ export default function AdminPanel() {
 
   const clearNavigationHistory = async () => {
     try {
-      const response = await fetch('/api/users', { method: 'DELETE' });
+      const response = await adminFetch('/api/users', { method: 'DELETE' });
       const result = await response.json();
       setLastResponse(result);
     } catch {
