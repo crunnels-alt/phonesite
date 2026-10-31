@@ -60,14 +60,21 @@ export default async function ReadingPage({ searchParams }: ReadingPageProps) {
               style={{ '--x': `${x}%`, '--y': `${y}px`, '--w': `${width}px` } as React.CSSProperties}
             >
               <figure className="m-0">
-                <Image
-                  src={book.coverUrl}
-                  alt={`${book.title} cover`}
-                  width={width * 2}
-                  height={width * 3}
-                  sizes={`(min-width: 768px) ${width}px, 45vw`}
-                  className="h-auto w-full"
-                />
+                {book.coverUrl ? (
+                  <Image
+                    src={book.coverUrl}
+                    alt={`${book.title} cover`}
+                    width={width * 2}
+                    height={width * 3}
+                    sizes={`(min-width: 768px) ${width}px, 45vw`}
+                    className="h-auto w-full"
+                  />
+                ) : (
+                  <div aria-hidden="true" className="flex aspect-[2/3] w-full flex-col justify-between border border-rule p-3">
+                    <span className="text-[15px] leading-tight tracking-[-0.01em]">{book.title}</span>
+                    {book.author && <span className="text-[11px] text-ink-3">{book.author}</span>}
+                  </div>
+                )}
                 <figcaption className="mt-2.5 text-[13px] leading-[1.35]">
                   {book.title}
                   {book.author && <span className="block text-ink-3">{book.author}</span>}

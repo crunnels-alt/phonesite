@@ -6,7 +6,8 @@ export interface ShelfBook {
   id: number;
   title: string;
   author: string;
-  coverUrl: string;
+  /** Null when Readwise has no cover; the page draws a plain text cover instead. */
+  coverUrl: string | null;
 }
 
 export interface SpotlightQuote {
@@ -23,7 +24,23 @@ const isPlaceholderCover = (url: string) => url.includes('default-book-icon');
 
 const shortTitle = (title: string) => title.split(/[:(]/)[0].trim();
 
-/** Books with a real cover, most recently highlighted first, one per title. */
+// Kindle clippings carry file-name titles ("Zhou Enlai_ a Life", "One Way Street for Connor Runnels").
+const cleanTitle = (title: string) =>
+  shortTitle(title.replace(/\s+for Connor Runnels$/i, '').replace(/&#39;/g, "'")).replace(/\s*_\s*/g, ': ');
+
+// Clipping authors come as "Last, First" or "Volume 18 -- Walter J_ Ong --".
+const cleanAuthor = (author: string) => {
+  const part = author.includes('--') ? (author.split('--').map((p) => p.trim()).find((p) => p && !/\d/.test(p)) ?? '') : author.trim();
+  const named = /^[^,]+,\s*[^,]+$/.test(part) ? part.split(',').reverse().map((p) => p.trim()).join(' ') : part;
+  // "Frantz Fanon, Jean-Paul Sartre (Preface), ..." lists contributors by role; keep the author.
+  const name = (/\(/.test(named) ? named.split(',')[0] : named).replace(/_/g, '.').trim();
+  return name.length < 4 ? '' : name;
+};
+
+// Without a cover or an author, a one-word or "et al" title is an unreadable clipping, not a book.
+const isUnreadable = (title: string, author: string) => !author && (!title.includes(' ') || /\bet al\b/i.test(title));
+
+/** Every book, most recently highlighted first, one per title; a copy with a cover wins over one without. */
 export async function getBookshelf(): Promise<ShelfBook[]> {
   try {
     const rows = await db
@@ -32,12 +49,17 @@ export async function getBookshelf(): Promise<ShelfBook[]> {
       .where(and(eq(readwiseBooks.category, 'books'), ne(readwiseBooks.source, 'supplemental')))
       .orderBy(desc(readwiseBooks.lastHighlightAt));
 
+    const books = rows.map((book) => {
+      const cover = book.coverImageUrl && !isPlaceholderCover(book.coverImageUrl) ? fullSizeCover(book.coverImageUrl) : null;
+      return { id: book.id, title: cleanTitle(book.title), author: cleanAuthor(book.author), coverUrl: cover };
+    });
+    const withCover = new Set(books.filter((b) => b.coverUrl).map((b) => b.title.toLowerCase()));
     const seen = new Set<string>();
-    return rows.flatMap((book) => {
-      const key = shortTitle(book.title).toLowerCase();
-      if (!book.coverImageUrl || isPlaceholderCover(book.coverImageUrl) || seen.has(key)) return [];
+    return books.filter((book) => {
+      const key = book.title.toLowerCase();
+      if (seen.has(key) || (!book.coverUrl && withCover.has(key)) || (!book.coverUrl && isUnreadable(book.title, book.author))) return false;
       seen.add(key);
-      return [{ id: book.id, title: shortTitle(book.title), author: book.author, coverUrl: fullSizeCover(book.coverImageUrl) }];
+      return true;
     });
   } catch (error) {
     console.error('Error reading bookshelf:', error);
