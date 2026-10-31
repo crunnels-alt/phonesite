@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import PhotoManager from './PhotoManager';
-import ContentManager from './ContentManager';
 import ContactMessages from './ContactMessages';
 import styles from './admin.module.css';
 import { adminFetch } from '@/lib/admin-client';
@@ -118,9 +117,6 @@ export default function AdminPanel() {
 
       {/* Photo Upload */}
       <PhotoManager />
-
-      {/* Content Manager */}
-      <ContentManager />
     </div>
   );
 }

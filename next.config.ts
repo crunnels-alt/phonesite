@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // A package-lock.json in the home directory otherwise makes Next pick the wrong workspace root.
+  turbopack: { root: __dirname },
   images: {
     remotePatterns: [
       {

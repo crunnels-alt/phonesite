@@ -1,9 +1,10 @@
-import { neon } from '@neondatabase/serverless';
+import { config } from 'dotenv';
+import { sql } from '@vercel/postgres';
 
-const sql = neon(process.env.POSTGRES_URL!);
+config({ path: '.env.local' });
 
 async function check() {
-  const photos = await sql`SELECT id, title, group_id, group_name FROM photos`;
+  const { rows: photos } = await sql`SELECT id, title, group_id, group_name FROM photos`;
   console.log('Photos in DB:', photos.length);
   photos.forEach(p => console.log(`- ${p.title}: group=${p.group_name || 'NONE'}`));
 }
