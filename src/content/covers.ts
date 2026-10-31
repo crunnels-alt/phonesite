@@ -1,0 +1,27 @@
+// Open Library covers found by title and author search, for books whose ISBN or Readwise entry has none.
+// Each match was checked against the author; keyed by the title the shelf shows.
+export const COVER_FALLBACKS: Record<string, string> = {
+  "Deja Vu and the End of History": "https://covers.openlibrary.org/b/id/13351230-L.jpg",
+  "Revolutionary Mathematics": "https://covers.openlibrary.org/b/id/13194985-L.jpg",
+  "Eye of the Master": "https://covers.openlibrary.org/b/id/14569589-L.jpg",
+  "One Way Street": "https://covers.openlibrary.org/b/id/11550766-L.jpg",
+  "Transcription": "https://covers.openlibrary.org/b/id/15252595-L.jpg",
+  "Medium Hot": "https://covers.openlibrary.org/b/id/15102192-L.jpg",
+  "Agency": "https://covers.openlibrary.org/b/id/13090570-L.jpg",
+  "The Essential Guide to Telecommunications": "https://covers.openlibrary.org/b/id/89793-L.jpg",
+  "Jack the Modernist": "https://covers.openlibrary.org/b/id/900397-L.jpg",
+  "Do Androids Dream of Electric Sheep?": "https://covers.openlibrary.org/b/id/207515-L.jpg",
+  "Leaving the Atocha Station": "https://covers.openlibrary.org/b/id/9159099-L.jpg",
+  "On Being Blue": "https://covers.openlibrary.org/b/id/4488184-L.jpg",
+  "No Sense of Place": "https://covers.openlibrary.org/b/id/121113-L.jpg",
+  "The Fortune Men": "https://covers.openlibrary.org/b/id/11678953-L.jpg",
+  "The Mill on the Floss": "https://covers.openlibrary.org/b/id/8236884-L.jpg",
+  "Negrophobia": "https://covers.openlibrary.org/b/id/3936283-L.jpg",
+  "Faust": "https://covers.openlibrary.org/b/id/6499459-L.jpg",
+  "Pale Fire": "https://covers.openlibrary.org/b/id/419852-L.jpg",
+  "Pattern Recognition": "https://covers.openlibrary.org/b/id/8373619-L.jpg",
+  "The Fragile Absolute": "https://covers.openlibrary.org/b/id/13313721-L.jpg",
+  "Regarding the Pain of Others": "https://covers.openlibrary.org/b/id/6256747-L.jpg",
+  "The Recognitions": "https://covers.openlibrary.org/b/id/97727-L.jpg",
+  "Ulysses": "https://covers.openlibrary.org/b/id/13136548-L.jpg",
+};
