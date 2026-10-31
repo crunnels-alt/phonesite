@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { callEvents } from '@/lib/schema';
-import type { EventSource, EventStage, EventVisibility, NewCallEvent } from '@/lib/schema';
-import { requireVoiceSecret, upsertCall } from '@/lib/voice';
+import type { CallEvent, EventSource, EventStage, EventVisibility, NewCallEvent } from '@/lib/schema';
+import { forwardToPairedBrowsers, requireVoiceSecret, toFeedEvent, upsertCall } from '@/lib/voice';
 import type { CallUpsert } from '@/lib/voice';
 
 const SOURCES: EventSource[] = ['twilio', 'runtime', 'console', 'page'];
@@ -70,6 +70,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Voice events insert failed:', error);
     return NextResponse.json({ error: 'Insert failed' }, { status: 500 });
+  }
+
+  // The events are stored, so a failed live update must not make the voice server resend them.
+  try {
+    const publicEvents = rows.filter((row) => row.visibility === 'public').map((row) => toFeedEvent(row as CallEvent));
+    await forwardToPairedBrowsers(callSid, publicEvents);
+  } catch (error) {
+    console.error('Voice events forward failed:', error);
   }
 
   return NextResponse.json({ inserted: rows.length, rejected: inputs.length - rows.length });

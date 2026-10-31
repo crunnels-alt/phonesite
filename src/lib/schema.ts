@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, uuid, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, timestamp, uuid, jsonb, index, boolean } from 'drizzle-orm/pg-core';
 
 // Photos table
 export const photos = pgTable('photos', {
@@ -151,6 +151,8 @@ export const calls = pgTable('calls', {
   handoff: jsonb('handoff').$type<Record<string, unknown>>(),
   recordingSid: text('recording_sid'),
   sessionId: uuid('session_id').references(() => sessions.id),
+  // Featured calls are Connor's own sample calls, replayed publicly in the live feed.
+  featured: boolean('featured').notNull().default(false),
 });
 
 // One row per thing that happened on a call, from any system. Drives the timeline and live feed.
@@ -195,6 +197,20 @@ export const messages = pgTable('messages', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// A browser showing a code, waiting for a caller to type it. Claiming links the browser's channel to a call.
+export const voicePairings = pgTable(
+  'voice_pairings',
+  {
+    channel: text('channel').primaryKey(),
+    code: text('code').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    callSid: text('call_sid'),
+    claimedAt: timestamp('claimed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('voice_pairings_code_idx').on(t.code), index('voice_pairings_call_sid_idx').on(t.callSid)]
+);
+
 // The only facts the agent may say about Connor. Every row is reviewed by Connor.
 export const agentProfile = pgTable('agent_profile', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -235,3 +251,4 @@ export type CallEvent = typeof callEvents.$inferSelect;
 export type NewCallEvent = typeof callEvents.$inferInsert;
 export type Message = typeof messages.$inferSelect;
 export type AgentProfileEntry = typeof agentProfile.$inferSelect;
+export type VoicePairing = typeof voicePairings.$inferSelect;
