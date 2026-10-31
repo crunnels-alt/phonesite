@@ -1,7 +1,10 @@
 import { and, desc, eq, ne } from 'drizzle-orm';
 import { db } from './db';
 import { readwiseBooks, readwiseHighlights } from './schema';
-import { GOODREADS_BOOKS } from '@/content/goodreads';
+import { COVER_FALLBACKS } from '@/content/covers';
+import { GOODREADS_BOOKS, GOODREADS_UNREAD } from '@/content/goodreads';
+
+export type Shelf = 'read' | 'unread';
 
 export interface ShelfBook {
   id: string;
@@ -46,7 +49,7 @@ const titleKey = (title: string) =>
 const isUnreadable = (title: string, author: string) => !author && (!title.includes(' ') || /\bet al\b/i.test(title));
 
 /** Readwise books, most recently highlighted first, then Goodreads books not already shown; one per title, and a copy with a cover wins. */
-export async function getBookshelf(): Promise<ShelfBook[]> {
+async function getReadBooks(): Promise<ShelfBook[]> {
   try {
     const rows = await db
       .select()
@@ -56,9 +59,10 @@ export async function getBookshelf(): Promise<ShelfBook[]> {
 
     const books = rows.map((book) => {
       const cover = book.coverImageUrl && !isPlaceholderCover(book.coverImageUrl) ? fullSizeCover(book.coverImageUrl) : null;
-      return { id: `rw-${book.id}`, title: cleanTitle(book.title), author: cleanAuthor(book.author), coverUrl: cover };
+      const title = cleanTitle(book.title);
+      return { id: `rw-${book.id}`, title, author: cleanAuthor(book.author), coverUrl: cover ?? COVER_FALLBACKS[title] ?? null };
     });
-    books.push(...GOODREADS_BOOKS.map((book, i) => ({ id: `gr-${i}`, ...book })));
+    books.push(...GOODREADS_BOOKS.map((book, i) => ({ id: `gr-${i}`, ...book, coverUrl: book.coverUrl ?? COVER_FALLBACKS[book.title] ?? null })));
     const withCover = new Set(books.filter((b) => b.coverUrl).map((b) => titleKey(b.title)));
     const seen = new Set<string>();
     return books.filter((book) => {
@@ -71,6 +75,20 @@ export async function getBookshelf(): Promise<ShelfBook[]> {
     console.error('Error reading bookshelf:', error);
     return [];
   }
+}
+
+/** Read books, or Goodreads to-read books; an unread book with Readwise highlights counts as read. */
+export async function getBookshelf(shelf: Shelf = 'read'): Promise<ShelfBook[]> {
+  const read = await getReadBooks();
+  if (shelf === 'read') return read;
+  // Also compare the part before a colon: Readwise's "Zhou Enlai: a Life" is Goodreads' "Zhou Enlai".
+  const keys = (title: string) => [titleKey(title), titleKey(title.split(':')[0])];
+  const seen = new Set(read.flatMap((book) => keys(book.title)));
+  return GOODREADS_UNREAD.map((book, i) => ({ id: `gu-${i}`, ...book, coverUrl: book.coverUrl ?? COVER_FALLBACKS[book.title] ?? null })).filter((book) => {
+    if (keys(book.title).some((key) => seen.has(key))) return false;
+    keys(book.title).forEach((key) => seen.add(key));
+    return true;
+  });
 }
 
 /** The highlight a caller's keypad spotlight picked, with its book. */

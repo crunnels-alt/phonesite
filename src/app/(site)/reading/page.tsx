@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getBookshelf, getSpotlightQuote } from '@/lib/books';
+import { getBookshelf, getSpotlightQuote, type Shelf } from '@/lib/books';
+import { cn } from '@/lib/cn';
 import { scatter, type Slot } from '@/lib/scatter';
 
 export const metadata: Metadata = { title: 'Reading · Connor Runnels' };
@@ -18,21 +19,44 @@ const PATTERN: Slot[] = [
   { x: 70, y: 470, width: 150 },
 ];
 
+const SHELVES: { shelf: Shelf; label: string; href: string; source: string }[] = [
+  { shelf: 'read', label: 'Read', href: '/reading', source: 'from Readwise and Goodreads' },
+  { shelf: 'unread', label: 'Not read yet', href: '/reading?shelf=unread', source: 'from Goodreads' },
+];
+
 interface ReadingPageProps {
-  searchParams: Promise<{ spotlight?: string }>;
+  searchParams: Promise<{ spotlight?: string; shelf?: string }>;
 }
 
 export default async function ReadingPage({ searchParams }: ReadingPageProps) {
-  const { spotlight } = await searchParams;
+  const { spotlight, shelf: shelfParam } = await searchParams;
+  const shelf: Shelf = shelfParam === 'unread' ? 'unread' : 'read';
   const [books, quote] = await Promise.all([
-    getBookshelf(),
+    getBookshelf(shelf),
     spotlight && /^\d+$/.test(spotlight) ? getSpotlightQuote(Number(spotlight)) : null,
   ]);
   const { placements, height } = scatter(books.length, PATTERN, 760);
 
   return (
     <main className="px-4 pb-24 pt-14 sm:px-[5%]">
-      <h1 className="mb-10 text-[13px] text-ink-3 md:ml-[8%]">On the shelf · from Readwise and Goodreads</h1>
+      <header className="mb-10 md:ml-[8%]">
+        <h1 className="text-[13px] text-ink-3">On the shelf · {SHELVES.find((s) => s.shelf === shelf)?.source}</h1>
+        <nav aria-label="Shelf" className="mt-3 flex gap-5">
+          {SHELVES.map((option) => (
+            <Link
+              key={option.shelf}
+              href={option.href}
+              aria-current={option.shelf === shelf ? 'page' : undefined}
+              className={cn(
+                'border-b pb-1 text-[15px]',
+                option.shelf === shelf ? 'border-ink text-ink' : 'border-transparent text-ink-3 hover:text-ink'
+              )}
+            >
+              {option.label}
+            </Link>
+          ))}
+        </nav>
+      </header>
 
       {quote && (
         <aside className="mb-16 max-w-[40em] md:ml-[8%]">
