@@ -18,6 +18,7 @@ const STACK_KEY = 'voice-feed-stack';
 const STACKS: { path: CallPath; label: string; line: string }[] = [
   { path: 'A', label: 'Twilio', line: 'Twilio hears and speaks. My code does the thinking.' },
   { path: 'B', label: 'Pipecat', line: 'My server does all of it: hearing, thinking, speaking.' },
+  { path: 'C', label: 'LiveKit', line: 'The call joins a room, and an agent joins it like a person.' },
 ];
 const stackFor = (path: CallPath | null | undefined) => STACKS.find((stack) => stack.path === path) ?? STACKS[0];
 // Long silences in a replay are shortened to this, so it stays watchable.
