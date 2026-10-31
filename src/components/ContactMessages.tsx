@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import styles from './admin.module.css';
+import { adminFetch } from '@/lib/admin-client';
 
 interface ContactMessage {
   id: string;
@@ -19,7 +20,7 @@ export default function ContactMessages() {
 
   const loadMessages = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/messages');
+      const response = await adminFetch('/api/admin/messages');
       const data = await response.json();
       if (data.success) {
         setMessages(data.messages);
@@ -37,7 +38,7 @@ export default function ContactMessages() {
 
   const handleMarkRead = async (id: string) => {
     try {
-      await fetch('/api/admin/messages', {
+      await adminFetch('/api/admin/messages', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
@@ -51,7 +52,7 @@ export default function ContactMessages() {
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this message?')) return;
     try {
-      await fetch(`/api/admin/messages?id=${id}`, { method: 'DELETE' });
+      await adminFetch(`/api/admin/messages?id=${id}`, { method: 'DELETE' });
       loadMessages();
     } catch (error) {
       console.error('Error deleting message:', error);

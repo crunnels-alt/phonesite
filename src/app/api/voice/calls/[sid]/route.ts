@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { asc, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { callEvents, calls } from '@/lib/schema';
-import { requireAdmin } from '@/lib/voice';
+import { requireAdmin } from '@/lib/auth';
 
 /** One call and its full event timeline, including private events. */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ sid: string }> }) {

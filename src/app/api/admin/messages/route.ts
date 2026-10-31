@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { contactMessages } from '@/lib/schema';
 import { desc, eq } from 'drizzle-orm';
+import { requireAdmin } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const unauthorized = requireAdmin(request);
+  if (unauthorized) return unauthorized;
+
   try {
     const messages = await db
       .select()
@@ -25,6 +29,9 @@ export async function GET() {
 
 // Mark message as read
 export async function PUT(request: NextRequest) {
+  const unauthorized = requireAdmin(request);
+  if (unauthorized) return unauthorized;
+
   try {
     const { id } = await request.json();
 
@@ -55,6 +62,9 @@ export async function PUT(request: NextRequest) {
 
 // Delete message
 export async function DELETE(request: NextRequest) {
+  const unauthorized = requireAdmin(request);
+  if (unauthorized) return unauthorized;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

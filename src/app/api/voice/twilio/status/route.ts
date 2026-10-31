@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { callEvents } from '@/lib/schema';
-import { isValidTwilioRequest, upsertCall } from '@/lib/voice';
+import type { CallEvent } from '@/lib/schema';
+import { forwardToPairedBrowsers, isValidTwilioRequest, toFeedEvent, upsertCall } from '@/lib/voice';
 
 /**
  * Twilio status callback for the agent line's number.
@@ -19,6 +20,7 @@ export async function POST(request: NextRequest) {
   const done = ['completed', 'busy', 'failed', 'no-answer', 'canceled'].includes(status);
   const timestamp = params.Timestamp ? new Date(params.Timestamp) : new Date();
 
+  let event: CallEvent;
   try {
     await upsertCall({
       callSid,
@@ -30,7 +32,7 @@ export async function POST(request: NextRequest) {
         durationSec: duration ? Number(duration) : undefined,
       }),
     });
-    await db.insert(callEvents).values({
+    [event] = await db.insert(callEvents).values({
       callSid,
       at: timestamp,
       source: 'twilio',
@@ -43,10 +45,16 @@ export async function POST(request: NextRequest) {
         ...(params.SipResponseCode && { sipResponseCode: params.SipResponseCode }),
         ...(params.SequenceNumber && { sequence: Number(params.SequenceNumber) }),
       },
-    });
+    }).returning();
   } catch (error) {
     console.error('Voice status callback failed:', error);
     return NextResponse.json({ error: 'Insert failed' }, { status: 500 });
+  }
+
+  try {
+    await forwardToPairedBrowsers(callSid, [toFeedEvent(event)]);
+  } catch (error) {
+    console.error('Voice status forward failed:', error);
   }
 
   return new NextResponse(null, { status: 204 });

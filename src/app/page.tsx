@@ -12,6 +12,7 @@ import WritingSection from '@/components/sections/WritingSection';
 import ReadingNotesSection from '@/components/sections/ReadingNotesSection';
 import ListeningSection from '@/components/sections/ListeningSection';
 import { SECTIONS } from '@/components/SectionNavigation';
+import { LiveFeedPanel } from '@/components/voice/LiveFeedPanel';
 import { ContentProvider, useContentRegistry } from '@/lib/content-context';
 
 interface SpotlightState {
@@ -24,6 +25,12 @@ function HomeContent() {
   const [currentSection, setCurrentSection] = useState('home');
   const [spotlight, setSpotlight] = useState<SpotlightState | null>(null);
   const { getVisibleContent } = useContentRegistry();
+  // The voice feed panel is unfinished, so it only shows with ?feed=1 in the URL.
+  const [showVoiceFeed, setShowVoiceFeed] = useState(false);
+
+  useEffect(() => {
+    setShowVoiceFeed(new URLSearchParams(window.location.search).has('feed'));
+  }, []);
 
   // Handle spotlight events from phone navigation
   const handleSpotlight = useCallback((data: SpotlightState) => {
@@ -127,6 +134,8 @@ function HomeContent() {
         onSpotlight={handleSpotlight}
         getVisibleContent={getVisibleContent}
       />
+
+      {showVoiceFeed && <LiveFeedPanel />}
 
       {/* Main Content */}
       <main style={{ background: '#ffffff' }}>

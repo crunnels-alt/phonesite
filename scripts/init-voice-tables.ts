@@ -96,6 +96,23 @@ async function initVoiceTables() {
   `;
   console.log('- agent_profile');
 
+  await sql`ALTER TABLE calls ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT FALSE`;
+  console.log('- calls.featured');
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS voice_pairings (
+      channel TEXT PRIMARY KEY,
+      code TEXT NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL,
+      call_sid TEXT,
+      claimed_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS voice_pairings_code_idx ON voice_pairings (code)`;
+  await sql`CREATE INDEX IF NOT EXISTS voice_pairings_call_sid_idx ON voice_pairings (call_sid)`;
+  console.log('- voice_pairings');
+
   console.log('Done.');
 }
 

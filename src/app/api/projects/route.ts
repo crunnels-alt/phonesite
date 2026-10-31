@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getProjects, addProject, updateProject, deleteProject } from '@/lib/projects';
 import { randomUUID } from 'crypto';
 import { getIdentifier, checkLenientRateLimit, checkStandardRateLimit } from '@/lib/ratelimit';
+import { requireAdmin } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,6 +35,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireAdmin(request);
+  if (unauthorized) return unauthorized;
+
   try {
     // Apply standard rate limiting for write operations
     const identifier = getIdentifier(request);
@@ -82,6 +86,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const unauthorized = requireAdmin(request);
+  if (unauthorized) return unauthorized;
+
   try {
     // Apply standard rate limiting for write operations
     const identifier = getIdentifier(request);
@@ -119,6 +126,9 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const unauthorized = requireAdmin(request);
+  if (unauthorized) return unauthorized;
+
   try {
     // Apply standard rate limiting for delete operations
     const identifier = getIdentifier(request);

@@ -1,31 +1,17 @@
 import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from 'drizzle-orm';
+import Pusher from 'pusher';
+import { and, asc, eq, isNotNull, sql } from 'drizzle-orm';
+import { safeEqual } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { callers, calls } from '@/lib/schema';
-import type { CallPath } from '@/lib/schema';
-
-const safeEqual = (a: string, b: string) => {
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-  return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
-};
+import { callEvents, callers, calls, voicePairings } from '@/lib/schema';
+import type { CallEvent, CallPath } from '@/lib/schema';
 
 /** Voice servers authenticate with a shared secret. Returns an error response, or null when authorized. */
 export function requireVoiceSecret(request: NextRequest): NextResponse | null {
   const secret = process.env.VOICE_API_SECRET;
   const header = request.headers.get('authorization') ?? '';
   if (!secret || !safeEqual(header, `Bearer ${secret}`)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  return null;
-}
-
-/** Console reads use the existing admin password. */
-export function requireAdmin(request: NextRequest): NextResponse | null {
-  const password = process.env.ADMIN_PASSWORD;
-  const header = request.headers.get('authorization') ?? '';
-  if (!password || !safeEqual(header, `Bearer ${password}`)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   return null;
@@ -102,4 +88,77 @@ export async function upsertCall(call: CallUpsert): Promise<void> {
   } else if (inserted.length > 0 && callerId) {
     await db.update(callers).set({ callCount: sql`${callers.callCount} + 1` }).where(sql`${callers.id} = ${callerId}`);
   }
+}
+
+/** What a browser receives for each event. Only public events are ever sent. */
+export interface FeedEvent {
+  at: string;
+  source: string;
+  stage: string;
+  type: string;
+  turn: number | null;
+  data: Record<string, unknown>;
+}
+
+export const toFeedEvent = (event: Pick<CallEvent, 'at' | 'source' | 'stage' | 'type' | 'turn' | 'data'>): FeedEvent => ({
+  at: new Date(event.at).toISOString(),
+  source: event.source,
+  stage: event.stage,
+  type: event.type,
+  turn: event.turn,
+  data: event.data,
+});
+
+export async function publicFeedEvents(callSid: string): Promise<FeedEvent[]> {
+  const rows = await db
+    .select()
+    .from(callEvents)
+    .where(and(eq(callEvents.callSid, callSid), eq(callEvents.visibility, 'public')))
+    .orderBy(asc(callEvents.at));
+  return rows.map(toFeedEvent);
+}
+
+let pusher: Pusher | null = null;
+const getPusher = () =>
+  (pusher ??= new Pusher({
+    appId: process.env.PUSHER_APP_ID!,
+    key: process.env.PUSHER_KEY!,
+    secret: process.env.PUSHER_SECRET!,
+    cluster: process.env.PUSHER_CLUSTER!,
+    useTLS: true,
+  }));
+
+// Pusher rejects messages over 10KB, so events go out in batches under that.
+const MAX_MESSAGE_BYTES = 8000;
+
+export async function sendFeedEvents(channel: string, callSid: string, events: FeedEvent[]): Promise<void> {
+  let batch: FeedEvent[] = [];
+  let size = 0;
+  const send = async () => {
+    if (batch.length) await getPusher().trigger(channel, 'events', { callSid, events: batch });
+    batch = [];
+    size = 0;
+  };
+  for (const event of events) {
+    const bytes = Buffer.byteLength(JSON.stringify(event));
+    if (bytes > MAX_MESSAGE_BYTES) continue;
+    if (size + bytes > MAX_MESSAGE_BYTES) await send();
+    batch.push(event);
+    size += bytes;
+  }
+  await send();
+}
+
+export async function notifyPaired(channel: string, callSid: string): Promise<void> {
+  await getPusher().trigger(channel, 'paired', { callSid });
+}
+
+/** Forward newly stored public events to every browser paired with this call. */
+export async function forwardToPairedBrowsers(callSid: string, events: FeedEvent[]): Promise<void> {
+  if (!events.length) return;
+  const pairings = await db
+    .select({ channel: voicePairings.channel })
+    .from(voicePairings)
+    .where(and(eq(voicePairings.callSid, callSid), isNotNull(voicePairings.claimedAt)));
+  await Promise.all(pairings.map(({ channel }) => sendFeedEvents(channel, callSid, events)));
 }

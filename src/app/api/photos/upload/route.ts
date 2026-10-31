@@ -3,6 +3,7 @@ import { put } from '@vercel/blob';
 import { randomUUID } from 'crypto';
 import { addPhoto, autoAssignPosition } from '@/lib/photos';
 import { getIdentifier, checkUploadRateLimit } from '@/lib/ratelimit';
+import { requireAdmin } from '@/lib/auth';
 
 // Sharp type for dynamic import
 type Sharp = typeof import('sharp');
@@ -17,6 +18,9 @@ async function getSharp(): Promise<Sharp | null> {
 }
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireAdmin(request);
+  if (unauthorized) return unauthorized;
+
   try {
     // Apply upload rate limiting
     const identifier = getIdentifier(request);
