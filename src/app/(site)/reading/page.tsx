@@ -32,7 +32,7 @@ export default async function ReadingPage({ searchParams }: ReadingPageProps) {
 
   return (
     <main className="px-4 pb-24 pt-14 sm:px-[5%]">
-      <h1 className="mb-10 text-[13px] text-ink-3 md:ml-[8%]">On the shelf · from Readwise</h1>
+      <h1 className="mb-10 text-[13px] text-ink-3 md:ml-[8%]">On the shelf · from Readwise and Goodreads</h1>
 
       {quote && (
         <aside className="mb-16 max-w-[40em] md:ml-[8%]">

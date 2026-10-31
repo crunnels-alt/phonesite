@@ -1,12 +1,13 @@
 import { and, desc, eq, ne } from 'drizzle-orm';
 import { db } from './db';
 import { readwiseBooks, readwiseHighlights } from './schema';
+import { GOODREADS_BOOKS } from '@/content/goodreads';
 
 export interface ShelfBook {
-  id: number;
+  id: string;
   title: string;
   author: string;
-  /** Null when Readwise has no cover; the page draws a plain text cover instead. */
+  /** Null when there's no cover; the page draws a plain text cover instead. */
   coverUrl: string | null;
 }
 
@@ -37,10 +38,14 @@ const cleanAuthor = (author: string) => {
   return name.length < 4 ? '' : name;
 };
 
+// "Lacan: Ecrits" and "Écrits" are the same book: compare without accents or a name prefix.
+const titleKey = (title: string) =>
+  title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(': ').at(-1)!.trim();
+
 // Without a cover or an author, a one-word or "et al" title is an unreadable clipping, not a book.
 const isUnreadable = (title: string, author: string) => !author && (!title.includes(' ') || /\bet al\b/i.test(title));
 
-/** Every book, most recently highlighted first, one per title; a copy with a cover wins over one without. */
+/** Readwise books, most recently highlighted first, then Goodreads books not already shown; one per title, and a copy with a cover wins. */
 export async function getBookshelf(): Promise<ShelfBook[]> {
   try {
     const rows = await db
@@ -51,12 +56,13 @@ export async function getBookshelf(): Promise<ShelfBook[]> {
 
     const books = rows.map((book) => {
       const cover = book.coverImageUrl && !isPlaceholderCover(book.coverImageUrl) ? fullSizeCover(book.coverImageUrl) : null;
-      return { id: book.id, title: cleanTitle(book.title), author: cleanAuthor(book.author), coverUrl: cover };
+      return { id: `rw-${book.id}`, title: cleanTitle(book.title), author: cleanAuthor(book.author), coverUrl: cover };
     });
-    const withCover = new Set(books.filter((b) => b.coverUrl).map((b) => b.title.toLowerCase()));
+    books.push(...GOODREADS_BOOKS.map((book, i) => ({ id: `gr-${i}`, ...book })));
+    const withCover = new Set(books.filter((b) => b.coverUrl).map((b) => titleKey(b.title)));
     const seen = new Set<string>();
     return books.filter((book) => {
-      const key = book.title.toLowerCase();
+      const key = titleKey(book.title);
       if (seen.has(key) || (!book.coverUrl && withCover.has(key)) || (!book.coverUrl && isUnreadable(book.title, book.author))) return false;
       seen.add(key);
       return true;
