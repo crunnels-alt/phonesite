@@ -64,7 +64,7 @@ NEXT_PUBLIC_PUSHER_CLUSTER=
 READWISE_ACCESS_TOKEN= # Get from https://readwise.io/access_token
 CRON_SECRET=           # Vercel cron auth for /api/cron/readwise
 
-# Voice agent (shared with the relay and Pipecat servers)
+# Voice agent (shared with the relay, Pipecat and LiveKit servers)
 VOICE_API_SECRET=      # Bearer token the voice servers use for /api/voice/*
 PHONE_HASH_KEY=        # HMAC key for hashing caller numbers
 
@@ -186,11 +186,11 @@ src/
 
 The agent number (+1 646 941 7945) is answered by the voice relay in a separate repo (`~/projects/voice-relay-lab`). This site is the agent's display and record:
 
-1. A visitor opens the feed panel and picks a stack: **Twilio** (ConversationRelay) or **Pipecat** (Deepgram, ElevenLabs, on Railway). The panel shows a 4-digit pairing code.
+1. A visitor opens the feed panel and picks a stack: **Twilio** (ConversationRelay), **Pipecat** (Deepgram, ElevenLabs, on Railway) or **LiveKit** (LiveKit Agents on Railway; the relay dials the call into LiveKit Cloud over SIP). The panel shows a 4-digit pairing code.
 2. On the call, the relay listens silently for 3 seconds. A typed code is claimed through `/api/voice/pair/claim` and the call goes to the stack the code was made for; no code or a used code goes to Twilio.
-3. Both stacks post events to `/api/voice/events`. The site stores them and pushes them over Pusher to the paired browser, which shows transcript, turn state and latency.
+3. All three stacks post events to `/api/voice/events`. The site stores them and pushes them over Pusher to the paired browser, which shows transcript, turn state and latency.
 
-Pairings live in `voice_pairings` (with a `path` column: `A` Twilio, `B` Pipecat); calls in `calls`, `call_events`, `call_transcripts` and `messages`.
+Pairings live in `voice_pairings` (with a `path` column: `A` Twilio, `B` Pipecat, `C` LiveKit); calls in `calls`, `call_events`, `call_transcripts` and `messages`.
 
 ### Admin Panel
 
