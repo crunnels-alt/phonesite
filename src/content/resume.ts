@@ -21,7 +21,19 @@ export const JOBS: Job[] = [
     company: 'ServiceTitan',
     dates: 'Dec 2025 – Present',
     summary: 'Voice telephony and Contact Center Pro for trades businesses, across three phone products and carrier stacks.',
-    roles: [{ title: 'Senior Product Manager, Voice and Contact Center', dates: 'Dec 2025 – Present', points: [] }],
+    roles: [
+      {
+        title: 'Senior Product Manager, Voice and Contact Center',
+        dates: 'Dec 2025 – Present',
+        points: [
+          'Transcription for voice AI: moved call transcription to a provider-agnostic, self-hosted platform shared by AI and product teams, lowering cost and removing single-vendor dependence, then rolled it out to every Contact Center call and the core phone product.',
+          'Getting customers live: led an automated go-live wizard with pre-flight checks and rollback in place of a long manual setup, designed one onboarding and offboarding flow with churn playbooks behind it, and rebuilt the pre-sales and in-product network tests.',
+          'Admin and devices: shipped a role-based telecom admin app for Support and Telecom Operations that replaced legacy screens and carrier-portal hops, and launched desk-phone provisioning, the most-requested feature, to private preview.',
+          "Caller ID trust: selected the STIR/SHAKEN certificate authority, set the attestation strategy for customers' outbound caller IDs, and owned the FCC Robocall Mitigation Database filing.",
+          'Reliability and troubleshooting: led the voice observability program that brought SIP call logs into central logging, built an AI-assisted investigation toolkit for the voice team, and partnered on a tool that shows every leg of a call in one view.',
+        ],
+      },
+    ],
   },
   {
     id: 'infobip',
