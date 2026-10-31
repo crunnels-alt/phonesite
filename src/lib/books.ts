@@ -1,7 +1,9 @@
 import { and, desc, eq, ne } from 'drizzle-orm';
 import { db } from './db';
 import { readwiseBooks, readwiseHighlights } from './schema';
-import { GOODREADS_BOOKS } from '@/content/goodreads';
+import { GOODREADS_BOOKS, GOODREADS_UNREAD } from '@/content/goodreads';
+
+export type Shelf = 'read' | 'unread';
 
 export interface ShelfBook {
   id: string;
@@ -46,7 +48,7 @@ const titleKey = (title: string) =>
 const isUnreadable = (title: string, author: string) => !author && (!title.includes(' ') || /\bet al\b/i.test(title));
 
 /** Readwise books, most recently highlighted first, then Goodreads books not already shown; one per title, and a copy with a cover wins. */
-export async function getBookshelf(): Promise<ShelfBook[]> {
+async function getReadBooks(): Promise<ShelfBook[]> {
   try {
     const rows = await db
       .select()
@@ -71,6 +73,19 @@ export async function getBookshelf(): Promise<ShelfBook[]> {
     console.error('Error reading bookshelf:', error);
     return [];
   }
+}
+
+/** Read books, or Goodreads to-read books; an unread book with Readwise highlights counts as read. */
+export async function getBookshelf(shelf: Shelf = 'read'): Promise<ShelfBook[]> {
+  const read = await getReadBooks();
+  if (shelf === 'read') return read;
+  const seen = new Set(read.map((book) => titleKey(book.title)));
+  return GOODREADS_UNREAD.map((book, i) => ({ id: `gu-${i}`, ...book })).filter((book) => {
+    const key = titleKey(book.title);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 /** The highlight a caller's keypad spotlight picked, with its book. */
