@@ -34,7 +34,7 @@ interface ApplePlaylist {
 
 const APPLE_API = 'https://api.music.apple.com';
 const ARTWORK_PX = 600;
-const MAX_ALBUMS = 40;
+const MAX_ALBUMS = 120;
 const base64url = (input: string | Buffer) => Buffer.from(input).toString('base64url');
 
 /** MusicKit developer token: an ES256 JWT signed with the key from the Apple Developer account. */
