@@ -13,22 +13,6 @@ interface Photo {
   date: string;
 }
 
-interface Project {
-  id: string;
-  title: string;
-  subtitle: string;
-  excerpt: string;
-  year: string;
-}
-
-interface Writing {
-  id: string;
-  title: string;
-  subtitle: string;
-  excerpt: string;
-  date: string;
-}
-
 interface Highlight {
   id: number;
   text: string;
@@ -47,8 +31,6 @@ interface SessionData {
   journey: string[];
   content: {
     photos: Photo[];
-    projects: Project[];
-    writings: Writing[];
     highlights: Highlight[];
   };
 }
@@ -112,8 +94,6 @@ export default function SessionArtifactPage({ params }: { params: Promise<{ id: 
 
   const { content, journey } = sessionData;
   const hasContent = content.photos.length > 0 ||
-                     content.projects.length > 0 ||
-                     content.writings.length > 0 ||
                      content.highlights.length > 0;
 
   // Format date subtly
@@ -254,83 +234,6 @@ export default function SessionArtifactPage({ params }: { params: Promise<{ id: 
               </div>
             );
           })}
-
-          {/* Projects - minimal cards */}
-          {content.projects.length > 0 && (
-            <div style={{
-              marginTop: '4rem',
-              marginBottom: '4rem',
-            }}>
-              {content.projects.map((project) => (
-                <div
-                  key={project.id}
-                  style={{
-                    padding: '2rem 0',
-                    borderTop: '1px solid var(--border-light)',
-                  }}
-                >
-                  <div className="type-sans" style={{
-                    fontSize: '11px',
-                    color: 'var(--text-tertiary)',
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                    marginBottom: '0.5rem',
-                  }}>
-                    {project.year}
-                  </div>
-                  <h3 style={{
-                    fontSize: '18px',
-                    fontWeight: 'normal',
-                    marginBottom: '0.25rem',
-                  }}>
-                    {project.title}
-                  </h3>
-                  <div className="type-serif-italic" style={{
-                    fontSize: '14px',
-                    color: 'var(--text-secondary)',
-                  }}>
-                    {project.subtitle}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Writings - elegant excerpts */}
-          {content.writings.length > 0 && (
-            <div style={{
-              marginTop: '4rem',
-              marginBottom: '4rem',
-              maxWidth: '600px',
-              marginLeft: 'auto',
-              marginRight: 'auto',
-            }}>
-              {content.writings.map((writing) => (
-                <div
-                  key={writing.id}
-                  style={{
-                    padding: '2rem 0',
-                    textAlign: 'center',
-                  }}
-                >
-                  <h3 style={{
-                    fontSize: '16px',
-                    fontWeight: 'normal',
-                    marginBottom: '0.5rem',
-                  }}>
-                    {writing.title}
-                  </h3>
-                  <div className="type-serif-italic" style={{
-                    fontSize: '14px',
-                    color: 'var(--text-secondary)',
-                    lineHeight: 1.6,
-                  }}>
-                    {writing.excerpt.substring(0, 200)}...
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
 
           {/* Highlights - floating quotes */}
           {content.highlights.length > 0 && (

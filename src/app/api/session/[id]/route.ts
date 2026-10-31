@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { sessions, sessionEvents, photos, projects, writings, readwiseHighlights, readwiseBooks } from '@/lib/schema';
+import { sessions, sessionEvents, photos, readwiseHighlights, readwiseBooks } from '@/lib/schema';
 import { eq, inArray } from 'drizzle-orm';
 
 /**
@@ -29,8 +29,6 @@ export async function GET(
 
     // Collect unique content IDs by type
     const photoIds: string[] = [];
-    const projectIds: string[] = [];
-    const writingIds: string[] = [];
     const highlightIds: number[] = [];
 
     for (const event of events) {
@@ -38,12 +36,6 @@ export async function GET(
       switch (event.contentType) {
         case 'photo':
           photoIds.push(...ids.filter(id => !photoIds.includes(id)));
-          break;
-        case 'project':
-          projectIds.push(...ids.filter(id => !projectIds.includes(id)));
-          break;
-        case 'writing':
-          writingIds.push(...ids.filter(id => !writingIds.includes(id)));
           break;
         case 'highlight':
           highlightIds.push(...ids.map(Number).filter(id => !highlightIds.includes(id)));
@@ -54,14 +46,6 @@ export async function GET(
     // Fetch the actual content
     const viewedPhotos = photoIds.length > 0
       ? await db.select().from(photos).where(inArray(photos.id, photoIds))
-      : [];
-
-    const viewedProjects = projectIds.length > 0
-      ? await db.select().from(projects).where(inArray(projects.id, projectIds))
-      : [];
-
-    const viewedWritings = writingIds.length > 0
-      ? await db.select().from(writings).where(inArray(writings.id, writingIds))
       : [];
 
     const viewedHighlights = highlightIds.length > 0
@@ -90,8 +74,6 @@ export async function GET(
       journey,
       content: {
         photos: viewedPhotos,
-        projects: viewedProjects,
-        writings: viewedWritings,
         highlights: viewedHighlights.map(h => ({
           ...h.highlight,
           book: h.book,
