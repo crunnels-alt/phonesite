@@ -82,9 +82,10 @@ async function getApplePlaylist(): Promise<Listening | null> {
     next = page.next;
   }
 
-  // The collage shows albums, so tracks from the same album collapse into one cover.
+  // The collage shows albums, so tracks from the same album collapse into one cover. New songs are added at the end
+  // of the playlist, so walking it backwards puts the latest finds first.
   const albums = new Map<string, ShelfAlbum>();
-  for (const { attributes } of tracks) {
+  for (const { attributes } of tracks.toReversed()) {
     if (!attributes?.artwork) continue;
     const key = `${attributes.artistName}|${attributes.albumName}`.toLowerCase();
     if (albums.has(key)) continue;
