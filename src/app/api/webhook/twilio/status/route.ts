@@ -3,44 +3,7 @@ import { getPusher } from '@/lib/pusher';
 import { db } from '@/lib/db';
 import { sessions } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
-import crypto from 'crypto';
-
-
-/**
- * Validates a Twilio webhook request signature using HMAC-SHA1
- */
-function validateTwilioSignature(url: string, params: Record<string, string>, signature: string): boolean {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Dev Mode] Skipping Twilio signature validation');
-    return true;
-  }
-
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  if (!authToken) {
-    console.error('TWILIO_AUTH_TOKEN not configured');
-    return false;
-  }
-
-  let data = url;
-  const sortedKeys = Object.keys(params).sort();
-  for (const key of sortedKeys) {
-    data += key + params[key];
-  }
-
-  const expectedSignature = crypto
-    .createHmac('sha1', authToken)
-    .update(data, 'utf8')
-    .digest('base64');
-
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature)
-    );
-  } catch {
-    return false;
-  }
-}
+import { isValidTwilioRequest } from '@/lib/twilio';
 
 /**
  * Twilio Status Callback
@@ -49,23 +12,10 @@ function validateTwilioSignature(url: string, params: Record<string, string>, si
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.text();
-    const twilioSignature = request.headers.get('x-twilio-signature');
+    const formData = new URLSearchParams(await request.text());
+    const params = Object.fromEntries(formData);
 
-    if (!twilioSignature) {
-      return NextResponse.json({ error: 'Missing Twilio signature' }, { status: 401 });
-    }
-
-    const formData = new URLSearchParams(body);
-    const params: Record<string, string> = {};
-    formData.forEach((value, key) => {
-      params[key] = value;
-    });
-
-    const url = request.url;
-    const isValid = validateTwilioSignature(url, params, twilioSignature);
-
-    if (!isValid) {
+    if (!isValidTwilioRequest(request, params, { skipInDevelopment: true })) {
       return NextResponse.json({ error: 'Invalid Twilio signature' }, { status: 401 });
     }
 

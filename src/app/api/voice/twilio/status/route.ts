@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { callEvents } from '@/lib/schema';
 import type { CallEvent } from '@/lib/schema';
-import { forwardToPairedBrowsers, isValidTwilioRequest, toFeedEvent, upsertCall } from '@/lib/voice';
+import { isValidTwilioRequest } from '@/lib/twilio';
+import { forwardToPairedBrowsers, toFeedEvent, upsertCall } from '@/lib/voice';
 
 /**
  * Twilio status callback for the agent line's number.

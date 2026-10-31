@@ -17,18 +17,6 @@ export function requireVoiceSecret(request: NextRequest): NextResponse | null {
   return null;
 }
 
-// https://www.twilio.com/docs/usage/webhooks/webhooks-security
-export function isValidTwilioRequest(request: NextRequest, params: Record<string, string>): boolean {
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const signature = request.headers.get('x-twilio-signature');
-  if (!authToken || !signature) return false;
-  const payload = Object.keys(params)
-    .sort()
-    .reduce((acc, key) => acc + key + params[key], request.url);
-  const expected = crypto.createHmac('sha1', authToken).update(payload, 'utf8').digest('base64');
-  return safeEqual(expected, signature);
-}
-
 /** Keyed hash so stored hashes can't be reversed by trying every phone number. */
 export function hashPhone(phoneNumber: string): string {
   const key = process.env.PHONE_HASH_KEY;
