@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 config({ path: '.env.local' });
 process.env.POSTGRES_URL ||= process.env.phonesite_pg_POSTGRES_URL;
 
-// Additive only: creates the voice agent tables if missing. Never alters or drops existing tables.
+// Additive only: creates missing voice agent tables and adds missing columns. Never drops or changes existing ones.
 async function initVoiceTables() {
   const { sql } = await import('@vercel/postgres');
   console.log('Creating voice agent tables...');
