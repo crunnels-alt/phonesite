@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Pusher from 'pusher';
-import { recordWebsiteNavigation, navigationDB } from '@/lib/database';
-import { db } from '@/lib/db';
-import { sessions, sessionEvents, photos, projects, writings, readwiseHighlights } from '@/lib/schema';
 import { eq, sql } from 'drizzle-orm';
 import crypto from 'crypto';
+import { db } from '@/lib/db';
+import { getPusher } from '@/lib/pusher';
+import { sessions, sessionEvents, photos, readwiseHighlights } from '@/lib/schema';
+import { sectionById, sectionByDigit } from '@/lib/sections';
+
+// Pressing one of these digits again shows a random photo or highlight.
+const SPOTLIGHT_SECTIONS = ['photo', 'reading'];
 
 interface TwilioWebhookBody {
   From: string;
@@ -14,13 +17,6 @@ interface TwilioWebhookBody {
   [key: string]: string;
 }
 
-const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID!,
-  key: process.env.PUSHER_KEY!,
-  secret: process.env.PUSHER_SECRET!,
-  cluster: process.env.PUSHER_CLUSTER!,
-  useTLS: true,
-});
 
 /**
  * Validates a Twilio webhook request signature using HMAC-SHA1
@@ -145,7 +141,7 @@ export async function POST(request: NextRequest) {
       }).returning();
 
       // Notify the website that a new session has started
-      await pusher.trigger('website-navigation', 'session-started', {
+      await getPusher().trigger('website-navigation', 'session-started', {
         sessionId: session.id,
         timestamp: session.startedAt,
       });
@@ -154,7 +150,7 @@ export async function POST(request: NextRequest) {
 
       const welcomeTwiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="alice">Welcome. Press 1 for About, 2 for Projects, 3 for Photo, 4 for Writing, 5 for Reading, 6 for Listening, or 0 for Home.</Say>
+  <Say voice="alice">Welcome. Press 1 for About, 2 for Resume, 3 for Photo, 5 for Reading, 6 for Listening, or 0 for Home.</Say>
   <Gather numDigits="1" timeout="10" action="${new URL(request.url).origin}/api/webhook/twilio">
     <Say voice="alice">Please press a digit to navigate.</Say>
   </Gather>
@@ -181,21 +177,18 @@ export async function POST(request: NextRequest) {
     const currentSection = urlParams.get('section') || 'home';
 
     const newState = getNextState(pressedDigit);
-    const navigationEvent = await recordWebsiteNavigation(
-      phoneNumber,
-      pressedDigit,
-      newState,
-      callSid
-    );
 
     // Look up the session for this call
     const [session] = await db.select().from(sessions).where(eq(sessions.callSid, callSid));
 
-    const currentWebsiteState = await navigationDB.getCurrentState();
+    // Every visit is recorded so the end-of-call page can show the caller's path through the site.
+    if (session?.id && newState !== 'unknown') {
+      await db.insert(sessionEvents).values({ sessionId: session.id, section: newState });
+    }
     const baseUrl = new URL(request.url).origin;
 
     // Check if this is spotlight mode (same section pressed again)
-    const isSpotlight = currentSection === newState && ['photo', 'projects', 'writing', 'reading'].includes(newState);
+    const isSpotlight = currentSection === newState && SPOTLIGHT_SECTIONS.includes(newState);
 
     if (isSpotlight) {
       // Get random content for spotlight
@@ -212,7 +205,7 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        await pusher.trigger('website-navigation', 'content-spotlight', {
+        await getPusher().trigger('website-navigation', 'content-spotlight', {
           sessionId: session?.id,
           section: newState,
           contentId: randomContent.id,
@@ -238,20 +231,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Regular section change
-    await pusher.trigger('website-navigation', 'section-changed', {
+    await getPusher().trigger('website-navigation', 'section-changed', {
       sessionId: session?.id,
       currentSection: newState,
       pressedDigit,
-      timestamp: navigationEvent.timestamp,
-      totalNavigations: currentWebsiteState.totalNavigations,
-      recentEvent: navigationEvent
+      timestamp: new Date().toISOString(),
     });
 
-    console.log(`Website navigation: digit ${pressedDigit} -> ${newState} (Total: ${currentWebsiteState.totalNavigations})`);
+    console.log(`Website navigation: digit ${pressedDigit} -> ${newState}`);
 
     // For content sections, immediately spotlight a random item
     let twimlResponse: string;
-    if (['photo', 'projects', 'writing', 'reading'].includes(newState)) {
+    if (SPOTLIGHT_SECTIONS.includes(newState)) {
       const randomContent = await getRandomContent(newState);
 
       if (randomContent) {
@@ -266,7 +257,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Also send spotlight event
-        await pusher.trigger('website-navigation', 'content-spotlight', {
+        await getPusher().trigger('website-navigation', 'content-spotlight', {
           sessionId: session?.id,
           section: newState,
           contentId: randomContent.id,
@@ -286,7 +277,7 @@ export async function POST(request: NextRequest) {
 <Response>
   <Say voice="alice">${getStateDisplayName(newState)}. Nothing here yet.</Say>
   <Gather numDigits="1" timeout="10" action="${baseUrl}/api/webhook/twilio?section=${newState}">
-    <Say voice="alice">Press 0 for Home, or 1 through 6 for other sections.</Say>
+    <Say voice="alice">Press 0 for Home, or 1, 2, 3, 5, or 6 for other sections.</Say>
   </Gather>
 </Response>`;
       }
@@ -296,7 +287,7 @@ export async function POST(request: NextRequest) {
 <Response>
   <Say voice="alice">${getStateDisplayName(newState)}.</Say>
   <Gather numDigits="1" timeout="10" action="${baseUrl}/api/webhook/twilio?section=${newState}">
-    <Say voice="alice">Press 0 for Home, or 1 through 6 for other sections.</Say>
+    <Say voice="alice">Press 0 for Home, or 1, 2, 3, 5, or 6 for other sections.</Say>
   </Gather>
   <Say voice="alice">Thank you for visiting!</Say>
 </Response>`;
@@ -327,35 +318,11 @@ export async function POST(request: NextRequest) {
 }
 
 function getNextState(digit: string): string {
-  const stateMap: Record<string, string> = {
-    '0': 'home',
-    '1': 'about',
-    '2': 'projects',
-    '3': 'photo',
-    '4': 'writing',
-    '5': 'reading',
-    '6': 'listening',
-    '*': 'previous',
-    '#': 'confirm',
-  };
-
-  return stateMap[digit] || 'unknown';
+  return sectionByDigit(digit)?.id ?? 'unknown';
 }
 
 function getStateDisplayName(state: string): string {
-  const stateNames: Record<string, string> = {
-    'home': 'Home',
-    'about': 'About',
-    'projects': 'Projects',
-    'photo': 'Photo',
-    'writing': 'Writing',
-    'reading': 'Reading Notes',
-    'listening': 'Listening',
-    'previous': 'Previous',
-    'confirm': 'Confirmed',
-    'unknown': 'Unknown Section',
-  };
-  return stateNames[state] || state;
+  return sectionById(state)?.label ?? 'Unknown Section';
 }
 
 // Get a random content item from a section
@@ -368,20 +335,6 @@ async function getRandomContent(section: string): Promise<{ id: string; type: st
           .orderBy(sql`RANDOM()`)
           .limit(1);
         return photo ? { id: photo.id, type: 'photo', title: photo.title } : null;
-      }
-      case 'projects': {
-        const [project] = await db.select({ id: projects.id, title: projects.title })
-          .from(projects)
-          .orderBy(sql`RANDOM()`)
-          .limit(1);
-        return project ? { id: project.id, type: 'project', title: project.title } : null;
-      }
-      case 'writing': {
-        const [writing] = await db.select({ id: writings.id, title: writings.title })
-          .from(writings)
-          .orderBy(sql`RANDOM()`)
-          .limit(1);
-        return writing ? { id: writing.id, type: 'writing', title: writing.title } : null;
       }
       case 'reading': {
         const [highlight] = await db.select({ id: readwiseHighlights.id })

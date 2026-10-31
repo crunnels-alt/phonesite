@@ -51,7 +51,7 @@ export async function getPhotos(): Promise<Photo[]> {
 /**
  * Normalize a string for slug comparison (lowercase, replace non-alphanumeric with dashes)
  */
-function normalizeForSlug(str: string): string {
+export function normalizeForSlug(str: string): string {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
