@@ -16,6 +16,8 @@ export const SECTIONS: Section[] = [
 ];
 
 export const PHONE_NUMBER = '+1 415 680 9353';
+/** The AI agent's line, separate from the keypad navigation number. */
+export const AGENT_PHONE_NUMBER = '+1 646 941 7945';
 
 export const sectionByDigit = (digit: string) => SECTIONS.find((section) => section.digit === digit);
 export const sectionById = (id: string) => SECTIONS.find((section) => section.id === id);
