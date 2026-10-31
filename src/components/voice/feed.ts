@@ -69,7 +69,9 @@ export function buildFeed(events: FeedEvent[]): FeedState {
         if (typeof data.ms === 'number') feed.sttMs.push(data.ms);
         break;
       case 'tts.latency':
+        // Pipecat reports the model's first token once the reply is heard, so the voice starting marks speaking.
         if (typeof data.ms === 'number') feed.ttsMs.push(data.ms);
+        feed.state = 'speaking';
         break;
       case 'tool.start': {
         const tool = str(data.tool);
