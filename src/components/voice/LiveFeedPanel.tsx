@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getPusherClient } from '@/lib/pusher-client';
 import { cn } from '@/lib/cn';
+import { AGENT_PHONE_NUMBER as VOICE_NUMBER } from '@/lib/sections';
 import type { FeedEvent } from '@/lib/voice';
 import { buildFeed, eventKey } from './feed';
 import type { CallState, ToolCall } from './feed';
 
-const VOICE_NUMBER = '+1 646 941 7945';
+/** Window event that opens the panel, so links elsewhere on the page can point at it. */
+export const OPEN_FEED_EVENT = 'voice-feed:open';
 const OPEN_KEY = 'voice-feed-open';
 // Long silences in a replay are shortened to this, so it stays watchable.
 const MAX_REPLAY_GAP_MS = 3000;
@@ -93,6 +95,17 @@ export function LiveFeedPanel() {
   const feed = useMemo(() => buildFeed(events), [events]);
 
   useEffect(() => setOpen(readOpen()), []);
+
+  useEffect(() => {
+    const show = () => {
+      setOpen(true);
+      try {
+        localStorage.setItem(OPEN_KEY, 'true');
+      } catch {}
+    };
+    window.addEventListener(OPEN_FEED_EVENT, show);
+    return () => window.removeEventListener(OPEN_FEED_EVENT, show);
+  }, []);
 
   const toggle = () => {
     setOpen((current) => {
@@ -195,9 +208,9 @@ export function LiveFeedPanel() {
       <button
         type="button"
         onClick={toggle}
-        className="fixed right-0 top-1/2 z-40 -translate-y-1/2 bg-background px-3 py-4 text-xs uppercase tracking-[0.1em] text-ink-3 [writing-mode:vertical-rl] hover:text-ink"
+        className="fixed right-0 top-1/2 z-40 -translate-y-1/2 border-y border-l border-ink bg-background px-3 py-5 text-xs uppercase tracking-[0.1em] text-ink [writing-mode:vertical-rl] hover:bg-ink hover:text-background"
       >
-        Under the hood
+        Call my AI · under the hood
       </button>
     );
   }

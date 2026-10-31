@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { EDUCATION, JOBS, RESUME_INTRO } from '@/content/resume';
+import { AGENT_PHONE_NUMBER } from '@/lib/sections';
+import { OpenFeedButton } from '@/components/voice/OpenFeedButton';
 
 export const metadata: Metadata = { title: 'Resume · Connor Runnels' };
 
@@ -16,6 +18,13 @@ export default function ResumePage() {
           <a href="https://linkedin.com/in/connor-runnels" target="_blank" rel="noopener noreferrer" className="hover:text-ink">
             linkedin.com/in/connor-runnels
           </a>
+        </p>
+        <p className="max-w-[34em] border-l border-ink pl-4 text-base leading-relaxed">
+          Ask my AI assistant about any of this: call{' '}
+          <a href={`tel:${AGENT_PHONE_NUMBER.replace(/\s/g, '')}`} className="whitespace-nowrap underline underline-offset-4">
+            {AGENT_PHONE_NUMBER}
+          </a>
+          . <OpenFeedButton>Watch the call under the hood</OpenFeedButton> as it happens: the transcript, tool calls, and latency.
         </p>
       </header>
 
