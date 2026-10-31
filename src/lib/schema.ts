@@ -203,6 +203,8 @@ export const voicePairings = pgTable(
   {
     channel: text('channel').primaryKey(),
     code: text('code').notNull(),
+    // The stack the visitor picked; the phone router sends the call there when the caller types the code.
+    path: text('path').$type<CallPath>(),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     callSid: text('call_sid'),
     claimedAt: timestamp('claimed_at', { withTimezone: true }),

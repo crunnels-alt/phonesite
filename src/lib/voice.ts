@@ -127,8 +127,8 @@ export async function sendFeedEvents(channel: string, callSid: string, events: F
   await send();
 }
 
-export async function notifyPaired(channel: string, callSid: string): Promise<void> {
-  await getPusher().trigger(channel, 'paired', { callSid });
+export async function notifyPaired(channel: string, callSid: string, path: CallPath): Promise<void> {
+  await getPusher().trigger(channel, 'paired', { callSid, path });
 }
 
 /** Forward newly stored public events to every browser paired with this call. */

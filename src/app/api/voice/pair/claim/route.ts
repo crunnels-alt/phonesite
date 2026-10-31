@@ -2,14 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { and, eq, gt, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { voicePairings } from '@/lib/schema';
+import type { CallPath } from '@/lib/schema';
 import { notifyPaired, publicFeedEvents, requireVoiceSecret, sendFeedEvents } from '@/lib/voice';
 
-/** The voice server reports a code the caller typed. Links that browser to the call and sends it the call so far. */
+/**
+ * A voice server reports a code the caller typed. Links that browser to the call and sends it the call so far.
+ * Returns the stack the visitor picked, so the phone router can send the call there. `path` is the stack the
+ * call is actually on, when it's already connected (a code typed mid-call on Twilio).
+ */
 export async function POST(request: NextRequest) {
   const unauthorized = requireVoiceSecret(request);
   if (unauthorized) return unauthorized;
 
-  let body: { callSid?: unknown; code?: unknown };
+  let body: { callSid?: unknown; code?: unknown; path?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -25,14 +30,16 @@ export async function POST(request: NextRequest) {
     .update(voicePairings)
     .set({ callSid, claimedAt: now })
     .where(and(eq(voicePairings.code, code), gt(voicePairings.expiresAt, now), isNull(voicePairings.claimedAt)))
-    .returning({ channel: voicePairings.channel });
+    .returning({ channel: voicePairings.channel, path: voicePairings.path });
   if (!pairing) return NextResponse.json({ error: 'No browser is showing that code' }, { status: 404 });
 
+  const picked: CallPath = pairing.path ?? 'A';
+  const actual: CallPath = body.path === 'A' || body.path === 'B' ? body.path : picked;
   try {
-    await notifyPaired(pairing.channel, callSid);
+    await notifyPaired(pairing.channel, callSid, actual);
     await sendFeedEvents(pairing.channel, callSid, await publicFeedEvents(callSid));
   } catch (error) {
     console.error('Pairing notify failed:', error);
   }
-  return NextResponse.json({ paired: true });
+  return NextResponse.json({ paired: true, path: picked });
 }
