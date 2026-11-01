@@ -78,7 +78,7 @@ export const PROJECTS: Project[] = [
     tagline: 'An AI phone agent that runs on three voice stacks behind one number.',
     repo: 'voice-relay-lab',
     about: [
-      'I wanted to understand how voice AI agents work under the demo: what happens between the caller going quiet and the agent starting to talk, and where the phone call and the agent lose track of each other. So I built a line that reaches an AI assistant. It answers questions about my background and takes messages, and it says at the start that it is an AI.',
+      'I wanted to understand how voice AI agents work under the demo: what happens between the caller going quiet and the agent starting to talk, and where the phone call and the agent lose track of each other. So I built a line that answers as an AI version of me. It answers questions about my background and takes messages, and it says at the start that it is an AI.',
       'The same agent runs three ways, on Twilio ConversationRelay, Pipecat and LiveKit, so I can compare them on the same calls. The number is on my Resume page, next to a panel that shows each call under the hood as it happens: the transcript, tool calls and latency.',
     ],
     flow: ['Caller', 'Twilio number', 'Router reads the pairing code', 'Twilio, Pipecat or LiveKit', 'Model through AI Gateway', 'Live feed on this site'],
