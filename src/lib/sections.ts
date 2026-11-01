@@ -5,12 +5,12 @@ export interface Section {
   href: string;
 }
 
-// Digit 4 belonged to Writing, which is retired; it stays unused so the other digits don't move.
 export const SECTIONS: Section[] = [
   { id: 'home', label: 'Home', digit: '0', href: '/' },
   { id: 'about', label: 'About', digit: '1', href: '/about' },
   { id: 'resume', label: 'Resume', digit: '2', href: '/resume' },
   { id: 'photo', label: 'Photo', digit: '3', href: '/photo' },
+  { id: 'projects', label: 'Projects', digit: '4', href: '/projects' },
   { id: 'reading', label: 'Reading', digit: '5', href: '/reading' },
   { id: 'listening', label: 'Listening', digit: '6', href: '/listening' },
 ];

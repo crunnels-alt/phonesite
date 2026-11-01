@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
       const welcomeTwiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="alice">Welcome. Press 1 for About, 2 for Resume, 3 for Photo, 5 for Reading, 6 for Listening, or 0 for Home.</Say>
+  <Say voice="alice">Welcome. Press 1 for About, 2 for Resume, 3 for Photo, 4 for Projects, 5 for Reading, 6 for Listening, or 0 for Home.</Say>
   <Gather numDigits="1" timeout="10" action="${new URL(request.url).origin}/api/webhook/twilio">
     <Say voice="alice">Please press a digit to navigate.</Say>
   </Gather>
@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
 <Response>
   <Say voice="alice">${getStateDisplayName(newState)}. Nothing here yet.</Say>
   <Gather numDigits="1" timeout="10" action="${baseUrl}/api/webhook/twilio?section=${newState}">
-    <Say voice="alice">Press 0 for Home, or 1, 2, 3, 5, or 6 for other sections.</Say>
+    <Say voice="alice">Press 0 for Home, or 1 to 6 for other sections.</Say>
   </Gather>
 </Response>`;
       }
@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
 <Response>
   <Say voice="alice">${getStateDisplayName(newState)}.</Say>
   <Gather numDigits="1" timeout="10" action="${baseUrl}/api/webhook/twilio?section=${newState}">
-    <Say voice="alice">Press 0 for Home, or 1, 2, 3, 5, or 6 for other sections.</Say>
+    <Say voice="alice">Press 0 for Home, or 1 to 6 for other sections.</Say>
   </Gather>
   <Say voice="alice">Thank you for visiting!</Say>
 </Response>`;
