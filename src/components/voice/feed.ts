@@ -37,10 +37,11 @@ export const eventKey = (event: FeedEvent) => `${event.at}|${event.type}|${event
 
 const str = (value: unknown) => (typeof value === 'string' ? value : '');
 
-/** Whatever of `full` comes after `heard`, if `heard` is how `full` begins. */
+/** Whatever of `full` comes after `heard`, if `heard` is how `full` begins. All of it when nothing was heard. */
 function unheardPart(full: string, heard: string): string {
   const prefix = heard.trimEnd();
-  return prefix && full.startsWith(prefix) ? full.slice(prefix.length).trim() : '';
+  if (!prefix) return full.trim();
+  return full.startsWith(prefix) ? full.slice(prefix.length).trim() : '';
 }
 
 /** Turns a call's public events into what the panel shows. Pure, so live calls and replays share it. */
