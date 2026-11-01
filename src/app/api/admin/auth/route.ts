@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getIdentifier, checkAuthRateLimit } from '@/lib/ratelimit';
-import { safeEqual } from '@/lib/auth';
+import { clearSessionCookie, createSessionToken, isAdminRequest, safeEqual, setSessionCookie } from '@/lib/auth';
+
+export async function GET(request: NextRequest) {
+  return NextResponse.json({ authenticated: isAdminRequest(request) });
+}
 
 export async function POST(request: NextRequest) {
   try {
-    // Apply strict rate limiting to prevent brute force attacks
     const identifier = getIdentifier(request);
     const rateLimitResponse = await checkAuthRateLimit(identifier);
     if (rateLimitResponse) {
@@ -22,8 +25,18 @@ export async function POST(request: NextRequest) {
     }
 
     const authenticated = typeof password === 'string' && safeEqual(password, adminPassword);
+    if (!authenticated) {
+      return NextResponse.json({ authenticated: false }, { status: 401 });
+    }
 
-    return NextResponse.json({ authenticated });
+    const token = createSessionToken();
+    if (!token) {
+      return NextResponse.json({ authenticated: false, error: 'Session could not be created' }, { status: 500 });
+    }
+
+    const response = NextResponse.json({ authenticated: true });
+    setSessionCookie(response, token);
+    return response;
   } catch (error) {
     console.error('Admin auth error:', error);
     return NextResponse.json(
@@ -31,4 +44,10 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+export async function DELETE() {
+  const response = NextResponse.json({ authenticated: false });
+  clearSessionCookie(response);
+  return response;
 }

@@ -3,15 +3,16 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { AdminGate } from '@/components/voice/AdminGate';
+import { adminFetch } from '@/lib/admin-client';
 import type { Call } from '@/lib/schema';
 
-function CallList({ password }: { password: string }) {
+function CallList() {
   const [calls, setCalls] = useState<Call[] | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const load = async () => {
-      const response = await fetch('/api/voice/calls', { headers: { Authorization: `Bearer ${password}` } });
+      const response = await adminFetch('/api/voice/calls');
       if (!response.ok) {
         setError(`Couldn't load calls (${response.status}).`);
         return;
@@ -19,7 +20,7 @@ function CallList({ password }: { password: string }) {
       setCalls((await response.json()).calls);
     };
     load();
-  }, [password]);
+  }, []);
 
   if (error) return <p className="text-sm text-red-600">{error}</p>;
   if (!calls) return <p className="text-sm text-[var(--text-tertiary)]">Loading calls…</p>;
@@ -50,7 +51,9 @@ export default function CallsPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12 font-sans">
       <h1 className="mb-6 font-serif text-3xl">Calls</h1>
-      <AdminGate>{(password) => <CallList password={password} />}</AdminGate>
+      <AdminGate>
+        <CallList />
+      </AdminGate>
     </main>
   );
 }

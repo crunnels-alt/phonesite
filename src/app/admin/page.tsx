@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AdminPanel from '@/components/AdminPanel';
-import { clearAdminPassword, storeAdminPassword } from '@/lib/admin-client';
+import { checkAdminSession, signInAdmin, signOutAdmin } from '@/lib/admin-client';
 
 const inputStyle = {
   width: '100%',
@@ -26,6 +26,15 @@ export default function AdminPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isChecking, setIsChecking] = useState(false);
+  const [isLoadingSession, setIsLoadingSession] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      setIsAuthenticated(await checkAdminSession());
+      setIsLoadingSession(false);
+    };
+    load();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,17 +42,7 @@ export default function AdminPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/admin/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
-      });
-
-      const data = await response.json();
-
-      if (data.authenticated) {
-        // Admin API calls send this password, so keep it for the browser session.
-        storeAdminPassword(password);
+      if (await signInAdmin(password)) {
         setIsAuthenticated(true);
         setPassword('');
       } else {
@@ -57,14 +56,16 @@ export default function AdminPage() {
     }
   };
 
+  if (isLoadingSession) return null;
+
   if (isAuthenticated) {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--background)' }}>
         <div style={{ padding: '2rem', maxWidth: '1600px', margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
             <button
-              onClick={() => {
-                clearAdminPassword();
+              onClick={async () => {
+                await signOutAdmin();
                 setIsAuthenticated(false);
               }}
               className="type-sans"
