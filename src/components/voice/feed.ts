@@ -6,6 +6,8 @@ export type CallState = 'waiting' | 'listening' | 'thinking' | 'tool' | 'speakin
 export interface Tone {
   emotion: [string, number][];
   sarcasm: number | null;
+  /** Measured from the caller's audio, not their words: words per second, and changes against their own level earlier in the call. */
+  voice: { speechRate?: number; pitchChange?: number; pitchRange?: number; loudnessChange?: number };
 }
 
 export interface TranscriptEntry {
@@ -55,7 +57,17 @@ function parseTone(data: Record<string, unknown>): Tone | null {
     ? data.emotion.filter((pair): pair is [string, number] => Array.isArray(pair) && typeof pair[0] === 'string' && typeof pair[1] === 'number')
     : [];
   if (!emotion.length) return null;
-  return { emotion, sarcasm: typeof data.sarcasm === 'number' ? data.sarcasm : null };
+  const num = (value: unknown) => (typeof value === 'number' ? value : undefined);
+  return {
+    emotion,
+    sarcasm: num(data.sarcasm) ?? null,
+    voice: {
+      speechRate: num(data.speech_rate),
+      pitchChange: num(data.pitch_change),
+      pitchRange: num(data.pitch_range),
+      loudnessChange: num(data.loudness_change),
+    },
+  };
 }
 
 /** Whatever of `full` comes after `heard`, if `heard` is how `full` begins. All of it when nothing was heard. */

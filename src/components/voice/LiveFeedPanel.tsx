@@ -108,15 +108,50 @@ function LatencyRow({ label, values }: { label: string; values: number[] }) {
   );
 }
 
-const toneLabel = ({ emotion: [[label, confidence]], sarcasm }: Tone) =>
+const wordsLabel = ({ emotion: [[label, confidence]], sarcasm }: Tone) =>
   `${label} · ${Math.round(confidence * 100)}%${sarcasm !== null && sarcasm >= 0.5 ? ' · maybe sarcastic' : ''}`;
+
+/** Plain words for the voice readings, using the thresholds the model is told. */
+function voiceLabel({ voice: { speechRate, pitchChange, pitchRange, loudnessChange } }: Tone): string {
+  const parts = [
+    speechRate === undefined ? null : speechRate > 3.5 ? 'fast' : speechRate < 1.8 ? 'slow' : null,
+    pitchChange === undefined ? null : pitchChange >= 2 ? 'higher pitch' : pitchChange <= -2 ? 'lower pitch' : null,
+    pitchRange === undefined ? null : pitchRange > 8 ? 'animated' : pitchRange < 3 ? 'flat' : null,
+    loudnessChange === undefined ? null : loudnessChange >= 3 ? 'louder' : loudnessChange <= -3 ? 'quieter' : null,
+  ].filter(Boolean);
+  const measured = [speechRate, pitchChange, pitchRange, loudnessChange].some((value) => value !== undefined);
+  return parts.length ? parts.join(', ') : measured ? 'even' : '';
+}
+
+const voiceDetail = ({ voice: { speechRate, pitchChange, pitchRange, loudnessChange } }: Tone) =>
+  [
+    speechRate !== undefined && `${speechRate} words/s`,
+    pitchChange !== undefined && `pitch ${pitchChange > 0 ? '+' : ''}${pitchChange} semitones`,
+    pitchRange !== undefined && `range ${pitchRange} semitones`,
+    loudnessChange !== undefined && `${loudnessChange > 0 ? '+' : ''}${loudnessChange} dB`,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+const toneLabel = (tone: Tone) => {
+  const voice = voiceLabel(tone);
+  return `${wordsLabel(tone)} (words)${voice ? ` · ${voice} (voice)` : ''}`;
+};
 
 function ToneRow({ tone }: { tone: Tone | null }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 py-1" title="Pipecat Tone reads each caller turn from its words; the model gets the reading at the head of the turn.">
-      <span>Tone and emotion</span>
-      <span className={cn('text-right', !tone && 'text-xs text-ink-3')}>{tone ? toneLabel(tone) : 'waiting for the caller'}</span>
-    </div>
+    <>
+      <div className="flex items-baseline justify-between gap-3 py-1" title="Pipecat Tone reads each caller turn from its words alone.">
+        <span>Tone from words</span>
+        <span className={cn('text-right', !tone && 'text-xs text-ink-3')}>{tone ? wordsLabel(tone) : 'waiting for the caller'}</span>
+      </div>
+      <div className="flex items-baseline justify-between gap-3 py-1" title={tone ? voiceDetail(tone) : 'Measured from the call audio: speech rate, pitch and loudness.'}>
+        <span>Tone from voice</span>
+        <span className={cn('text-right', !(tone && voiceLabel(tone)) && 'text-xs text-ink-3')}>
+          {tone && voiceLabel(tone) ? voiceLabel(tone) : 'waiting for the caller'}
+        </span>
+      </div>
+    </>
   );
 }
 
@@ -404,7 +439,11 @@ export function LiveFeedPanel() {
                       </span>
                     )}
                   </p>
-                  {entry.tone && <p className="mt-0.5 text-xs text-ink-3">Tone: {toneLabel(entry.tone)}</p>}
+                  {entry.tone && (
+                    <p className="mt-0.5 text-xs text-ink-3" title={voiceDetail(entry.tone)}>
+                      Tone: {toneLabel(entry.tone)}
+                    </p>
+                  )}
                   {entry.delivery && entry.delivery.length > 0 && (
                     <p className="mt-0.5 text-xs text-ink-3">Voiced as: {entry.delivery.join(', ')}</p>
                   )}
