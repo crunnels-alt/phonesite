@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getHighlights, syncFromReadwise } from '@/lib/readwise-db';
 import { getIdentifier, checkLenientRateLimit, checkAuthRateLimit } from '@/lib/ratelimit';
+import { isAdminRequest } from '@/lib/auth';
 
 /**
  * GET /api/readwise
@@ -71,11 +72,7 @@ export async function POST(request: NextRequest) {
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
-    // Check for admin auth
-    const authHeader = request.headers.get('authorization');
-    const adminPassword = process.env.ADMIN_PASSWORD;
-
-    if (adminPassword && authHeader !== `Bearer ${adminPassword}`) {
+    if (!isAdminRequest(request)) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }

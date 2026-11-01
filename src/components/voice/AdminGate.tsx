@@ -2,35 +2,56 @@
 
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { readAdminPassword, storeAdminPassword } from '@/lib/admin-client';
+import { checkAdminSession, signInAdmin, signOutAdmin } from '@/lib/admin-client';
 
+type GateState = 'checking' | 'signed-out' | 'signed-in';
 
-/** Asks for the admin password once per browser session, then renders children with it. */
-export function AdminGate({ children }: { children: (password: string) => ReactNode }) {
-  const [password, setPassword] = useState('');
+/** Asks for the admin password when there is no admin session, then renders children. */
+export function AdminGate({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<GateState>('checking');
   const [input, setInput] = useState('');
   const [error, setError] = useState('');
 
-  useEffect(() => setPassword(readAdminPassword()), []);
+  useEffect(() => {
+    const load = async () => setState((await checkAdminSession()) ? 'signed-in' : 'signed-out');
+    load();
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
-    const response = await fetch('/api/admin/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: input }),
-    });
-    const { authenticated } = await response.json();
-    if (!authenticated) {
-      setError('Wrong password. Try again.');
+    try {
+      if (!(await signInAdmin(input))) {
+        setError('Wrong password. Try again.');
+        return;
+      }
+    } catch {
+      setError('Sign-in failed. Try again.');
       return;
     }
-    storeAdminPassword(input);
-    setPassword(input);
+    setInput('');
+    setState('signed-in');
   };
 
-  if (password) return <>{children(password)}</>;
+  const handleSignOut = async () => {
+    await signOutAdmin();
+    setState('signed-out');
+  };
+
+  if (state === 'checking') return null;
+
+  if (state === 'signed-in') {
+    return (
+      <>
+        <div className="mb-4 flex justify-end">
+          <button type="button" onClick={handleSignOut} className="text-xs text-[var(--text-tertiary)] hover:underline">
+            Sign out
+          </button>
+        </div>
+        {children}
+      </>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="mx-auto mt-24 grid max-w-xs gap-3 px-4 font-sans">

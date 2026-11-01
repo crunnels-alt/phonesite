@@ -1,28 +1,36 @@
-const STORAGE_KEY = 'phonesite-admin-password';
+/** fetch that carries the admin session cookie. */
+export function adminFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  return fetch(input, { ...init, credentials: 'same-origin' });
+}
 
-export function readAdminPassword(): string {
+const readAuthenticated = async (response: Response): Promise<boolean> => {
   try {
-    return sessionStorage.getItem(STORAGE_KEY) ?? '';
+    const { authenticated } = (await response.json()) as { authenticated?: boolean };
+    return authenticated === true;
   } catch {
-    return '';
+    return false;
+  }
+};
+
+export async function checkAdminSession(): Promise<boolean> {
+  try {
+    return await readAuthenticated(await adminFetch('/api/admin/auth', { cache: 'no-store' }));
+  } catch {
+    return false;
   }
 }
 
-export function storeAdminPassword(password: string): void {
-  try {
-    sessionStorage.setItem(STORAGE_KEY, password);
-  } catch {}
+export async function signInAdmin(password: string): Promise<boolean> {
+  const response = await adminFetch('/api/admin/auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password }),
+  });
+  return readAuthenticated(response);
 }
 
-export function clearAdminPassword(): void {
+export async function signOutAdmin(): Promise<void> {
   try {
-    sessionStorage.removeItem(STORAGE_KEY);
+    await adminFetch('/api/admin/auth', { method: 'DELETE' });
   } catch {}
-}
-
-/** fetch with the admin password from this browser session attached. */
-export function adminFetch(input: string, init: RequestInit = {}): Promise<Response> {
-  const headers = new Headers(init.headers);
-  headers.set('Authorization', `Bearer ${readAdminPassword()}`);
-  return fetch(input, { ...init, headers });
 }

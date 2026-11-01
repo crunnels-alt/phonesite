@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { use, useEffect, useState } from 'react';
 import { AdminGate } from '@/components/voice/AdminGate';
+import { adminFetch } from '@/lib/admin-client';
 import { cn } from '@/lib/cn';
 import type { Call, CallEvent } from '@/lib/schema';
 
@@ -22,14 +23,14 @@ function summarize(event: CallEvent): string {
   return entries.length ? JSON.stringify(Object.fromEntries(entries)) : '';
 }
 
-function Timeline({ sid, password }: { sid: string; password: string }) {
+function Timeline({ sid }: { sid: string }) {
   const [call, setCall] = useState<Call | null>(null);
   const [events, setEvents] = useState<CallEvent[]>([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const load = async () => {
-      const response = await fetch(`/api/voice/calls/${sid}`, { headers: { Authorization: `Bearer ${password}` } });
+      const response = await adminFetch(`/api/voice/calls/${sid}`);
       if (!response.ok) {
         setError(response.status === 404 ? 'No call with that ID.' : `Couldn't load the call (${response.status}).`);
         return;
@@ -39,7 +40,7 @@ function Timeline({ sid, password }: { sid: string; password: string }) {
       setEvents(body.events);
     };
     load();
-  }, [sid, password]);
+  }, [sid]);
 
   if (error) return <p className="text-sm text-red-600">{error}</p>;
   if (!call) return <p className="text-sm text-[var(--text-tertiary)]">Loading call…</p>;
@@ -95,7 +96,9 @@ export default function CallPage({ params }: { params: Promise<{ sid: string }> 
         All calls
       </Link>
       <h1 className="mb-2 mt-2 font-serif text-3xl">Call timeline</h1>
-      <AdminGate>{(password) => <Timeline sid={sid} password={password} />}</AdminGate>
+      <AdminGate>
+        <Timeline sid={sid} />
+      </AdminGate>
     </main>
   );
 }
