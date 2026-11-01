@@ -21,7 +21,7 @@ const PATTERN: Slot[] = [
 
 const SHELVES: { shelf: Shelf; label: string; href: string; source: string }[] = [
   { shelf: 'read', label: 'Read', href: '/reading', source: 'from Readwise and Goodreads' },
-  { shelf: 'unread', label: 'Not read yet', href: '/reading?shelf=unread', source: 'from Goodreads' },
+  { shelf: 'unread', label: 'Reading list', href: '/reading?shelf=unread', source: 'from Goodreads' },
 ];
 
 interface ReadingPageProps {
