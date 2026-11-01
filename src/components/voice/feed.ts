@@ -153,6 +153,9 @@ export function buildFeed(events: FeedEvent[]): FeedState {
         feed.state = 'listening';
         break;
       }
+      case 'message.private':
+        feed.transcript.push({ id, role: 'system', text: 'Taking a message · the next few turns stay private', turn });
+        break;
       case 'pairing.claimed':
         feed.transcript.push({ id, role: 'system', text: 'Website connected', turn });
         break;
