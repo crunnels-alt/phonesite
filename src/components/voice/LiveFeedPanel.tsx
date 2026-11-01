@@ -7,7 +7,7 @@ import { AGENT_PHONE_NUMBER as VOICE_NUMBER } from '@/lib/sections';
 import type { CallPath } from '@/lib/schema';
 import type { FeedEvent } from '@/lib/voice';
 import { buildFeed, eventKey } from './feed';
-import type { CallState, ToolCall } from './feed';
+import type { CallState, Tone, ToolCall } from './feed';
 
 /** Window event that opens the panel, so links elsewhere on the page can point at it. */
 export const OPEN_FEED_EVENT = 'voice-feed:open';
@@ -104,6 +104,37 @@ function LatencyRow({ label, values }: { label: string; values: number[] }) {
         ))}
       </span>
       <span className="w-16 text-right tabular-nums">{latest !== undefined ? `${latest} ms` : '—'}</span>
+    </div>
+  );
+}
+
+const toneLabel = ({ emotion: [[label, confidence]], sarcasm }: Tone) =>
+  `${label} · ${Math.round(confidence * 100)}%${sarcasm !== null && sarcasm >= 0.5 ? ' · maybe sarcastic' : ''}`;
+
+function ToneRow({ tone }: { tone: Tone | null }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 py-1" title="Pipecat Tone reads each caller turn from its words; the model gets the reading at the head of the turn.">
+      <span>Tone and emotion</span>
+      <span className={cn('text-right', !tone && 'text-xs text-ink-3')}>{tone ? toneLabel(tone) : 'waiting for the caller'}</span>
+    </div>
+  );
+}
+
+/** The latest caller turn's loudness, one bar per 100 ms, scaled to its loudest moment. */
+function Waveform({ levels }: { levels: number[] }) {
+  const max = Math.max(...levels, 0.001);
+  return (
+    <div className="flex items-center justify-between gap-3 py-1" title="How loud the caller was, every 100 ms of their last turn.">
+      <span>Waveform</span>
+      {levels.length ? (
+        <span className="flex h-4 items-center gap-px" aria-label="Loudness of the caller's last turn">
+          {levels.slice(-60).map((level, i) => (
+            <span key={i} className="w-[2px] bg-ink-2" style={{ height: `${Math.max(1, (level / max) * 16)}px` }} />
+          ))}
+        </span>
+      ) : (
+        <span className="text-xs text-ink-3">waiting for the caller</span>
+      )}
     </div>
   );
 }
@@ -273,6 +304,8 @@ export function LiveFeedPanel() {
   const current = stackFor(mode.kind === 'waiting' ? stack : mode.path);
   // Every stack except Twilio runs its own speech to text and text to speech, so it can time them.
   const runsOwnSpeech = current.path !== 'A';
+  // Tone comes from RCS, Pipecat's Real-Time Context Standard, and only Pipecat measures the caller's audio so far.
+  const readsTone = current.path === 'B';
 
   return (
     <aside className="fixed inset-y-0 right-0 z-40 flex w-full flex-col border-l border-rule bg-background text-sm sm:w-[380px]">
@@ -371,6 +404,10 @@ export function LiveFeedPanel() {
                       </span>
                     )}
                   </p>
+                  {entry.tone && <p className="mt-0.5 text-xs text-ink-3">Tone: {toneLabel(entry.tone)}</p>}
+                  {entry.delivery && entry.delivery.length > 0 && (
+                    <p className="mt-0.5 text-xs text-ink-3">Voiced as: {entry.delivery.join(', ')}</p>
+                  )}
                   {entry.blocked && <p className="mt-0.5 text-xs text-ink-3">Rest of reply blocked by the output guard</p>}
                   {entry.unheard && <p className="mt-0.5 text-xs text-ink-3">Grey text was cut off by the caller</p>}
                 </div>
@@ -414,17 +451,30 @@ export function LiveFeedPanel() {
         </div>
 
         <div>
-          <SectionLabel>Caller tone and audio</SectionLabel>
-          <Unavailable
-            label="Tone and emotion"
-            note={runsOwnSpeech ? 'Not shown yet' : 'Not on Twilio'}
-            reason={runsOwnSpeech ? `${current.label} has the audio; reading tone from it is still to come.` : "Twilio sends the words, not the audio, so there's nothing to read tone from."}
-          />
-          <Unavailable
-            label="Waveform"
-            note={runsOwnSpeech ? 'Not shown yet' : 'Not on Twilio'}
-            reason={runsOwnSpeech ? `${current.label} has the audio; drawing it is still to come.` : 'Twilio keeps the audio.'}
-          />
+          <SectionLabel note={readsTone ? 'RCS' : undefined}>Caller tone and audio</SectionLabel>
+          {readsTone ? (
+            <>
+              <ToneRow tone={feed.tone} />
+              <Waveform levels={feed.levels} />
+            </>
+          ) : (
+            <>
+              <Unavailable
+                label="Tone and emotion"
+                note={runsOwnSpeech ? 'Pipecat only' : 'Not on Twilio'}
+                reason={
+                  runsOwnSpeech
+                    ? "Tone comes from RCS, Pipecat's Real-Time Context Standard, which LiveKit doesn't use."
+                    : "Twilio sends the words, not the audio, so there's nothing to read tone from."
+                }
+              />
+              <Unavailable
+                label="Waveform"
+                note={runsOwnSpeech ? 'Pipecat only' : 'Not on Twilio'}
+                reason={runsOwnSpeech ? `${current.label} has the audio; only the Pipecat path measures it so far.` : 'Twilio keeps the audio.'}
+              />
+            </>
+          )}
         </div>
       </div>
     </aside>
