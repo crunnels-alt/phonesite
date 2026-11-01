@@ -1,58 +1,58 @@
 # Phone-Controlled Portfolio Website
 
-A portfolio website with two phone lines. Call the keypad line and use your dial pad to navigate sections in real time, or call the AI agent line and talk to an assistant while the site shows the call live. Built with Next.js, Twilio, Pusher, and Vercel Postgres.
+A portfolio website with two phone lines. Call the keypad line and use your dial pad to move around the site in real time, or call the AI agent line and talk to an assistant while the site shows the call live. Built with Next.js, Twilio, Pusher, and Vercel Postgres.
+
+Live at [crunnels.online](https://www.crunnels.online).
 
 ## Features
 
-- **Phone Navigation**: Call a number and navigate using dial pad (1-5 for sections)
-- **Real-time Updates**: WebSocket integration for live section changes
-- **Content Sections**: About, Projects, Photos, Writing, Reading Notes
-- **Admin Panel**: Manage photos, projects, and writings with CRUD operations
-- **Photo Gallery**: Upload to Vercel Blob with Montessori-style layout
-- **Readwise Integration**: Sync and display reading highlights, refreshed daily by a Vercel cron
-- **Bookshelf**: Readwise books plus a Goodreads export (`src/content/goodreads.ts`), covers from Open Library
-- **AI Agent Line**: A voice agent on its own number, with a live feed panel on the site (see below)
+- **Keypad navigation**: call the site's number and press digits to change the page every open browser is showing
+- **Real-time updates**: Pusher websockets push each key press to the site as it happens
+- **Pages**: Home, About, Resume, Photo (with photo groups), Reading, Listening
+- **Contact form**: messages are stored in Postgres and emailed through Resend
+- **Photo gallery**: uploads to Vercel Blob, with dimensions detected by Sharp
+- **Reading**: Readwise highlights synced to Postgres daily by a Vercel cron, plus a bookshelf that merges Readwise books with a Goodreads export (`src/content/goodreads.ts`), with covers from Open Library
+- **Listening**: an Apple Music playlist when configured, otherwise top albums from Last.fm
+- **AI agent line**: a voice agent on its own number, with a live "under the hood" feed panel on the site (see below)
+- **Admin**: a password-protected panel for photos, contact messages, and webhook testing, plus private call timelines for the agent line
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15 (App Router), React 19, TailwindCSS 4
-- **Backend**: Next.js API Routes
-- **Database**: Vercel Postgres (with Drizzle ORM)
-- **Storage**: Vercel Blob (for photos)
-- **Real-time**: Pusher (WebSockets)
+- **Frontend**: Next.js 15 (App Router), React 19, Tailwind CSS 4
+- **Backend**: Next.js API routes
+- **Database**: Vercel Postgres with Drizzle ORM
+- **Storage**: Vercel Blob (photos)
+- **Cache and rate limiting**: Upstash Redis, provisioned as Vercel KV
+- **Real-time**: Pusher
 - **Telephony**: Twilio
+- **Email**: Resend
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 20+
-- npm/yarn/pnpm
-- Vercel account (for Postgres and Blob)
+- A Vercel account (Postgres, Blob, and optionally KV)
 
 ### Environment Variables
 
-Create a `.env.local` file based on `.env.example`:
+Create a `.env.local` file (or run `vercel env pull .env.local` once the project is linked):
 
 ```bash
 # Database
-POSTGRES_URL=          # Vercel Postgres connection string
+POSTGRES_URL=                 # Vercel Postgres connection string
 
-# Vercel Blob Storage
-BLOB_READ_WRITE_TOKEN= # For photo uploads
+# Vercel Blob
+BLOB_READ_WRITE_TOKEN=        # Photo uploads
 
-# Vercel KV (Redis Cache)
-KV_URL=                # Vercel KV connection string
-KV_REST_API_URL=       # For REST API access
-KV_REST_API_TOKEN=     # Auth token
-KV_REST_API_READ_ONLY_TOKEN= # Read-only token
+# Vercel KV / Upstash Redis (optional: rate limiting and the Last.fm cache)
+KV_REST_API_URL=
+KV_REST_API_TOKEN=
 
-# Twilio (Phone Navigation)
-TWILIO_ACCOUNT_SID=
-TWILIO_AUTH_TOKEN=
-TWILIO_PHONE_NUMBER=
+# Twilio
+TWILIO_AUTH_TOKEN=            # Verifies that webhooks really came from Twilio
 
-# Pusher (Real-time)
+# Pusher
 PUSHER_APP_ID=
 PUSHER_KEY=
 PUSHER_SECRET=
@@ -60,23 +60,29 @@ PUSHER_CLUSTER=
 NEXT_PUBLIC_PUSHER_KEY=
 NEXT_PUBLIC_PUSHER_CLUSTER=
 
-# Readwise (Optional)
-READWISE_ACCESS_TOKEN= # Get from https://readwise.io/access_token
-CRON_SECRET=           # Vercel cron auth for /api/cron/readwise
+# Readwise (optional)
+READWISE_ACCESS_TOKEN=        # From https://readwise.io/access_token
+CRON_SECRET=                  # Vercel cron auth for /api/cron/readwise
 
-# Voice agent (shared with the relay, Pipecat and LiveKit servers)
-VOICE_API_SECRET=      # Bearer token the voice servers use for /api/voice/*
-PHONE_HASH_KEY=        # HMAC key for hashing caller numbers
-
-# Optional
+# Listening (optional; Apple Music first, Last.fm as the fallback)
+APPLE_MUSIC_PLAYLIST_URL=
+APPLE_MUSIC_TEAM_ID=
+APPLE_MUSIC_KEY_ID=
+APPLE_MUSIC_PRIVATE_KEY=
 LASTFM_API_KEY=
 LASTFM_USERNAME=
+
+# Email (optional)
 RESEND_API_KEY=
 RESEND_FROM_EMAIL=
 CONTACT_NOTIFICATION_EMAIL=
 
+# Voice agent (shared with the separate voice servers)
+VOICE_API_SECRET=             # Bearer token the voice servers use for /api/voice/*
+PHONE_HASH_KEY=               # HMAC key for hashing caller numbers
+
 # Admin
-ADMIN_PASSWORD=        # For /admin access
+ADMIN_PASSWORD=               # For /admin and /calls
 ```
 
 ### Installation
@@ -86,49 +92,24 @@ ADMIN_PASSWORD=        # For /admin access
 npm install
 ```
 
-2. **Set up Vercel Storage**:
+2. **Set up Vercel Storage**: in the Vercel dashboard, create a Postgres database (required) and a KV database (optional), and copy their variables into `.env.local`. Without KV, rate limiting is off and Last.fm results aren't cached.
 
-   **a. Vercel Postgres:**
-   - Go to [Vercel Dashboard](https://vercel.com/dashboard)
-   - Navigate to Storage → Create Database → Postgres
-   - Copy the `POSTGRES_URL` to your `.env.local`
-
-   **b. Vercel KV (Optional but recommended for Readwise caching):**
-   - In Vercel Dashboard, go to Storage → Create Database → KV
-   - Copy all KV environment variables to your `.env.local`
-   - If you skip this, Readwise will fall back to in-memory cache only
-
-3. **Initialize the database**:
+3. **Create the database tables**:
 ```bash
-npm run db:setup
+npm run db:init         # photos, projects, writings, Readwise, contact messages
+npm run db:init-voice   # agent line tables (additive, safe to re-run)
 ```
-
-This will:
-- Create tables (photos, projects, writings)
-- Migrate your existing JSON data to the database
 
 4. **Run the development server**:
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000).
 
-### Database Management
+### Other scripts
 
 ```bash
-# Initialize database tables
-npm run db:init
-
-# Migrate JSON data to database
-npm run db:migrate
-
-# Run both (complete setup)
-npm run db:setup
-
-# Create or extend the voice agent tables (additive, safe to re-run)
-npm run db:init-voice
-
 # Pull Readwise highlights now (the cron does this daily at 09:00 UTC)
 npm run readwise:sync
 ```
@@ -138,183 +119,127 @@ npm run readwise:sync
 ```
 src/
 ├── app/
-│   ├── admin/          # Admin authentication page
-│   ├── api/            # API routes
-│   │   ├── photos/     # Photo CRUD
-│   │   ├── projects/   # Project CRUD
-│   │   ├── writings/   # Writing CRUD
-│   │   ├── readwise/   # Readwise sync
-│   │   ├── cron/       # Daily Readwise sync (Vercel cron)
-│   │   ├── voice/      # Agent line: pairing, events, calls, replays, messages
-│   │   └── webhook/    # Twilio webhooks (keypad line)
-│   ├── page.tsx        # Main app (phone navigation)
-│   └── layout.tsx
+│   ├── (site)/          # Public pages: home, about, resume, photo, photos/[groupName], reading, listening
+│   ├── admin/           # Admin login and panel
+│   ├── calls/           # Private agent-line call timelines (admin password)
+│   ├── session/[id]/    # Recap of a keypad call session
+│   └── api/
+│       ├── admin/       # Admin auth and contact messages
+│       ├── contact/     # Contact form
+│       ├── cron/        # Daily Readwise sync (Vercel cron)
+│       ├── photos/      # Photo CRUD and uploads
+│       ├── readwise/    # Readwise highlights and manual sync
+│       ├── session/     # Keypad session data
+│       ├── upload/      # Blob uploads
+│       ├── voice/       # Agent line: pairing, events, calls, replays, messages, Twilio status
+│       └── webhook/     # Twilio webhooks for the keypad line
 ├── components/
-│   ├── AdminPanel.tsx      # Dev interface
-│   ├── ContentManager.tsx  # CRUD UI for all content
-│   ├── PhotoManager.tsx    # Photo uploader
-│   ├── PhoneStateMonitor.tsx # HUD for phone state
-│   ├── voice/              # Live feed panel for the agent line
-│   └── sections/           # Content sections
-├── lib/
-│   ├── db.ts           # Database connection
-│   ├── schema.ts       # Drizzle schema
-│   ├── photos.ts       # Photo model
-│   ├── projects.ts     # Project model
-│   ├── writings.ts     # Writing model
-│   ├── readwise.ts     # Readwise integration
-│   ├── books.ts        # Shelf: Readwise + Goodreads merge
-│   └── voice.ts        # Agent line helpers (Pusher, pairing)
-├── content/            # Static content (resume, Goodreads export)
-└── data/               # JSON data (legacy, can be deleted after migration)
+│   ├── AdminPanel.tsx   # Webhook simulation and data tools
+│   ├── ContactForm.tsx
+│   ├── ContactMessages.tsx
+│   ├── PhotoManager.tsx # Photo uploader
+│   ├── photo/           # Collage, grid, wall, lightbox
+│   ├── site/            # Site navigation and keypad listener
+│   └── voice/           # Live feed panel for the agent line
+├── content/             # Static content: resume, Goodreads export, covers
+└── lib/
+    ├── db.ts, schema.ts # Database connection and Drizzle schema
+    ├── sections.ts      # Pages, their keypad digits, and the two phone numbers
+    ├── twilio.ts        # Twilio signature validation
+    ├── pusher.ts        # Server-side Pusher
+    ├── ratelimit.ts     # Tiered rate limits
+    ├── readwise.ts      # Readwise API and sync
+    ├── books.ts         # Bookshelf: Readwise + Goodreads merge
+    ├── music.ts, lastfm.ts # Listening page sources
+    └── voice.ts         # Agent line helpers (feed events, pairing, phone hashing)
 ```
 
 ## Usage
 
-### Phone Navigation
+### Keypad Navigation
 
-1. Call your Twilio number
+1. Call the number shown on the site
 2. Press digits to navigate:
    - `0` - Home
    - `1` - About
-   - `2` - Projects
-   - `3` - Photos
-   - `4` - Writing
-   - `5` - Reading Notes
+   - `2` - Resume
+   - `3` - Photo
+   - `5` - Reading
+   - `6` - Listening
+
+Digit `4` is unused (it belonged to a retired page). Pressing the same digit again on Photo or Reading shows a random photo or highlight.
 
 ### AI Agent Line
 
-The agent number (+1 646 941 7945) is answered by the voice relay in a separate repo (`~/projects/voice-relay-lab`). This site is the agent's display and record:
+The agent number is answered by voice servers that live in a separate repository. This site is the agent's display and record:
 
-1. A visitor opens the feed panel and picks a stack: **Twilio** (ConversationRelay), **Pipecat** (Deepgram, ElevenLabs, on Railway) or **LiveKit** (LiveKit Agents on Railway; the relay dials the call into LiveKit Cloud over SIP). The panel shows a 4-digit pairing code.
-2. On the call, the relay listens silently for 3 seconds. A typed code is claimed through `/api/voice/pair/claim` and the call goes to the stack the code was made for; no code or a used code goes to Twilio.
-3. All three stacks post events to `/api/voice/events`. The site stores them and pushes them over Pusher to the paired browser, which shows transcript, turn state and latency.
+1. A visitor opens the feed panel and picks a stack: **Twilio** (ConversationRelay), **Pipecat**, or **LiveKit** (LiveKit Agents, reached over SIP). The panel shows a 4-digit pairing code.
+2. On the call, the voice server listens silently for 3 seconds. A typed code is claimed through `/api/voice/pair/claim`, and the call goes to the stack the code was made for. No code, or a used code, goes to Twilio.
+3. All three stacks post events to `/api/voice/events`. The site stores them and pushes the public ones over Pusher to the paired browser's private channel, which shows the transcript, turn state, latency, and on Pipecat calls, tone readings and the caller's waveform.
+4. Calls nobody paired never appear publicly. Visitors who don't call can watch replays of featured calls (`/api/voice/replays`). Messages a caller leaves are kept out of the public feed and emailed to the site owner.
 
-Pairings live in `voice_pairings` (with a `path` column: `A` Twilio, `B` Pipecat, `C` LiveKit); calls in `calls`, `call_events`, `call_transcripts` and `messages`.
+Pairings live in `voice_pairings` (with a `path` column: `A` Twilio, `B` Pipecat, `C` LiveKit); calls in `callers`, `calls`, `call_events`, `call_transcripts`, and `messages`. Caller numbers are stored as an HMAC (`PHONE_HASH_KEY`), not in plain text.
 
-### Admin Panel
+### Admin
 
-Access `/admin` with your `ADMIN_PASSWORD` to:
-- Upload photos in bulk
-- Manage projects (view/delete)
-- Manage writings (view/delete)
-- Test webhooks
-- View navigation data
+Sign in at `/admin` with `ADMIN_PASSWORD` to:
+- Upload and manage photos
+- Read contact form messages
+- Simulate keypad webhook presses
+
+Agent-line call timelines are at `/calls`, behind the same password.
 
 ## Data Storage
 
-### Current Architecture
-
-- **Text Content**: Stored in Vercel Postgres (projects, writings, photo metadata)
-- **Photo Files**: Stored in Vercel Blob
-- **Readwise Cache**: Multi-tier caching with Vercel KV
-  - **Tier 1**: In-memory cache (1 hour)
-  - **Tier 2**: Vercel KV (Redis) - 24 hour expiration
-  - **Fallback**: Mock data in development if API unavailable
-
-### Migration from JSON
-
-The project previously used JSON files (`src/data/*.json`). After running `npm run db:setup`, all data is migrated to Postgres.
-
-**After verifying the migration, you can delete:**
-- `src/data/photos.json` - Now in Postgres
-- `src/data/projects.json` - Now in Postgres
-- `src/data/writings.json` - Now in Postgres
-- `src/data/readwise-cache.json` - Now using Vercel KV (if configured)
+- **Content**: Vercel Postgres (photo metadata, Readwise books and highlights, contact messages, keypad sessions, agent-line calls)
+- **Photo files**: Vercel Blob
+- **Readwise**: synced from the Readwise API into Postgres by a daily cron (`/api/cron/readwise`) or `npm run readwise:sync`; pages read from Postgres
+- **Redis (Vercel KV)**: rate-limit counters and a cache for Last.fm results
 
 ## Deployment
 
-### Deploy to Vercel
-
-1. **Push to GitHub**:
+1. **Import the repository into Vercel** and add the environment variables above.
+2. **Create the storage** in the Vercel project: Postgres (required), Blob (for photos), KV (optional). Their variables are added automatically.
+3. **Create the tables** against the production database:
 ```bash
-git add .
-git commit -m "Initial commit"
-git push origin main
-```
-
-2. **Import to Vercel**:
-   - Go to [Vercel Dashboard](https://vercel.com/new)
-   - Import your repository
-   - Add all environment variables
-   - Deploy
-
-3. **Set up Vercel Storage** (if not already done):
-   - In your Vercel project, go to Storage
-   - Create a **Postgres database** (required)
-   - Create a **KV database** (optional, for Readwise caching)
-   - Environment variables will be automatically added
-
-4. **Initialize database on Vercel**:
-```bash
-# After deployment, run migrations
 vercel env pull .env.local
-npm run db:setup
+npm run db:init
+npm run db:init-voice
 ```
+4. **Configure the keypad number in Twilio**:
+   - Voice webhook: `https://your-domain/api/webhook/twilio`
+   - Status callback: `https://your-domain/api/webhook/twilio/status`
 
-5. **Configure Twilio webhook**:
-   - In Twilio Console, set webhook URL to:
-     `https://your-domain.vercel.app/api/webhook/twilio`
+The Readwise cron is defined in `vercel.json`.
 
 ## Security
 
 ### Twilio Webhook Signature Validation
 
-The Twilio webhook endpoint (`/api/webhook/twilio`) implements signature validation using HMAC-SHA1 to verify requests are genuinely from Twilio:
+Twilio webhooks are verified with HMAC-SHA1 per [Twilio's security docs](https://www.twilio.com/docs/usage/webhooks/webhooks-security):
 
-- **Development**: Validation is skipped for easier testing (logs `[Dev Mode] Skipping...`)
-- **Production**: Full signature validation is enabled automatically
-- **Algorithm**: HMAC-SHA1 with base64 encoding per [Twilio's security docs](https://www.twilio.com/docs/usage/security#validating-requests)
-- **Testing**: Run `npx tsx scripts/test-signature-validation.ts` to verify the validation logic
+- **Production**: every request must carry a valid `X-Twilio-Signature`
+- **Development**: the keypad webhook skips validation so the admin panel can simulate key presses against a local server
+- **Testing**: `npx tsx scripts/test-signature-validation.ts`
 
-## Rate Limiting
+The voice routes use a shared bearer secret (`VOICE_API_SECRET`) for the voice servers, Twilio signatures for status callbacks, and the admin password for call timelines.
 
-### API Protection
+### Rate Limiting
 
-All API endpoints are protected with tiered rate limiting using Vercel KV (Redis):
+API routes use tiered sliding-window limits stored in Redis:
 
-**Rate Limit Tiers:**
-- **Strict** (Auth endpoints): 5 requests/minute - Prevents brute force attacks
-- **Upload** (Photo uploads): 10 requests/hour - Protects expensive file operations
-- **Standard** (CRUD operations): 30 requests/minute - Normal write/delete operations
-- **Lenient** (Read operations): 60 requests/minute - GET endpoints
+| Tier | Limit | Used by |
+|---|---|---|
+| Strict | 5 per minute | `/api/admin/auth`, `/api/contact`, `POST /api/readwise` |
+| Upload | 10 per hour | `/api/photos/upload` |
+| Standard | 30 per minute | `/api/photos` writes, `/api/upload`, `/api/voice/pair` |
+| Lenient | 60 per minute | `GET /api/photos`, `GET /api/readwise` |
 
-**Behavior:**
-- **Development**: Rate limiting is skipped for easier testing
-- **Production**: All limits are enforced, returns 429 status when exceeded
-- **Headers**: Rate limit info included in response headers (`X-RateLimit-*`)
-
-**Testing:**
-```bash
-npx tsx scripts/test-rate-limiting.ts
-```
-
-**Protected Endpoints:**
-- `/api/admin/auth` - Strict (5/min)
-- `/api/photos/upload` - Upload (10/hour)
-- `/api/photos` (GET/PUT/DELETE) - Lenient reads, Standard writes
-- `/api/projects` (GET/POST/PUT/DELETE) - Lenient reads, Standard writes
-- `/api/writings` (GET/POST/PUT/DELETE) - Lenient reads, Standard writes
+Limits are skipped in development and when Redis isn't configured. Over the limit returns `429` with `X-RateLimit-*` headers. Test with `npx tsx scripts/test-rate-limiting.ts`.
 
 ## Image Processing
 
-### Sharp Integration
-
-Photo uploads use [Sharp](https://sharp.pixelplumbing.com/) for automatic image dimension detection:
-
-- **Automatic detection**: Width and height are detected from uploaded images
-- **Format support**: Works with JPEG, PNG, WebP, GIF, and more
-- **Fallback**: Uses default dimensions (1600x1200) if detection fails
-- **Testing**: Run `npx tsx scripts/test-sharp.ts` to verify Sharp is working
-
-When you upload a photo, you'll see logs like:
-```
-Detected image dimensions: 640x480 (png)
-```
-
-## Backlog
-
-The backlog lives in Linear (team Crunnels, project Phonesite).
+Photo uploads use [Sharp](https://sharp.pixelplumbing.com/) to detect width and height (JPEG, PNG, WebP, GIF, and more), falling back to 1600x1200 if detection fails. Test with `npx tsx scripts/test-sharp.ts`.
 
 ## License
 
