@@ -35,14 +35,14 @@ export const JOBS: Job[] = [
           {
             heading: 'Transcription for voice AI',
             points: [
-              "Led the migration of call transcription to a self-hosted platform behind a provider-agnostic API, cutting the contracted unit rate ~64% and removing the previous provider's throttling ceiling. Existing AI products needed no changes, and the platform now serves 5+ AI and product teams.",
-              'Rolled out transcription of every call across 1,100+ customer accounts on the core phone product with a volume-tiered ramp, taking the platform to ~1.3M calls a week, including 100% of Contact Center calls.',
+              "Led the migration of call transcription to a self-hosted platform behind a provider-agnostic API, lowering the contracted rate and removing the previous provider's throttling ceiling. Existing AI products needed no changes, and the platform now serves AI and product teams across the company.",
+              'Rolled out transcription of every call on the core phone product with a volume-tiered ramp, including every Contact Center call.',
             ],
           },
           {
             heading: 'Contact Center onboarding',
             points: [
-              'Led delivery of an automated go-live wizard that replaced a 20+ step manual setup across six systems with gated pre-flight checks, one-click fixes, and rollback for up to 25 accounts per run. It targets the go-live misconfigurations linked to ~60% of churn-related interactions.',
+              'Led delivery of an automated go-live wizard that replaced a long manual setup across several systems with gated pre-flight checks, one-click fixes, and batch rollback. It targets the go-live misconfigurations behind a large share of churn-related interactions.',
               "Defined and launched desk-phone provisioning, the product's most-requested feature, to private preview. It replaced a manual, single-engineer process with APIs, an admin UI, and an audit trail. Led the first customer onboarding and wrote the sales enablement.",
               'Designed one lifecycle wizard covering four onboarding and offboarding flows, and wrote the churn-pathway playbooks behind a production teardown tool that keeps a reversal path open.',
             ],
@@ -50,27 +50,27 @@ export const JOBS: Job[] = [
           {
             heading: 'Reliability and investigation',
             points: [
-              'Led the voice observability program: audited 10+ monitoring tools, found that Support first spotted ~60% of incidents, and drove the plan that put SIP call logs into central logging with no new vendor spend.',
-              'Ran a self-service audit of 1,800+ accounts and 319K carrier-hosted numbers that traced a customer outage to a provisioning failure. Separated 29 true failures from ~940 cleanup gaps and delivered the root-cause analysis to leadership with no engineering tickets.',
-              'Launched an in-product webphone network test to private preview, and rebuilt the pre-sales network test after finding it probed the wrong servers (5 of 15 ports open). Network issues were the #4 support escalation category.',
-              'Built four Kibana dashboards (37 panels for 5 personas) covering platform health, call investigation, WebRTC quality, and queue and agent state, giving Support and Ops access without a VPN.',
-              'Built an AI-assisted investigation toolkit for the voice team: read-only MCP connectors across log, SIP-capture, metrics, carrier, and call-quality systems, a shared Claude skills repo of 30+ investigation playbooks, and a 200+ page platform knowledge base.',
+              'Led the voice observability program: audited the monitoring tools, found that Support was first to spot most incidents, and drove the plan that put SIP call logs into central logging with no new vendor spend.',
+              "Ran a self-service audit of every account's carrier-hosted numbers that traced a customer outage to a provisioning failure. Separated the few true failures from cleanup gaps and delivered the root-cause analysis to leadership with no engineering tickets.",
+              'Launched an in-product webphone network test to private preview, and rebuilt the pre-sales network test after finding it probed the wrong servers. Network issues were a top support escalation category.',
+              'Built four dashboards covering platform health, call investigation, WebRTC quality, and queue and agent state, giving Support and Ops access without a VPN.',
+              'Built an AI-assisted investigation toolkit for the voice team: read-only MCP connectors across log, SIP-capture, metrics, carrier, and call-quality systems, a shared Claude skills repo of investigation playbooks, and a platform knowledge base.',
               'Partnered with an engineer on a call-flow tool that rebuilds every leg of a call from SIP captures, carrier records, and Contact Center data in one view. Shaped the user experience and guided the carrier integrations; it shipped to every employee within a day of its first demo.',
             ],
           },
           {
             heading: 'Caller ID and compliance',
             points: [
-              "Selected the STIR/SHAKEN certificate authority (19% lower cost, no lock-in) and defined the call-signing and attestation strategy for 10K+ customer accounts' caller IDs. The certificate went live ahead of schedule.",
+              "Selected the STIR/SHAKEN certificate authority (lower cost, no lock-in) and defined the call-signing and attestation strategy for customer caller IDs. The certificate went live ahead of schedule.",
               'Owned the FCC Robocall Mitigation Database refiling as a voice provider: drafted the mitigation plan and filed it on time.',
             ],
           },
           {
             heading: 'Admin tooling and planning',
             points: [
-              'Shipped a standalone, role-based telecom admin app for Support and Telecom Operations that replaced the legacy admin and 4–5 carrier-portal hops.',
-              'Wrote 15+ PRDs spanning transcription, observability, admin tooling, devices, and routing, and took on routing and workflow scope mid-quarter.',
-              'Benchmarked the contact center product against four major CCaaS and UCaaS competitors across ~80 features.',
+              'Shipped a standalone, role-based telecom admin app for Support and Telecom Operations that replaced the legacy admin and several carrier-portal hops.',
+              'Wrote PRDs spanning transcription, observability, admin tooling, devices, and routing, and took on routing and workflow scope mid-quarter.',
+              'Benchmarked the contact center product against four major CCaaS and UCaaS competitors feature by feature.',
             ],
           },
         ],
@@ -189,21 +189,12 @@ export const JOBS: Job[] = [
       {
         title: 'Technical Project Manager, Elastic SIP Trunking',
         dates: 'Jul 2019 – Dec 2020',
-        points: [
-          'Recovered an at-risk global contact-center deployment for a strategic enterprise customer by leading a two-week build of an internal load-testing tool that verified network concurrency before each country launch.',
-          'Built a 3-year product-usage retrospective in SQL and Looker, segmented by use case, business type, and size, that became the primary data source for the Elastic SIP Trunking 3-year strategy and roadmap.',
-          'Ran competitive and market analysis to reset list prices and annual-commitment discount tiers in 10 target countries.',
-        ],
+        points: [],
       },
       {
         title: 'Senior Product Operations Analyst',
         dates: 'Jun 2017 – Jul 2019',
-        points: [
-          'Built a US phone-number health dashboard in Looker with Datadog alerting across 300+ prefixes, cutting the 30-day US stockout rate from 2.9% to 0.5%.',
-          'Modeled internal number-testing data to target engineering fixes, cutting inventory test failures 60% and number-purchasing COGS 5%.',
-          'Ran the international phone-number purchasing and compliance program, keeping 230+ number types available across 100+ countries.',
-          'Owned the number port-out operation end to end under FCC porting rules, and was associate PM on internal porting tools (number locking, UI) with engineering teams in Estonia and San Francisco.',
-        ],
+        points: [],
       },
     ],
   },
@@ -215,16 +206,7 @@ export const JOBS: Job[] = [
       {
         title: 'Operations, Account Management and Workforce Analytics',
         dates: 'Aug 2015 – Jun 2017',
-        points: [
-          'Designed the servicing schedule and time-management protocol for a 25-person operations team, cutting phone wait times 15% and email response time 10% while holding 80% first-contact resolution.',
-          'Built a regression-based staffing model with a data analyst that forecast agent headcount from inbound volume, holding a 60-second phone response time while freeing headcount for OKR projects.',
-          'Trained 15+ new hires in a multi-week compliance and operations program, bringing cohorts to full capacity within a month.',
-          'Started the chargeback program: worked out how each payment processor reported and processed chargebacks, set up the re-presentment process, and barred reuse of any card that had charged back.',
-          'Built the company-wide Confluence knowledge base, wrote over a third of its content, and set up the audit and review cadence.',
-          'Learned SQL to build a phone-channel call-funnel analysis in Chart.io that exposed weak points in the customer experience.',
-          'Led configuration and rollout of Zendesk CRM for the operations team, working with product and engineering in an Agile process.',
-          'Serviced 150+ loan accounts a day across phone and email, with a focus on compliance and risk.',
-        ],
+        points: [],
       },
     ],
   },
