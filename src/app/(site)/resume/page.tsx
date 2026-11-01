@@ -7,6 +7,14 @@ export const metadata: Metadata = { title: 'Resume · Connor Runnels' };
 
 const HEADING = 'text-xs uppercase tracking-[0.1em] text-ink-3';
 
+interface PointProps {
+  text: string;
+}
+
+function Point({ text }: PointProps) {
+  return <p className="text-base leading-relaxed">{text}</p>;
+}
+
 export default function ResumePage() {
   return (
     <main className="grid grid-cols-1 px-4 pb-24 pt-16 sm:px-[5%] md:grid-cols-12 md:gap-x-6 md:pt-[72px]">
@@ -50,10 +58,14 @@ export default function ResumePage() {
                       {role.title} · {role.dates}
                     </p>
                   )}
-                  {role.points.map((point) => (
-                    <p key={point} className="text-base leading-relaxed">
-                      {point}
-                    </p>
+                  {role.points?.map((point) => <Point key={point} text={point} />)}
+                  {role.groups?.map((group) => (
+                    <div key={group.heading} className="mt-4 flex flex-col gap-3.5">
+                      <h3 className={HEADING}>{group.heading}</h3>
+                      {group.points.map((point) => (
+                        <Point key={point} text={point} />
+                      ))}
+                    </div>
                   ))}
                 </div>
               ))}
