@@ -2,6 +2,12 @@ import type { FeedEvent } from '@/lib/voice';
 
 export type CallState = 'waiting' | 'listening' | 'thinking' | 'tool' | 'speaking' | 'ended';
 
+/** An RCS reading of how a caller turn was meant: the likeliest emotions with their confidence, and how likely it's sarcastic. */
+export interface Tone {
+  emotion: [string, number][];
+  sarcasm: number | null;
+}
+
 export interface TranscriptEntry {
   id: string;
   role: 'caller' | 'agent' | 'system';
@@ -9,6 +15,9 @@ export interface TranscriptEntry {
   /** Text the model wrote that the caller never heard, because they interrupted. */
   unheard?: string;
   blocked?: boolean;
+  tone?: Tone;
+  /** The RCS delivery tags the reply was voiced with, such as warm or laugh. */
+  delivery?: string[];
   turn: number | null;
 }
 
@@ -31,11 +40,23 @@ export interface FeedState {
   /** Speech-to-text and voice latency, which only stacks that run those stages themselves (Pipecat) report. */
   sttMs: number[];
   ttsMs: number[];
+  /** The latest caller turn's tone, and its loudness every 100 ms, from 0 to 1. Pipecat only. */
+  tone: Tone | null;
+  levels: number[];
 }
 
 export const eventKey = (event: FeedEvent) => `${event.at}|${event.type}|${event.turn ?? ''}`;
 
 const str = (value: unknown) => (typeof value === 'string' ? value : '');
+const strings = (value: unknown) => (Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []);
+
+function parseTone(data: Record<string, unknown>): Tone | null {
+  const emotion = Array.isArray(data.emotion)
+    ? data.emotion.filter((pair): pair is [string, number] => Array.isArray(pair) && typeof pair[0] === 'string' && typeof pair[1] === 'number')
+    : [];
+  if (!emotion.length) return null;
+  return { emotion, sarcasm: typeof data.sarcasm === 'number' ? data.sarcasm : null };
+}
 
 /** Whatever of `full` comes after `heard`, if `heard` is how `full` begins. All of it when nothing was heard. */
 function unheardPart(full: string, heard: string): string {
@@ -46,7 +67,7 @@ function unheardPart(full: string, heard: string): string {
 
 /** Turns a call's public events into what the panel shows. Pure, so live calls and replays share it. */
 export function buildFeed(events: FeedEvent[]): FeedState {
-  const feed: FeedState = { state: 'waiting', model: null, transcript: [], toolCounts: {}, lastTool: null, ttfts: [], sttMs: [], ttsMs: [] };
+  const feed: FeedState = { state: 'waiting', model: null, transcript: [], toolCounts: {}, lastTool: null, ttfts: [], sttMs: [], ttsMs: [], tone: null, levels: [] };
   const sorted = [...events].sort((a, b) => a.at.localeCompare(b.at));
 
   sorted.forEach((event, index) => {
@@ -57,7 +78,15 @@ export function buildFeed(events: FeedEvent[]): FeedState {
     switch (event.type) {
       case 'caller.final':
         feed.transcript.push({ id, role: 'caller', text: str(data.text), turn });
+        if (Array.isArray(data.levels)) feed.levels = data.levels.filter((level): level is number => typeof level === 'number');
         break;
+      case 'caller.tone': {
+        const tone = parseTone(data);
+        const entry = [...feed.transcript].reverse().find((e) => e.role === 'caller' && e.turn === turn);
+        if (tone && entry) entry.tone = tone;
+        if (tone) feed.tone = tone;
+        break;
+      }
       case 'agent.turn_start':
         feed.model = str(data.model) || feed.model;
         feed.state = 'thinking';
@@ -95,7 +124,7 @@ export function buildFeed(events: FeedEvent[]): FeedState {
         break;
       }
       case 'agent.reply_done':
-        feed.transcript.push({ id, role: 'agent', text: str(data.text), turn });
+        feed.transcript.push({ id, role: 'agent', text: str(data.text), delivery: strings(data.delivery), turn });
         feed.state = 'listening';
         break;
       case 'agent.reply_blocked':
@@ -116,9 +145,10 @@ export function buildFeed(events: FeedEvent[]): FeedState {
             const full = str(data.sent) || reply.text;
             reply.unheard = unheardPart(full, heard);
             reply.text = reply.unheard ? heard.trimEnd() : reply.text;
+            if (strings(data.delivery).length) reply.delivery = strings(data.delivery);
           }
         } else if (heard || data.sent) {
-          feed.transcript.push({ id, role: 'agent', text: heard.trimEnd(), unheard: unheardPart(str(data.sent), heard), turn });
+          feed.transcript.push({ id, role: 'agent', text: heard.trimEnd(), unheard: unheardPart(str(data.sent), heard), delivery: strings(data.delivery), turn });
         }
         feed.state = 'listening';
         break;
