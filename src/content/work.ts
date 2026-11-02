@@ -1,3 +1,5 @@
+// Text fields accept [label](url) links.
+
 export interface Proof {
   company: string;
   text: string;
@@ -25,86 +27,91 @@ export interface Principle {
   text: string;
 }
 
+const STIR_SHAKEN = 'https://www.fcc.gov/call-authentication';
+
 export const THESIS =
-  "I work underneath the phone call: the carrier networks, caller identity, and fraud controls that decide whether a call connects and whether anyone trusts it. I've built that layer for nine years at Twilio, Zoom, Infobip, and ServiceTitan. Now I'm focused on the part AI voice agents run on.";
+  "I've spent nine years on the infrastructure under the phone call, at Twilio, Zoom, Infobip, and ServiceTitan. My work decides whether a call goes through, whether the person who answers can trust who's calling, and whether fraud costs more than the call earns. AI agents that talk on the phone are the next version of that problem, and it's the one I'm working on now.";
 
 export const THEMES: Theme[] = [
   {
-    heading: 'Trust on the phone network',
-    problem:
-      "Most people stopped answering unknown numbers, and regulators and carriers responded with rules most businesses can't follow on their own. The product work is making a legitimate call look legitimate, and making fraud expensive, without slowing down the customers who play by the rules.",
+    heading: 'Making phone calls trustworthy again',
+    problem: `Robocalls and [spoofed caller ID](https://en.wikipedia.org/wiki/Caller_ID_spoofing) taught people to stop answering. The fix has to be industry-wide: carriers sign every call under [STIR/SHAKEN](${STIR_SHAKEN}), businesses prove who they are, and phones show a name people can believe. I've built that system at three companies.`,
     proofs: [
-      { company: 'Twilio', text: "Got all of Twilio's voice traffic STIR/SHAKEN-compliant by the FCC deadline." },
-      { company: 'Zoom', text: 'Cut toll fraud 90% with one cross-team program and guardrails that left good customers alone.' },
-      { company: 'Infobip', text: "Launched branded calling, so a business's name and logo show on the calls it makes." },
-      { company: 'ServiceTitan', text: 'Set the call-signing and attestation strategy for customer caller IDs.' },
+      { company: 'Twilio', text: `Brought every voice call Twilio carries under [STIR/SHAKEN](${STIR_SHAKEN}) by the FCC's deadline, most of them signed at the highest level of trust.` },
+      { company: 'Zoom', text: 'Ran the company-wide program that cut toll fraud on [Zoom Phone](https://www.zoom.com/en/products/voip-phone/) by 90%.' },
+      {
+        company: 'Infobip',
+        text: 'Led the push to bring [Branded Calling ID](https://www.ctia.org/branded-calling-id) and [Apple Branded Caller ID](https://www.apple.com/business/connect/) to [Peerless Network](https://www.peerlessnetwork.com/), and took the carrier through the FCC\'s [2024 rules](https://transnexus.com/blog/2024/fcc-adopts-new-rules-shaken-3rd-party-signing/) on who may sign a call.',
+      },
+      { company: 'ServiceTitan', text: "Set how ServiceTitan signs and vouches for its customers' caller IDs." },
     ],
   },
   {
-    heading: 'Platforms other teams build on',
+    heading: 'One identity system for every product',
     problem:
-      'The same need shows up in every product: verify this business, transcribe this call, route this number. Solving it once, behind a stable interface, lets every team after the first move faster and lets the vendor underneath change.',
+      'Every phone product has to know who its customers are. Regulators require it before handing out numbers, carriers require it before signing calls, and fraud teams need it to act. Built product by product, it slows every launch. I have built it as a shared platform twice.',
     proofs: [
-      { company: 'Twilio', text: "Launched TrustHub, verify once and reuse it across Twilio's products." },
-      { company: 'Zoom', text: 'Designed a shared compliance model that cut new country launches from about two months to two weeks.' },
-      { company: 'ServiceTitan', text: "Moved call transcription behind a provider-agnostic API that the company's AI products call." },
+      { company: 'Twilio', text: "Launched [TrustHub](https://www.twilio.com/docs/trust-hub), the business verification platform Twilio's products share." },
+      {
+        company: 'Zoom',
+        text: 'Designed the compliance model shared by Zoom Phone and Contact Center, which cut the time to open a new country from about two months to two weeks. Used it to launch Zoom Phone local numbers in Japan.',
+      },
+      { company: 'ServiceTitan', text: 'Moved call transcription onto a platform ServiceTitan runs, behind its own API, so every AI product reads from one source.' },
     ],
   },
   {
-    heading: 'The voice layer under AI agents',
+    heading: 'The phone network under AI agents',
     problem:
-      "A voice agent is only as good as what's under it: latency, interruptions, transcription, and knowing when to hand off to a person. Those are telephony problems more than model problems, and they're the ones I know.",
+      'An AI agent on the phone succeeds or fails on telephony: how fast it answers, whether it stops when you cut in, how well it hears a bad connection, and when it hands you to a person. Those are the problems I have worked on my whole career.',
     proofs: [
-      { company: 'ServiceTitan', text: 'Rolled out transcription of every call, the layer its AI products run on.' },
-      { company: 'Infobip', text: 'Built two voice agents for developer events: a banking agent and a conference assistant.' },
-      { company: 'This site', text: 'Built the AI that answers my phone, three ways: Twilio, Pipecat, and LiveKit.' },
+      { company: 'ServiceTitan', text: "Own voice telephony and Contact Center across ServiceTitan's three phone products, including the transcription its AI products are built on." },
+      { company: 'Infobip', text: "Took Infobip's [voice platform](https://www.infobip.com/voice) to market in North America, and built voice agents on it for developer events." },
+      { company: 'This site', text: 'Built [the AI that answers my phone](/projects) three times, on Twilio, Pipecat, and LiveKit, to see where each one breaks.' },
     ],
   },
 ];
 
 export const STORIES: Story[] = [
   {
+    id: 'servicetitan-transcription',
+    company: 'ServiceTitan',
+    years: '2026',
+    title: "Putting the company's AI on ground it owns",
+    problem:
+      "ServiceTitan's AI products all depended on call transcription, and the provider underneath capped how far they could scale and what they cost.",
+    decision:
+      'I made the case to run transcription on our own platform, behind an API we define, so no product team calls the vendor directly and the vendor can change without anyone noticing. I led the negotiation with my engineering lead, turned down an offer sized well above our real usage, and ran the cutover.',
+    result: 'Every Contact Center call is now transcribed, at a much lower rate, and the AI teams changed nothing on their side.',
+    differently: 'Write the usage forecast into the first contract instead of negotiating it afterward.',
+  },
+  {
     id: 'zoom-fraud',
     company: 'Zoom',
     years: '2022–2023',
-    title: 'Five teams, one fraud problem',
-    problem:
-      'Zoom Phone was losing real money to toll fraud. Five teams each had a partial fix, and nobody owned the whole problem.',
+    title: 'Turning five fraud fixes into one program',
+    problem: 'Fraud on Zoom Phone was costing real money, and five teams each owned a piece of it. Nobody owned the whole thing.',
     decision:
-      'I sized it myself in SQL with an analyst and found that self-serve sign-ups drove most fraud suspensions. I took that to the heads of product, engineering, and compliance, which got us one roadmap with a metric for each team. My part was the product guardrails: caps on simultaneous calls and spend for new self-serve accounts, with good high spenders left alone.',
-    result: 'Toll fraud fell 90% and fraudulent sign-ups 80%, with no rise in reinstatement requests.',
-    differently: "Share partial findings earlier instead of waiting until I had every answer.",
+      'I sized it in SQL with an analyst and traced most of it to one door, self-serve sign-ups. Then I walked the heads of product, engineering, and compliance through the customer journey gate by gate, showing where fraud got in at each one. That turned five partial fixes into one roadmap with a metric per team. My piece was the guardrails: limits on new accounts that left good customers alone.',
+    result: 'Toll fraud fell 90% and fraudulent sign-ups 80%. Suspending a new fraud account went from about three months to about a week.',
+    differently: 'Share partial findings earlier instead of waiting until I had every answer.',
   },
   {
     id: 'twilio-stir-shaken',
     company: 'Twilio',
     years: '2020–2021',
-    title: 'A federal deadline with no platform under it',
-    problem:
-      'The FCC set a fixed date for STIR/SHAKEN call signing, and Twilio had no central place for customers to verify their business.',
+    title: 'Getting a whole carrier ready for a federal mandate',
+    problem: `The FCC gave US carriers a hard deadline to sign calls under [STIR/SHAKEN](${STIR_SHAKEN}). Twilio had to vouch for its customers' calls and had no central record of who those customers were.`,
     decision:
-      "We built TrustHub: verify once, reuse everywhere. Most traffic came from about ten customers, so we onboarded those by hand first and shipped the API for everyone else after. I also ran caller name display as a manual service so customers could start before the platform was ready.",
-    result: "All of Twilio's voice traffic was compliant by the deadline, 80% at full attestation, and every beta customer re-signed.",
-    differently: 'Line up senior engineering allies earlier.',
-  },
-  {
-    id: 'infobip-margin',
-    company: 'Infobip',
-    years: '2024–2025',
-    title: 'Pushing back on a price increase',
-    problem:
-      'Carrier costs spiked, wholesale margin went negative, and the default plan was a rate increase for every customer.',
-    decision:
-      "I sorted the carrier cost report by per-minute rate and traced the most expensive destinations back through the logs to one wholesale account. It was routing traffic to destinations that cost far more than its flat US rate. I recommended restricting that account instead of raising prices on everyone, and moved wholesale accounts onto routes that block high-cost destinations by design.",
-    result: 'Margin came back without a customer-wide increase.',
-    differently: 'It happened once more with another account, so I would push harder for automatic detection.',
+      'We built [TrustHub](https://www.twilio.com/docs/trust-hub) so a business verifies once and every Twilio product can rely on it. Most traffic came from a handful of large customers, so we onboarded them by hand while the self-serve API was built, and ran caller name display as a manual service until the platform caught up.',
+    result: "All of Twilio's voice traffic was compliant by the deadline, 80% at the highest attestation level, and every caller name beta customer renewed.",
+    differently: 'Line up senior engineering support earlier.',
   },
 ];
 
 export const PRINCIPLES: Principle[] = [
-  { heading: 'Size it myself first.', text: 'Before I ask for a team, I pull the data and know how big the problem is.' },
-  { heading: 'Build the platform, then the use case.', text: 'Solve the shared need once, behind an interface teams can trust.' },
-  { heading: 'Do the biggest customers by hand.', text: 'Manual first for the few that matter most, then automate for everyone else.' },
-  { heading: 'Fix the cause, not everyone’s price.', text: 'Find the one account or step behind the number before changing the rules for all.' },
-  { heading: 'Keep the vendor behind my own API.', text: 'So the business can switch providers without every product team rewriting.' },
+  { heading: 'I size the problem myself.', text: 'Before asking anyone for a team, I pull the data and know how big it is.' },
+  { heading: 'Shared problems get one answer.', text: 'If three products need the same thing, build it once and let all of them rely on it.' },
+  { heading: 'Start by hand.', text: 'The biggest customers get done manually first. Automation comes once we know what they need.' },
+  { heading: 'Find the cause before changing the rules.', text: 'One account or one step usually explains the number. Look for it before changing policy for everyone.' },
+  { heading: 'Own the interface.', text: "Vendors change. The API our teams build on shouldn't." },
 ];

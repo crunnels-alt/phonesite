@@ -16,6 +16,33 @@ function Point({ text }: PointProps) {
   return <p className="text-base leading-relaxed">{text}</p>;
 }
 
+const LINK = /\[([^\]]+)\]\(([^)]+)\)/g;
+
+/** Renders [label](url) as links; site paths stay in the tab, everything else opens a new one. */
+function Linked({ text }: { text: string }) {
+  const parts = text.split(LINK);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (i % 3 === 0) return part;
+        if (i % 3 === 2) return null;
+        const href = parts[i + 1];
+        const external = !href.startsWith('/');
+        return (
+          <a
+            key={href + part}
+            href={href}
+            className="underline! decoration-ink-3 underline-offset-4 hover:decoration-ink"
+            {...(external && { target: '_blank', rel: 'noopener noreferrer' })}
+          >
+            {part}
+          </a>
+        );
+      })}
+    </>
+  );
+}
+
 interface StoryPartProps {
   label: string;
   text: string;
@@ -25,7 +52,9 @@ function StoryPart({ label, text }: StoryPartProps) {
   return (
     <div className="grid grid-cols-1 gap-1 md:grid-cols-7 md:gap-x-6">
       <h4 className="text-[13px] text-ink-3 md:col-span-2">{label}</h4>
-      <p className="text-base leading-relaxed md:col-span-5">{text}</p>
+      <p className="text-base leading-relaxed md:col-span-5">
+        <Linked text={text} />
+      </p>
     </div>
   );
 }
@@ -57,12 +86,14 @@ export default function ResumePage() {
           {THEMES.map((theme) => (
             <div key={theme.heading} className="flex flex-col gap-4 border-t border-ink pt-5">
               <h3 className="text-[22px] leading-tight tracking-[-0.01em]">{theme.heading}</h3>
-              <p className="text-base leading-relaxed text-ink-2">{theme.problem}</p>
+              <p className="text-base leading-relaxed text-ink-2">
+                <Linked text={theme.problem} />
+              </p>
               <ul className="flex flex-col gap-3">
                 {theme.proofs.map((proof) => (
                   <li key={proof.text} className="text-[15px] leading-relaxed">
                     <span className="text-ink-3">{proof.company} · </span>
-                    {proof.text}
+                    <Linked text={proof.text} />
                   </li>
                 ))}
               </ul>
