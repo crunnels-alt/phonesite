@@ -25,7 +25,7 @@ export interface Story {
 const STIR_SHAKEN = 'https://www.fcc.gov/call-authentication';
 
 export const THESIS =
-  "For nine years I've owned the problems under the phone call at Twilio, Zoom, Infobip, and ServiceTitan: whether a call connects, whether the person who answers can trust it, and whether the business makes money on it once carrier costs, pricing, and fraud are counted. AI agents that talk on the phone are the next version of those problems, and they're what I'm working on now.";
+  "For nine years I've owned the problems under the phone call at Twilio, Zoom, Infobip, and ServiceTitan: whether a call connects, whether the person who answers can trust it, and whether it makes money. AI agents that talk on the phone are the next version of those problems, and they're what I'm working on now.";
 
 export const THEMES: Theme[] = [
   {
