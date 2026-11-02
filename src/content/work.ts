@@ -30,7 +30,7 @@ export interface Principle {
 const STIR_SHAKEN = 'https://www.fcc.gov/call-authentication';
 
 export const THESIS =
-  "I've spent nine years on the infrastructure under the phone call, at Twilio, Zoom, Infobip, and ServiceTitan. My work decides whether a call goes through, whether the person who answers can trust who's calling, and whether fraud costs more than the call earns. AI agents that talk on the phone are the next version of that problem, and it's the one I'm working on now.";
+  "I've spent nine years on the infrastructure under the phone call, at Twilio, Zoom, Infobip, and ServiceTitan. My work decides whether a call goes through, whether the person who answers can trust who's calling, and whether the business makes money on it once carrier costs, pricing, and fraud are counted. AI agents that talk on the phone are the next version of that problem, and it's the one I'm working on now.";
 
 export const THEMES: Theme[] = [
   {
