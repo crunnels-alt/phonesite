@@ -30,61 +30,43 @@ export interface Principle {
 const STIR_SHAKEN = 'https://www.fcc.gov/call-authentication';
 
 export const THESIS =
-  "I've spent nine years on the infrastructure under the phone call, at Twilio, Zoom, Infobip, and ServiceTitan. My work decides whether a call goes through, whether the person who answers can trust who's calling, and whether the business makes money on it once carrier costs, pricing, and fraud are counted. AI agents that talk on the phone are the next version of that problem, and it's the one I'm working on now.";
+  "For nine years I've owned the problems under the phone call at Twilio, Zoom, Infobip, and ServiceTitan: whether a call connects, whether the person who answers can trust it, and whether the business makes money on it once carrier costs, pricing, and fraud are counted. AI agents that talk on the phone are the next version of those problems, and they're what I'm working on now.";
 
 export const THEMES: Theme[] = [
   {
-    heading: 'Making phone calls trustworthy again',
-    problem: `Robocalls and [spoofed caller ID](https://en.wikipedia.org/wiki/Caller_ID_spoofing) taught people to stop answering. The fix has to be industry-wide: carriers sign every call under [STIR/SHAKEN](${STIR_SHAKEN}), businesses prove who they are, and phones show a name people can believe. I've built that system at three companies.`,
+    heading: 'Caller trust and identity',
+    problem: `Who is calling, and can you believe it? Regulators, carriers, and phone makers each hold part of the answer: [STIR/SHAKEN](${STIR_SHAKEN}) call signing, business verification, number rules in every country, and the name on the screen. I've owned that problem at four companies.`,
     proofs: [
-      { company: 'Twilio', text: `Brought every voice call Twilio carries under [STIR/SHAKEN](${STIR_SHAKEN}) by the FCC's deadline, most of them signed at the highest level of trust.` },
-      { company: 'Zoom', text: 'Ran the company-wide program that cut toll fraud on [Zoom Phone](https://www.zoom.com/en/products/voip-phone/) by 90%.' },
+      { company: 'Twilio', text: `Twilio's response to the FCC's [STIR/SHAKEN](${STIR_SHAKEN}) mandate across its voice network, and [TrustHub](https://www.twilio.com/docs/trust-hub), the platform that verifies businesses for every Twilio product.` },
+      { company: 'Zoom', text: 'International compliance, fraud, trust and safety, and number reputation for the telephony platform under Zoom Phone, Meetings, and Contact Center.' },
       {
         company: 'Infobip',
-        text: 'Led the push to bring [Branded Calling ID](https://www.ctia.org/branded-calling-id) and [Apple Branded Caller ID](https://www.apple.com/business/connect/) to [Peerless Network](https://www.peerlessnetwork.com/), and took the carrier through the FCC\'s [2024 rules](https://transnexus.com/blog/2024/fcc-adopts-new-rules-shaken-3rd-party-signing/) on who may sign a call.',
+        text: 'Caller authentication and branded calling for the [Peerless Network](https://www.peerlessnetwork.com/) carrier business, from the FCC\'s [2024 signing rules](https://transnexus.com/blog/2024/fcc-adopts-new-rules-shaken-3rd-party-signing/) to [Branded Calling ID](https://www.ctia.org/branded-calling-id) and [Apple Branded Caller ID](https://www.apple.com/business/connect/).',
       },
-      { company: 'ServiceTitan', text: "Set how ServiceTitan signs and vouches for its customers' caller IDs." },
+      { company: 'ServiceTitan', text: "Caller ID, call signing, and FCC robocall compliance for ServiceTitan as a voice provider." },
     ],
   },
   {
-    heading: 'The economics of a call',
+    heading: 'The economics of the network',
     problem:
-      'Every call has a cost underneath it: carrier rates that change by destination, capacity someone has to pay for, and fraud that turns a cheap minute into an expensive one. Price it wrong and the product grows into a loss. I work on pricing, margin, and fraud together, since a change to one moves the others.',
+      'Every minute has a carrier cost under it, a price on top, and fraud trying to get in between. Get any of the three wrong and the product grows into a loss. I own pricing, fraud, and margin as one problem, because a change to one moves the others.',
     proofs: [
-      {
-        company: 'Twilio',
-        text: 'Ran pricing in contract negotiations with half of the top ten [Elastic SIP Trunking](https://www.twilio.com/docs/sip-trunking) customers, then used what I heard to cut the US list price. Organic sign-ups rose 7% the next quarter.',
-      },
-      { company: 'Zoom', text: 'Traced most telephony fraud to one sales channel, self-serve sign-ups, and made the case for checking identity at the door instead of absorbing the losses after.' },
-      {
-        company: 'Infobip',
-        text: 'Found one wholesale account buying flat-rate US minutes and sending them to destinations that cost up to 75 times as much. Restricting it brought margin back without raising prices on every customer.',
-      },
-      { company: 'Infobip', text: "Ran North America voice go-to-market, beat the year's deal goal six weeks early, and closed the region's best revenue month." },
-      { company: 'ServiceTitan', text: 'Reworked the economics of call transcription so the company could afford to transcribe every Contact Center call.' },
+      { company: 'Twilio', text: 'Pricing for [Elastic SIP Trunking](https://www.twilio.com/docs/sip-trunking), from the US list price to capacity pricing and the contracts with its largest customers.' },
+      { company: 'Zoom', text: "The executive-sponsored anti-fraud program for Zoom's telephony platform, across Growth, Payments, Data Science, Trust and Safety, and Legal." },
+      { company: 'Infobip', text: 'North America voice go-to-market, and the pricing model for branded calling.' },
+      { company: 'ServiceTitan', text: 'The cost of the transcription platform the company\'s AI products run on.' },
     ],
   },
   {
-    heading: 'One identity system for every product',
+    heading: 'Voice platforms, and the AI built on them',
     problem:
-      'Every phone product has to know who its customers are. Regulators require it before handing out numbers, carriers require it before signing calls, and fraud teams need it to act. Built product by product, it slows every launch. I have built it as a shared platform twice.',
+      "The phone network is what voice AI runs on. I've owned the platforms that other teams and other companies build calls on, and now the telephony and transcription that AI products depend on.",
     proofs: [
-      { company: 'Twilio', text: "Launched [TrustHub](https://www.twilio.com/docs/trust-hub), the business verification platform Twilio's products share." },
-      {
-        company: 'Zoom',
-        text: 'Designed the compliance model shared by Zoom Phone and Contact Center, which cut the time to open a new country from about two months to two weeks. Used it to launch Zoom Phone local numbers in Japan.',
-      },
-      { company: 'ServiceTitan', text: 'Moved call transcription onto a platform ServiceTitan runs, behind its own API, so every AI product reads from one source.' },
-    ],
-  },
-  {
-    heading: 'The phone network under AI agents',
-    problem:
-      'An AI agent on the phone succeeds or fails on telephony: how fast it answers, whether it stops when you cut in, how well it hears a bad connection, and when it hands you to a person. Those are the problems I have worked on my whole career.',
-    proofs: [
-      { company: 'ServiceTitan', text: "Own voice telephony and Contact Center across ServiceTitan's three phone products, including the transcription its AI products are built on." },
-      { company: 'Infobip', text: "Took Infobip's [voice platform](https://www.infobip.com/voice) to market in North America, and built voice agents on it for developer events." },
-      { company: 'This site', text: 'Built [the AI that answers my phone](/projects) three times, on Twilio, Pipecat, and LiveKit, to see where each one breaks.' },
+      { company: 'Twilio', text: '[Elastic SIP Trunking](https://www.twilio.com/docs/sip-trunking), the product businesses use to connect their own phone systems to Twilio\'s network.' },
+      { company: 'Zoom', text: 'The carrier platform under [Zoom Phone](https://www.zoom.com/en/products/voip-phone/), including its expansion into new countries.' },
+      { company: 'Infobip', text: "Infobip's [voice platform](https://www.infobip.com/voice) in North America, and the voice AI agents I built on it for developer events." },
+      { company: 'ServiceTitan', text: 'Voice telephony and Contact Center across three phone products, and the transcription, admin, and observability platforms that operators and AI teams build on.' },
+      { company: 'This site', text: '[The AI that answers my phone](/projects), built three times on Twilio, Pipecat, and LiveKit.' },
     ],
   },
 ];
@@ -94,7 +76,7 @@ export const STORIES: Story[] = [
     id: 'servicetitan-transcription',
     company: 'ServiceTitan',
     years: '2026',
-    title: "Putting the company's AI on ground it owns",
+    title: 'A transcription platform for the company\'s AI',
     problem:
       "ServiceTitan's AI products all depended on call transcription, and the provider underneath capped how far they could scale and what they cost.",
     decision:
@@ -106,7 +88,7 @@ export const STORIES: Story[] = [
     id: 'zoom-fraud',
     company: 'Zoom',
     years: '2022–2023',
-    title: 'Turning five fraud fixes into one program',
+    title: 'A cross-company anti-fraud program',
     problem: 'Fraud on Zoom Phone was costing real money, and five teams each owned a piece of it. Nobody owned the whole thing.',
     decision:
       'I sized it in SQL with an analyst and traced most of it to one door, self-serve sign-ups. Then I walked the heads of product, engineering, and compliance through the customer journey gate by gate, showing where fraud got in at each one. That turned five partial fixes into one roadmap with a metric per team. My piece was the guardrails: limits on new accounts that left good customers alone.',
@@ -117,7 +99,7 @@ export const STORIES: Story[] = [
     id: 'twilio-stir-shaken',
     company: 'Twilio',
     years: '2020–2021',
-    title: 'Getting a whole carrier ready for a federal mandate',
+    title: 'STIR/SHAKEN readiness across Twilio\'s voice network',
     problem: `The FCC gave US carriers a hard deadline to sign calls under [STIR/SHAKEN](${STIR_SHAKEN}). Twilio had to vouch for its customers' calls and had no central record of who those customers were.`,
     decision:
       'We built [TrustHub](https://www.twilio.com/docs/trust-hub) so a business verifies once and every Twilio product can rely on it. Most traffic came from a handful of large customers, so we onboarded them by hand while the self-serve API was built, and ran caller name display as a manual service until the platform caught up.',

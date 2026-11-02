@@ -81,29 +81,31 @@ export default function ResumePage() {
       </header>
 
       <section className="mt-20 md:col-span-10 md:col-start-2 md:mt-[88px]">
-        <h2 className={`${HEADING} mb-6`}>What I work on</h2>
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-x-6">
-          {THEMES.map((theme) => (
-            <div key={theme.heading} className="flex flex-col gap-4 border-t border-ink pt-5">
-              <h3 className="text-[22px] leading-tight tracking-[-0.01em]">{theme.heading}</h3>
+        <h2 className={`${HEADING} mb-6`}>Problem spaces I own</h2>
+        {THEMES.map((theme) => (
+          <div key={theme.heading} className="grid grid-cols-1 gap-6 border-t border-ink py-10 md:grid-cols-10 md:gap-x-6">
+            <div className="flex flex-col gap-4 md:col-span-4">
+              <h3 className="text-[26px] leading-tight tracking-[-0.01em]">{theme.heading}</h3>
               <p className="text-base leading-relaxed text-ink-2">
                 <Linked text={theme.problem} />
               </p>
-              <ul className="flex flex-col gap-3">
-                {theme.proofs.map((proof) => (
-                  <li key={proof.text} className="text-[15px] leading-relaxed">
-                    <span className="text-ink-3">{proof.company} · </span>
-                    <Linked text={proof.text} />
-                  </li>
-                ))}
-              </ul>
             </div>
-          ))}
-        </div>
+            <dl className="flex flex-col gap-4 md:col-span-6">
+              {theme.proofs.map((proof) => (
+                <div key={proof.text} className="grid grid-cols-1 gap-1 sm:grid-cols-[6.5rem_1fr] sm:gap-x-4">
+                  <dt className="text-[13px] text-ink-3 sm:pt-0.5">{proof.company}</dt>
+                  <dd className="text-base leading-relaxed">
+                    <Linked text={proof.text} />
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ))}
       </section>
 
       <section className="mt-20 md:col-span-10 md:col-start-2 md:mt-[88px]">
-        <h2 className={`${HEADING} mb-6`}>Three stories</h2>
+        <h2 className={`${HEADING} mb-6`}>Programs I&apos;ve led</h2>
         <div className="flex flex-col">
           {STORIES.map((story) => (
             <article key={story.id} className="grid grid-cols-1 gap-5 border-t border-rule py-10 md:grid-cols-10 md:gap-x-6">
