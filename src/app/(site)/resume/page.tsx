@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { EDUCATION, JOBS } from '@/content/resume';
-import { PRINCIPLES, STORIES, THEMES, THESIS } from '@/content/work';
+import { STORIES, THEMES, THESIS } from '@/content/work';
 import { AGENT_PHONE_NUMBER } from '@/lib/sections';
 import { OpenFeedButton } from '@/components/voice/OpenFeedButton';
 
@@ -124,19 +124,6 @@ export default function ResumePage() {
             </article>
           ))}
         </div>
-      </section>
-
-      <section className="mt-12 md:col-span-10 md:col-start-2">
-        <h2 className={`${HEADING} mb-6`}>How I work</h2>
-        <ol className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-5 xl:gap-x-6">
-          {PRINCIPLES.map((principle, i) => (
-            <li key={principle.heading} className="flex flex-col gap-2 border-t border-rule pt-4">
-              <span className="text-[13px] tabular-nums text-ink-3">{String(i + 1).padStart(2, '0')}</span>
-              <p className="text-base leading-snug">{principle.heading}</p>
-              <p className="text-[15px] leading-relaxed text-ink-2">{principle.text}</p>
-            </li>
-          ))}
-        </ol>
       </section>
 
       <section className="mt-20 md:col-span-10 md:col-start-2 md:mt-[88px]">

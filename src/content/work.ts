@@ -22,11 +22,6 @@ export interface Story {
   differently: string;
 }
 
-export interface Principle {
-  heading: string;
-  text: string;
-}
-
 const STIR_SHAKEN = 'https://www.fcc.gov/call-authentication';
 
 export const THESIS =
@@ -105,12 +100,4 @@ export const STORIES: Story[] = [
     result: "All of Twilio's voice traffic was compliant by the deadline, 80% at the highest attestation level, and every caller name beta customer renewed.",
     differently: 'Line up senior engineering support earlier.',
   },
-];
-
-export const PRINCIPLES: Principle[] = [
-  { heading: 'I size the problem myself.', text: 'Before asking anyone for a team, I pull the data and know how big it is.' },
-  { heading: 'Shared problems get one answer.', text: 'If three products need the same thing, build it once and let all of them rely on it.' },
-  { heading: 'Start by hand.', text: 'The biggest customers get done manually first. Automation comes once we know what they need.' },
-  { heading: 'Find the cause before changing the rules.', text: 'One account or one step usually explains the number. Look for it before changing policy for everyone.' },
-  { heading: 'Own the interface.', text: "Vendors change. The API our teams build on shouldn't." },
 ];
