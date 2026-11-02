@@ -16,7 +16,7 @@ export interface Project {
 }
 
 export const PROJECTS_INTRO =
-  'Things I have built for myself. I decide what to make, test it, and review each change; Claude Code writes the code.';
+  'Things I have built for myself.';
 
 export const PROJECTS: Project[] = [
   {
