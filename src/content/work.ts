@@ -80,7 +80,7 @@ export const STORIES: Story[] = [
       "ServiceTitan's AI products all depended on call transcription, and the provider underneath capped how far they could scale and what they cost.",
     decision:
       'I made the case to run transcription on our own platform, behind an API we define, so no product team calls the vendor directly and the vendor can change without anyone noticing. I led the negotiation with my engineering lead, turned down an offer sized well above our real usage, and ran the cutover.',
-    result: 'Every Contact Center call is now transcribed, at a much lower rate, and the AI teams changed nothing on their side.',
+    result: 'Every call is now transcribed, and any team at ServiceTitan can pull the transcripts into its own product through one API, without touching the vendor.',
     differently: 'Write the usage forecast into the first contract instead of negotiating it afterward.',
   },
   {
