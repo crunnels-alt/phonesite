@@ -54,7 +54,7 @@ export const THEMES: Theme[] = [
       { company: 'Twilio', text: 'Pricing for [Elastic SIP Trunking](https://www.twilio.com/docs/sip-trunking), from the US list price to capacity pricing and the contracts with its largest customers.' },
       { company: 'Zoom', text: "The executive-sponsored anti-fraud program for Zoom's telephony platform, across Growth, Payments, Data Science, Trust and Safety, and Legal." },
       { company: 'Infobip', text: 'North America voice go-to-market, and the pricing model for branded calling.' },
-      { company: 'ServiceTitan', text: 'The cost of running AI on every call that goes through ServiceTitan.' },
+      { company: 'ServiceTitan', text: "The transcription pipeline behind ServiceTitan's AI products, and choosing and managing the vendors underneath it." },
     ],
   },
   {
