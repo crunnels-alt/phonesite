@@ -88,10 +88,14 @@ export function buildFeed(events: FeedEvent[]): FeedState {
     if (feed.state === 'waiting') feed.state = 'listening';
 
     switch (event.type) {
-      case 'caller.final':
-        feed.transcript.push({ id, role: 'caller', text: str(data.text), turn });
-        if (Array.isArray(data.levels)) feed.levels = data.levels.filter((level): level is number => typeof level === 'number');
+      case 'caller.final': {
+        const last = feed.transcript.at(-1);
+        // A late speech-to-text segment of the same question joins the caller's bubble.
+        if (data.continues && last?.role === 'caller' && last.turn === turn) last.text = `${last.text} ${str(data.text)}`;
+        else feed.transcript.push({ id, role: 'caller', text: str(data.text), turn });
+        if (Array.isArray(data.levels) && !data.continues) feed.levels = data.levels.filter((level): level is number => typeof level === 'number');
         break;
+      }
       case 'caller.tone': {
         const tone = parseTone(data);
         const entry = [...feed.transcript].reverse().find((e) => e.role === 'caller' && e.turn === turn);
