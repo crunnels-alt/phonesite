@@ -76,7 +76,7 @@ export default function ResumePage() {
           <a href={`tel:${AGENT_PHONE_NUMBER.replace(/\s/g, '')}`} className="whitespace-nowrap underline! underline-offset-4">
             {AGENT_PHONE_NUMBER}
           </a>{' '}
-          to talk to an AI version of me, and <OpenFeedButton>watch the call under the hood</OpenFeedButton> as it happens.
+          and <OpenFeedButton>watch the call under the hood</OpenFeedButton> as it happens.
         </p>
       </header>
 
