@@ -1,13 +1,15 @@
 import type { Metadata } from 'next';
-import { Space_Grotesk } from 'next/font/google';
+import localFont from 'next/font/local';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 
-const spaceGrotesk = Space_Grotesk({
+// Shipped in the repo so builds don't depend on reaching Google Fonts. Variable font, licensed under the OFL (fonts/OFL.txt).
+const spaceGrotesk = localFont({
+  src: './fonts/SpaceGrotesk-latin.woff2',
   variable: '--font-space-grotesk',
-  subsets: ['latin'],
-  weight: ['300', '400', '500'],
+  weight: '300 500',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
