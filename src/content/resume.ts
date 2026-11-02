@@ -18,9 +18,6 @@ export interface Job {
   roles: Role[];
 }
 
-export const RESUME_INTRO =
-  'Senior product manager for voice, contact center, and telephony products, with nine years at Twilio, Zoom, Infobip, and ServiceTitan across SIP trunking, carrier compliance (STIR/SHAKEN, KYC), fraud, and voice AI infrastructure.';
-
 export const JOBS: Job[] = [
   {
     id: 'servicetitan',

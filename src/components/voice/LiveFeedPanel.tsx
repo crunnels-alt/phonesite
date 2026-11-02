@@ -227,6 +227,12 @@ export function LiveFeedPanel() {
     return () => window.removeEventListener(OPEN_FEED_EVENT, show);
   }, []);
 
+  // Lets the page beside the panel leave room for it on wide screens.
+  useEffect(() => {
+    document.documentElement.toggleAttribute('data-feed-open', open);
+    return () => document.documentElement.removeAttribute('data-feed-open');
+  }, [open]);
+
   const toggle = () => {
     setOpen((current) => {
       try {
