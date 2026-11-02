@@ -82,7 +82,7 @@ export default function ResumePage() {
 
       <section className="mt-20 md:col-span-10 md:col-start-2 md:mt-[88px]">
         <h2 className={`${HEADING} mb-6`}>What I work on</h2>
-        <div className="grid grid-cols-1 gap-12 xl:grid-cols-3 xl:gap-x-6">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-x-6">
           {THEMES.map((theme) => (
             <div key={theme.heading} className="flex flex-col gap-4 border-t border-ink pt-5">
               <h3 className="text-[22px] leading-tight tracking-[-0.01em]">{theme.heading}</h3>

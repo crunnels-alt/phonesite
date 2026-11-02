@@ -47,6 +47,24 @@ export const THEMES: Theme[] = [
     ],
   },
   {
+    heading: 'The economics of a call',
+    problem:
+      'Every call has a cost underneath it: carrier rates that change by destination, capacity someone has to pay for, and fraud that turns a cheap minute into an expensive one. Price it wrong and the product grows into a loss. I work on pricing, margin, and fraud together, since a change to one moves the others.',
+    proofs: [
+      {
+        company: 'Twilio',
+        text: 'Ran pricing in contract negotiations with half of the top ten [Elastic SIP Trunking](https://www.twilio.com/docs/sip-trunking) customers, then used what I heard to cut the US list price. Organic sign-ups rose 7% the next quarter.',
+      },
+      { company: 'Zoom', text: 'Traced most telephony fraud to one sales channel, self-serve sign-ups, and made the case for checking identity at the door instead of absorbing the losses after.' },
+      {
+        company: 'Infobip',
+        text: 'Found one wholesale account buying flat-rate US minutes and sending them to destinations that cost up to 75 times as much. Restricting it brought margin back without raising prices on every customer.',
+      },
+      { company: 'Infobip', text: "Ran North America voice go-to-market, beat the year's deal goal six weeks early, and closed the region's best revenue month." },
+      { company: 'ServiceTitan', text: 'Reworked the economics of call transcription so the company could afford to transcribe every Contact Center call.' },
+    ],
+  },
+  {
     heading: 'One identity system for every product',
     problem:
       'Every phone product has to know who its customers are. Regulators require it before handing out numbers, carriers require it before signing calls, and fraud teams need it to act. Built product by product, it slows every launch. I have built it as a shared platform twice.',
