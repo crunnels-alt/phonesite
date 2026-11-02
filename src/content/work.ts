@@ -66,7 +66,6 @@ export const THEMES: Theme[] = [
       { company: 'Zoom', text: 'The carrier platform under [Zoom Phone](https://www.zoom.com/en/products/voip-phone/), including its expansion into new countries.' },
       { company: 'Infobip', text: "Infobip's [voice platform](https://www.infobip.com/voice) in North America, as a network customers could build their own voice AI products on." },
       { company: 'ServiceTitan', text: 'Voice telephony and Contact Center across three phone products, and the transcription, admin, and observability platforms that operators and AI teams build on.' },
-      { company: 'This site', text: '[The AI that answers my phone](/projects), built three times on Twilio, Pipecat, and LiveKit.' },
     ],
   },
 ];
