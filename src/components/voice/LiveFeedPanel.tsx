@@ -58,11 +58,14 @@ const readStack = (): CallPath => {
   }
 };
 
+// Open by default only where it fits beside the page; on phones it would cover the page until closed.
 const readOpen = () => {
+  const roomy = window.matchMedia('(min-width: 768px)').matches;
   try {
-    return localStorage.getItem(OPEN_KEY) !== 'false';
+    const stored = localStorage.getItem(OPEN_KEY);
+    return stored === null ? roomy : stored === 'true';
   } catch {
-    return true;
+    return roomy;
   }
 };
 
