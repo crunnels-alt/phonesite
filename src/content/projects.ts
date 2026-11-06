@@ -85,7 +85,7 @@ export const PROJECTS: Project[] = [
     howItWorks: [
       'Every call hits a small router on Railway. It waits three seconds for a pairing code typed from the website, and the code picks the stack. With no code, the call stays on Twilio.',
       'On the Twilio path, ConversationRelay turns speech into text and reads the replies aloud, so my server only handles text. On the Pipecat path, Twilio streams the raw audio and the service does its own speech recognition with Deepgram, then speaks in a cloned version of my voice through ElevenLabs. The LiveKit path dials the call into LiveKit Cloud over SIP, where a Python agent joins the room.',
-      'All three send each turn to the same model through Vercel AI Gateway, and every event goes to the live feed on this site through Pusher. The servers run on Railway because a call holds a connection open for minutes, which Vercel functions cannot do.',
+      'All three send each turn to the same model through Vercel AI Gateway, and every event goes to the live feed on this site through Pusher.',
     ],
     stack: [
       { layer: 'Frameworks', pieces: ['Node.js', 'Vercel AI SDK', 'Pipecat (Python)', 'LiveKit Agents (Python)'] },
