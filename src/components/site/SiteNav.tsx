@@ -4,7 +4,8 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/cn';
-import { PHONE_NUMBER, SECTIONS, sectionByDigit } from '@/lib/sections';
+import { SECTIONS, sectionByDigit } from '@/lib/sections';
+import { PhoneNavigator } from './PhoneNavigator';
 
 const isActive = (pathname: string, href: string) =>
   href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
@@ -40,9 +41,7 @@ export function SiteNav() {
         </Link>
       ))}
       <span className="grow" />
-      <a href={`tel:${PHONE_NUMBER.replace(/\s/g, '')}`} className="text-[13px] hover:text-ink">
-        {PHONE_NUMBER}
-      </a>
+      <PhoneNavigator />
     </nav>
   );
 }

@@ -1,4 +1,3 @@
-import { PhoneNavigator } from '@/components/site/PhoneNavigator';
 import { SiteNav } from '@/components/site/SiteNav';
 
 export default function SiteLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -6,7 +5,6 @@ export default function SiteLayout({ children }: Readonly<{ children: React.Reac
     <div className="min-h-screen">
       <SiteNav />
       {children}
-      <PhoneNavigator />
     </div>
   );
 }
