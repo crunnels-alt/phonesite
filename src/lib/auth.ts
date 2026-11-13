@@ -58,14 +58,12 @@ export function clearSessionCookie(response: NextResponse): void {
   });
 }
 
+/** Only the signed session cookie counts. The password itself is checked in one place, the rate-limited sign-in route. */
 export function isAdminRequest(request: NextRequest): boolean {
-  if (verifySessionToken(request.cookies.get(ADMIN_SESSION_COOKIE)?.value)) return true;
-  const password = process.env.ADMIN_PASSWORD;
-  const header = request.headers.get('authorization') ?? '';
-  return Boolean(password) && safeEqual(header, `Bearer ${password}`);
+  return verifySessionToken(request.cookies.get(ADMIN_SESSION_COOKIE)?.value);
 }
 
-/** Admin routes accept the session cookie or the admin password as a Bearer token. Returns an error response, or null when authorized. */
+/** Returns an error response, or null when the request carries a valid admin session. */
 export function requireAdmin(request: NextRequest): NextResponse | null {
   if (isAdminRequest(request)) return null;
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
