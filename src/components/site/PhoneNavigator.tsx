@@ -103,7 +103,7 @@ export function PhoneNavigator() {
         {PHONE_NUMBER}
       </a>
       {steering && (
-        <span role="status" className="fixed bottom-6 left-4 z-30 text-ink-3 sm:left-[5%]">
+        <span role="status" className="fixed bottom-4 left-2 z-30 bg-background px-2 py-1 text-ink-3 sm:left-[calc(5%-0.5rem)]">
           {callActive
             ? `A caller is steering this page${section ? `: ${section}` : ''}`
             : `Call ${PHONE_NUMBER} and press 0 to 6 to move this page`}
