@@ -1,156 +1,108 @@
 /**
- * Rate limiting utilities using Upstash Redis
- *
- * Different tiers for different endpoint types:
- * - Strict: Auth endpoints (5 requests/minute)
- * - Upload: File uploads (10 requests/hour)
- * - Standard: CRUD operations (30 requests/minute)
- * - Lenient: Read-only/cached endpoints (60 requests/minute)
+ * Rate limiting. Counts live in Upstash Redis when it is configured, so every server instance shares them.
+ * Without Redis, or when it errors, each instance counts in its own memory instead of letting requests through.
  */
 
 import { Ratelimit } from '@upstash/ratelimit';
 import { NextRequest, NextResponse } from 'next/server';
 import { getRedis } from './redis';
 
-// Lazy-initialized rate limiters
-let _authRateLimit: Ratelimit | null = null;
-let _uploadRateLimit: Ratelimit | null = null;
-let _standardRateLimit: Ratelimit | null = null;
-let _lenientRateLimit: Ratelimit | null = null;
+interface Tier {
+  requests: number;
+  window: '1 m' | '1 h';
+  windowMs: number;
+}
 
-async function createRateLimiterAsync(prefix: string, requests: number, window: string): Promise<Ratelimit | null> {
-  try {
+const TIERS = {
+  /** Sign-in, contact form, sync triggers. */
+  auth: { requests: 5, window: '1 m', windowMs: 60_000 },
+  upload: { requests: 10, window: '1 h', windowMs: 3_600_000 },
+  standard: { requests: 30, window: '1 m', windowMs: 60_000 },
+  lenient: { requests: 60, window: '1 m', windowMs: 60_000 },
+} satisfies Record<string, Tier>;
+
+type TierName = keyof typeof TIERS;
+
+interface Verdict {
+  success: boolean;
+  limit: number;
+  reset: number;
+}
+
+const limiters = new Map<TierName, Ratelimit | null>();
+
+function redisLimiter(name: TierName): Ratelimit | null {
+  if (!limiters.has(name)) {
     const redis = getRedis();
-    if (!redis) return null;
-
-    return new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(requests, window as Parameters<typeof Ratelimit.slidingWindow>[1]),
-      analytics: true,
-      prefix,
-    });
-  } catch {
-    return null;
+    const { requests, window } = TIERS[name];
+    limiters.set(
+      name,
+      redis
+        ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(requests, window), analytics: true, prefix: `@upstash/ratelimit:${name}` })
+        : null
+    );
   }
+  return limiters.get(name) ?? null;
 }
 
-// Async getter functions for lazy initialization
-export async function getAuthRateLimit(): Promise<Ratelimit | null> {
-  if (!_authRateLimit) _authRateLimit = await createRateLimiterAsync('@upstash/ratelimit:auth', 5, '1 m');
-  return _authRateLimit;
+// Fallback counts for this server instance: request times per tier and caller.
+const MAX_TRACKED = 5000;
+const recent = new Map<string, number[]>();
+
+function limitInMemory(name: TierName, identifier: string, now: number = Date.now()): Verdict {
+  const { requests, windowMs } = TIERS[name];
+  const key = `${name}:${identifier}`;
+  const times = (recent.get(key) ?? []).filter((at) => now - at < windowMs);
+  const success = times.length < requests;
+  if (success) times.push(now);
+  // Re-inserting moves the key to the end, so the oldest-touched callers are the ones dropped at the cap.
+  recent.delete(key);
+  recent.set(key, times);
+  if (recent.size > MAX_TRACKED) recent.delete(recent.keys().next().value as string);
+  return { success, limit: requests, reset: (times[0] ?? now) + windowMs };
 }
 
-export async function getUploadRateLimit(): Promise<Ratelimit | null> {
-  if (!_uploadRateLimit) _uploadRateLimit = await createRateLimiterAsync('@upstash/ratelimit:upload', 10, '1 h');
-  return _uploadRateLimit;
-}
-
-export async function getStandardRateLimit(): Promise<Ratelimit | null> {
-  if (!_standardRateLimit) _standardRateLimit = await createRateLimiterAsync('@upstash/ratelimit:standard', 30, '1 m');
-  return _standardRateLimit;
-}
-
-export async function getLenientRateLimit(): Promise<Ratelimit | null> {
-  if (!_lenientRateLimit) _lenientRateLimit = await createRateLimiterAsync('@upstash/ratelimit:lenient', 60, '1 m');
-  return _lenientRateLimit;
-}
-
-/**
- * Get identifier for rate limiting (IP address or fallback)
- */
-export function getIdentifier(request: NextRequest): string {
-  // Try to get real IP from headers (handles proxies/load balancers)
-  const forwarded = request.headers.get('x-forwarded-for');
-  const realIp = request.headers.get('x-real-ip');
-
-  if (forwarded) {
-    return forwarded.split(',')[0].trim();
-  }
-
-  if (realIp) {
-    return realIp;
-  }
-
-  // Fallback to a generic identifier
-  return 'anonymous';
-}
-
-/**
- * Apply rate limit and return appropriate response if exceeded
- *
- * @param rateLimit - The rate limiter to use (can be null)
- * @param identifier - The identifier to rate limit (usually IP)
- * @returns null if allowed, NextResponse if rate limit exceeded
- */
-export async function checkRateLimit(
-  rateLimit: Ratelimit | null,
-  identifier: string
-): Promise<NextResponse | null> {
-  // In development, skip rate limiting for easier testing
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Dev Mode] Skipping rate limit check');
-    return null;
-  }
-
-  // If rate limiter is null (KV not configured), allow the request
-  if (!rateLimit) {
-    console.log('Rate limiter not configured, allowing request');
-    return null;
-  }
-
-  try {
-    const { success, limit, reset, remaining } = await rateLimit.limit(identifier);
-
-    if (!success) {
-      console.warn(`Rate limit exceeded for ${identifier}`);
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Rate limit exceeded',
-          limit,
-          remaining: 0,
-          reset: new Date(reset).toISOString(),
-        },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': limit.toString(),
-            'X-RateLimit-Remaining': '0',
-            'X-RateLimit-Reset': reset.toString(),
-            'Retry-After': Math.ceil((reset - Date.now()) / 1000).toString(),
-          },
-        }
-      );
+async function limit(name: TierName, identifier: string): Promise<Verdict> {
+  const limiter = redisLimiter(name);
+  if (limiter) {
+    try {
+      return await limiter.limit(identifier);
+    } catch (error) {
+      console.warn('Redis rate limit failed, counting in memory:', error);
     }
-
-    console.log(`Rate limit OK for ${identifier}: ${remaining}/${limit} remaining`);
-    return null;
-  } catch (error) {
-    // If rate limiting fails (e.g., KV not configured), allow the request
-    console.warn('Rate limiting unavailable, allowing request:', error);
-    return null;
   }
+  return limitInMemory(name, identifier);
 }
 
-/**
- * Combined helpers that get rate limiter and check in one call
- */
-export async function checkLenientRateLimit(identifier: string): Promise<NextResponse | null> {
-  const limiter = await getLenientRateLimit();
-  return checkRateLimit(limiter, identifier);
+/** The caller's IP as Vercel reports it. */
+export function getIdentifier(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0].trim();
+  return request.headers.get('x-real-ip') ?? 'anonymous';
 }
 
-export async function checkStandardRateLimit(identifier: string): Promise<NextResponse | null> {
-  const limiter = await getStandardRateLimit();
-  return checkRateLimit(limiter, identifier);
+/** Returns a 429 response when the caller is over the tier's limit, or null when the request may proceed. */
+async function check(name: TierName, identifier: string): Promise<NextResponse | null> {
+  if (process.env.NODE_ENV === 'development') return null;
+
+  const { success, limit: max, reset } = await limit(name, identifier);
+  if (success) return null;
+
+  return NextResponse.json(
+    { success: false, error: 'Rate limit exceeded', limit: max, remaining: 0, reset: new Date(reset).toISOString() },
+    {
+      status: 429,
+      headers: {
+        'X-RateLimit-Limit': max.toString(),
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': reset.toString(),
+        'Retry-After': Math.max(1, Math.ceil((reset - Date.now()) / 1000)).toString(),
+      },
+    }
+  );
 }
 
-export async function checkUploadRateLimit(identifier: string): Promise<NextResponse | null> {
-  const limiter = await getUploadRateLimit();
-  return checkRateLimit(limiter, identifier);
-}
-
-export async function checkAuthRateLimit(identifier: string): Promise<NextResponse | null> {
-  const limiter = await getAuthRateLimit();
-  return checkRateLimit(limiter, identifier);
-}
+export const checkAuthRateLimit = (identifier: string) => check('auth', identifier);
+export const checkUploadRateLimit = (identifier: string) => check('upload', identifier);
+export const checkStandardRateLimit = (identifier: string) => check('standard', identifier);
+export const checkLenientRateLimit = (identifier: string) => check('lenient', identifier);

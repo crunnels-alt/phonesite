@@ -4,7 +4,7 @@ import { and, gt, isNull, lt, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { voicePairings } from '@/lib/schema';
 import type { CallPath } from '@/lib/schema';
-import { checkRateLimit, getIdentifier, getStandardRateLimit } from '@/lib/ratelimit';
+import { checkStandardRateLimit, getIdentifier } from '@/lib/ratelimit';
 
 const CODE_TTL_MS = 10 * 60 * 1000;
 const MAX_ATTEMPTS = 10;
@@ -13,7 +13,7 @@ const PATHS: CallPath[] = ['A', 'B', 'C'];
 
 /** A browser asks for a code to show. The caller types it on the keypad to pair this browser with their call. */
 export async function POST(request: NextRequest) {
-  const limited = await checkRateLimit(await getStandardRateLimit(), getIdentifier(request));
+  const limited = await checkStandardRateLimit(getIdentifier(request));
   if (limited) return limited;
 
   const body = await request.json().catch(() => ({}));
